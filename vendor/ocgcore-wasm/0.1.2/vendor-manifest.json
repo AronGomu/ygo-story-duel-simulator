@@ -1,0 +1,121 @@
+{
+  "schemaVersion": 1,
+  "package": "ocgcore-wasm",
+  "version": "0.1.2",
+  "source": "https://registry.npmjs.org/ocgcore-wasm/-/ocgcore-wasm-0.1.2.tgz",
+  "integrity": "sha512-Zgjx2xIf2RJf1gjvHGR8lvcLRfw54Cq48QFMOrOxtt3SeAf+/h58IbVNoYpZbK7O5O23GCwLeNqS4T6zODHpWA==",
+  "upstreamRevision": "9f36452f2a2464f057f7fd6e2273aa5ab589401e",
+  "embeddedCoreRevision": "8e5f4e4f0ab6b8ca750e8e1c91c1a58f407e3272",
+  "coreVersion": [
+    11,
+    0
+  ],
+  "localPatches": [],
+  "files": [
+    {
+      "path": "dist/chunk-6GYI7QPM.js",
+      "bytes": 85,
+      "sha256": "50ccbfa03faa5890150ba6b4641eb54e9f396bdc3dd2e902b5e6d9a494a7e114"
+    },
+    {
+      "path": "dist/chunk-6GYI7QPM.js.map",
+      "bytes": 221,
+      "sha256": "cc9746a0da0899f6500c6d02440f9716cd95d2f84da56389057287ca388e6dec"
+    },
+    {
+      "path": "dist/chunk-L5TW24SS.js",
+      "bytes": 608,
+      "sha256": "c423002451d97362435b1d0f2b043a7fa848fefa27a05ef6b411c35ff77c5057"
+    },
+    {
+      "path": "dist/chunk-L5TW24SS.js.map",
+      "bytes": 93,
+      "sha256": "ed562b0bba7ee7214e56ac7f728054b3496bec4597c94a4eb7b4179e6f5cb1c9"
+    },
+    {
+      "path": "dist/index.d.ts",
+      "bytes": 82230,
+      "sha256": "f2f3babfe7f0ed4cb701469c7c5d9ee4190becb13a05c652c0e66da1ea0c42bb"
+    },
+    {
+      "path": "dist/index.js",
+      "bytes": 46004,
+      "sha256": "5642dad500a7e801fa87190fe937b6efb4e8448a7cf6421836a60a039984379d"
+    },
+    {
+      "path": "dist/index.js.map",
+      "bytes": 195340,
+      "sha256": "b4cef0d1cee50a527c0313ae326afa3755c09a5ba11697a6f5559af475b28db2"
+    },
+    {
+      "path": "dist/ocgcore.jspi-ROQIC75H.js",
+      "bytes": 7111,
+      "sha256": "059a7e0eda07cb59d5a1a224676c1c12e093fb2e7e3736cf09a0c656e1f039b6"
+    },
+    {
+      "path": "dist/ocgcore.jspi-ROQIC75H.js.map",
+      "bytes": 17314,
+      "sha256": "f78d93e874911fe6600e84aa197da7abb738aac863c8a74b05423e5bc3c406d4"
+    },
+    {
+      "path": "dist/ocgcore.jspi-W7UMOWZG.js",
+      "bytes": 1245720,
+      "sha256": "062925346cee311bdc82d2dcbf5a2f08f01bded93bd5d6596786bd1d17013eb6"
+    },
+    {
+      "path": "dist/ocgcore.jspi-W7UMOWZG.js.map",
+      "bytes": 93,
+      "sha256": "ed562b0bba7ee7214e56ac7f728054b3496bec4597c94a4eb7b4179e6f5cb1c9"
+    },
+    {
+      "path": "dist/ocgcore.sync-MMMSWPBB.js",
+      "bytes": 21128,
+      "sha256": "ac731c26515b1bf6b497711c5b78c926df033196ccdbf8961ac7926710b28345"
+    },
+    {
+      "path": "dist/ocgcore.sync-MMMSWPBB.js.map",
+      "bytes": 59052,
+      "sha256": "331ebeb4b46362a2b7738bc6f1a5ff94092eb14679f1511ccef5f98a342cd8b3"
+    },
+    {
+      "path": "dist/ocgcore.sync-ORIXRHXI.js",
+      "bytes": 1244724,
+      "sha256": "db21d338bda2e9467f973363e5e069ba2ca4daa05fa6d0a71bb53a0027c6078e"
+    },
+    {
+      "path": "dist/ocgcore.sync-ORIXRHXI.js.map",
+      "bytes": 93,
+      "sha256": "ed562b0bba7ee7214e56ac7f728054b3496bec4597c94a4eb7b4179e6f5cb1c9"
+    },
+    {
+      "path": "lib/ocgcore.sync.mjs",
+      "bytes": 21357,
+      "sha256": "f4523ad5c2e9f14c8736a91ad94e9e7f8283883a3607781f40afdeae27cdf828"
+    },
+    {
+      "path": "lib/ocgcore.sync.wasm",
+      "bytes": 933449,
+      "sha256": "7415337a6f88653b38e10faa3a087c0a5ab64dd27a7d7cf8a1e6872747c5c265"
+    },
+    {
+      "path": "LICENSE",
+      "bytes": 1072,
+      "sha256": "ce6030135e819e40f855ab2a0fcb236d3d7cd4c93e58936e1286623c378ce09a"
+    },
+    {
+      "path": "package.json",
+      "bytes": 1956,
+      "sha256": "f4b30cede802af127aae2c94c5cbd33d87bbf43f517d5729539888840667bdd1"
+    },
+    {
+      "path": "README.md",
+      "bytes": 1704,
+      "sha256": "9abf63b980cbfb19f5a033bd0033be2f18d98d8ba59d3ff63b68712a2729532c"
+    },
+    {
+      "path": "VENDORING.md",
+      "bytes": 1297,
+      "sha256": "5c813975aa728a760bc20c54a8a2a835ddc1c692537b310283a21bbf1e1868f9"
+    }
+  ]
+}
