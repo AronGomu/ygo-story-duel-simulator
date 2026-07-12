@@ -1,0 +1,25 @@
+{
+  "name": "ygo-story-duel-simulator",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=24.0.0"
+  },
+  "scripts": {
+    "assets:mvp": "node scripts/download-mvp-assets.ts",
+    "assets:engine": "node scripts/sync-engine.ts",
+    "assets:engine:verify": "node scripts/verify-engine.ts",
+    "assets:sync": "node scripts/sync-assets.ts",
+    "assets:sync:offline": "node scripts/sync-assets.ts --offline",
+    "assets:verify": "node scripts/verify-assets.ts",
+    "assets:images": "node scripts/download-images.ts",
+    "assets:images:verify": "node scripts/verify-images.ts",
+    "typecheck": "tsc --noEmit",
+    "test": "node --test tests/*.test.ts"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "typescript": "^6.0.0"
+  }
+}

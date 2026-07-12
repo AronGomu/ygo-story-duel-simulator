@@ -1,0 +1,7 @@
+export const MAX_CATALOG_DATABASES = 64;
+export const MAX_DATABASE_BYTES = 128 * 1024 * 1024;
+export const MAX_CATALOG_RECORDS = 100_000;
+export const MAX_CARD_SCRIPT_FILES = 100_000;
+export const MAX_CARD_SCRIPT_BYTES = 2 * 1024 * 1024;
+export const MAX_TOTAL_CARD_SCRIPT_BYTES = 512 * 1024 * 1024;
+export const MAX_STRINGS_CONF_BYTES = 16 * 1024 * 1024;
