@@ -1,0 +1,1130 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <title>YGO Story Duel Simulator | MVP Macro Implementation Plan</title>
+  <script>
+    (() => {
+      const saved = localStorage.getItem("ygo-mvp-plan-theme");
+      const theme = saved || (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+      document.documentElement.dataset.theme = theme;
+    })();
+  </script>
+  <style>
+    :root {
+      color-scheme: light;
+      --canvas: oklch(97.5% 0.008 245);
+      --paper: oklch(99.2% 0.004 245);
+      --ink: oklch(24% 0.025 255);
+      --muted: oklch(50% 0.025 255);
+      --faint: oklch(65% 0.018 255);
+      --line: oklch(88% 0.015 245);
+      --line-strong: oklch(78% 0.025 245);
+      --accent: oklch(52% 0.15 255);
+      --accent-soft: oklch(94% 0.025 255);
+      --success: oklch(49% 0.12 155);
+      --success-soft: oklch(95% 0.035 155);
+      --warning: oklch(60% 0.135 74);
+      --warning-soft: oklch(96% 0.04 82);
+      --danger: oklch(51% 0.16 25);
+      --danger-soft: oklch(95% 0.035 25);
+      --shadow: 0 18px 48px oklch(30% 0.03 255 / 0.09);
+      --radius: 14px;
+      --sidebar: 17rem;
+    }
+
+    html[data-theme="dark"] {
+      color-scheme: dark;
+      --canvas: oklch(18% 0.018 255);
+      --paper: oklch(22% 0.022 255);
+      --ink: oklch(92% 0.012 245);
+      --muted: oklch(73% 0.018 245);
+      --faint: oklch(61% 0.02 245);
+      --line: oklch(31% 0.024 255);
+      --line-strong: oklch(42% 0.03 255);
+      --accent: oklch(72% 0.13 250);
+      --accent-soft: oklch(28% 0.045 255);
+      --success: oklch(70% 0.12 155);
+      --success-soft: oklch(27% 0.045 155);
+      --warning: oklch(77% 0.13 78);
+      --warning-soft: oklch(29% 0.05 75);
+      --danger: oklch(72% 0.15 25);
+      --danger-soft: oklch(28% 0.05 25);
+      --shadow: 0 18px 48px oklch(5% 0.015 255 / 0.35);
+    }
+
+    * { box-sizing: border-box; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      margin: 0;
+      background: var(--canvas);
+      color: var(--ink);
+      font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 15px;
+      line-height: 1.58;
+    }
+
+    button, textarea, input { font: inherit; }
+    button { color: inherit; }
+    a { color: var(--accent); text-underline-offset: 0.2em; }
+    a:hover { text-decoration-thickness: 2px; }
+
+    .skip-link {
+      position: fixed;
+      z-index: 100;
+      top: 0.75rem;
+      left: 0.75rem;
+      transform: translateY(-160%);
+      padding: 0.65rem 0.9rem;
+      border-radius: 8px;
+      background: var(--ink);
+      color: var(--paper);
+      transition: transform 160ms cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .skip-link:focus { transform: translateY(0); }
+
+    .topbar {
+      position: sticky;
+      z-index: 30;
+      top: 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      min-height: 58px;
+      padding: 0.7rem clamp(1rem, 3vw, 2.5rem);
+      border-bottom: 1px solid var(--line);
+      background: color-mix(in oklch, var(--paper) 96%, transparent);
+    }
+
+    .brand {
+      display: flex;
+      align-items: baseline;
+      gap: 0.7rem;
+      min-width: 0;
+    }
+
+    .brand strong { font-size: 0.95rem; letter-spacing: -0.015em; }
+    .brand span { color: var(--muted); font-size: 0.78rem; }
+
+    .top-actions { display: flex; align-items: center; gap: 0.55rem; }
+
+    .button {
+      min-height: 36px;
+      padding: 0.48rem 0.78rem;
+      border: 1px solid var(--line-strong);
+      border-radius: 8px;
+      background: var(--paper);
+      cursor: pointer;
+      font-size: 0.82rem;
+      font-weight: 650;
+      transition: border-color 160ms ease, background 160ms ease, color 160ms ease;
+    }
+
+    .button:hover { border-color: var(--accent); background: var(--accent-soft); }
+    .button:focus-visible, .review-button:focus-visible, textarea:focus-visible, a:focus-visible {
+      outline: 3px solid oklch(70% 0.12 255 / 0.42);
+      outline-offset: 2px;
+    }
+
+    .button.primary { border-color: var(--accent); background: var(--accent); color: var(--paper); }
+    .button.primary:hover { background: color-mix(in oklch, var(--accent) 82%, var(--ink)); }
+
+    .theme-icon { display: inline-block; width: 1.1em; text-align: center; }
+
+    .layout {
+      display: grid;
+      grid-template-columns: var(--sidebar) minmax(0, 1fr);
+      gap: clamp(2rem, 5vw, 5rem);
+      width: min(1440px, 100%);
+      margin: 0 auto;
+      padding: 0 clamp(1rem, 3vw, 2.5rem) 6rem;
+    }
+
+    .sidebar {
+      position: sticky;
+      top: 58px;
+      align-self: start;
+      height: calc(100vh - 58px);
+      padding: 2rem 0;
+      overflow: auto;
+    }
+
+    .sidebar-title {
+      margin: 0 0 0.65rem;
+      color: var(--faint);
+      font-size: 0.68rem;
+      font-weight: 750;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    .toc { margin: 0; padding: 0; list-style: none; }
+    .toc a {
+      display: block;
+      padding: 0.38rem 0.55rem;
+      border-radius: 7px;
+      color: var(--muted);
+      font-size: 0.82rem;
+      text-decoration: none;
+    }
+    .toc a:hover { background: var(--accent-soft); color: var(--ink); }
+
+    .review-progress { margin-top: 1.75rem; padding-top: 1.25rem; border-top: 1px solid var(--line); }
+    .progress-label { display: flex; justify-content: space-between; gap: 1rem; color: var(--muted); font-size: 0.76rem; }
+    .progress-track { height: 7px; margin-top: 0.45rem; overflow: hidden; border-radius: 999px; background: var(--line); }
+    .progress-value { width: 0; height: 100%; background: var(--accent); transition: width 220ms cubic-bezier(0.22, 1, 0.36, 1); }
+    .local-note { margin-top: 0.65rem; color: var(--faint); font-size: 0.7rem; }
+
+    main { min-width: 0; padding-top: 3.7rem; }
+
+    .hero {
+      position: relative;
+      max-width: 960px;
+      padding-bottom: 3.2rem;
+      border-bottom: 1px solid var(--line-strong);
+    }
+
+    .eyebrow {
+      margin: 0 0 0.85rem;
+      color: var(--accent);
+      font-size: 0.73rem;
+      font-weight: 800;
+      letter-spacing: 0.13em;
+      text-transform: uppercase;
+    }
+
+    h1, h2, h3, h4 { margin-top: 0; line-height: 1.18; letter-spacing: -0.025em; }
+    h1 { max-width: 15ch; margin-bottom: 1.25rem; font-size: clamp(2.25rem, 5vw, 4.6rem); font-weight: 760; }
+    h2 { margin-bottom: 1rem; font-size: 1.8rem; }
+    h3 { margin-bottom: 0.55rem; font-size: 1.2rem; }
+    h4 { margin-bottom: 0.4rem; font-size: 0.98rem; }
+
+    .hero-copy { max-width: 70ch; margin: 0; color: var(--muted); font-size: 1.05rem; }
+
+    .meta-strip {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem 1.5rem;
+      margin-top: 2rem;
+      padding-top: 1rem;
+      border-top: 1px solid var(--line);
+    }
+
+    .meta-item span { display: block; color: var(--faint); font-size: 0.68rem; font-weight: 750; letter-spacing: 0.08em; text-transform: uppercase; }
+    .meta-item strong { font-size: 0.88rem; }
+
+    section { max-width: 960px; padding: 3.8rem 0 0; scroll-margin-top: 80px; }
+    section > p { max-width: 72ch; color: var(--muted); }
+
+    .callout {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 0.9rem;
+      margin: 1.35rem 0;
+      padding: 1rem 1.15rem;
+      border: 1px solid var(--line-strong);
+      border-radius: 10px;
+      background: var(--paper);
+    }
+
+    .callout .marker {
+      display: grid;
+      place-items: center;
+      width: 28px;
+      height: 28px;
+      border-radius: 7px;
+      background: var(--warning-soft);
+      color: var(--warning);
+      font-weight: 850;
+    }
+    .callout p { margin: 0; color: var(--muted); }
+    .callout strong { color: var(--ink); }
+
+    .status-row {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 1px;
+      margin: 1.5rem 0;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--line);
+    }
+
+    .status-block { padding: 1.25rem; background: var(--paper); }
+    .status-block .status-label { display: inline-flex; align-items: center; gap: 0.45rem; font-size: 0.75rem; font-weight: 750; }
+    .status-block .status-label::before { width: 8px; height: 8px; border-radius: 50%; content: ""; background: var(--faint); }
+    .status-block.done .status-label::before { background: var(--success); }
+    .status-block.active .status-label::before { background: var(--warning); }
+    .status-block.pending .status-label::before { background: var(--faint); }
+    .status-block strong { display: block; margin: 0.65rem 0 0.25rem; }
+    .status-block p { margin: 0; color: var(--muted); font-size: 0.82rem; }
+
+    .scope-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2rem;
+      margin-top: 1.7rem;
+    }
+    .scope-column { padding-top: 1rem; border-top: 2px solid var(--ink); }
+    .scope-column.out { border-top-color: var(--line-strong); }
+
+    ul.clean { margin: 0.65rem 0 0; padding-left: 1.15rem; }
+    ul.clean li { margin: 0.36rem 0; }
+    ul.clean li::marker { color: var(--accent); }
+    .scope-column.out li::marker { color: var(--faint); }
+
+    .decision-list { border-top: 1px solid var(--line-strong); }
+    .decision {
+      display: grid;
+      grid-template-columns: 2.25rem minmax(0, 1fr) auto;
+      gap: 1rem;
+      padding: 1.15rem 0;
+      border-bottom: 1px solid var(--line);
+      align-items: start;
+    }
+    .decision-number { color: var(--accent); font-size: 0.78rem; font-weight: 850; letter-spacing: 0.08em; }
+    .decision p { max-width: 65ch; margin: 0.3rem 0 0; color: var(--muted); font-size: 0.86rem; }
+    .decision-tag { padding: 0.25rem 0.55rem; border-radius: 999px; background: var(--warning-soft); color: var(--warning); font-size: 0.7rem; font-weight: 750; white-space: nowrap; }
+
+    .roadmap { position: relative; margin-top: 1.5rem; }
+    .phase {
+      position: relative;
+      display: grid;
+      grid-template-columns: 7.2rem minmax(0, 1fr);
+      gap: 1.5rem;
+      padding: 0 0 3.4rem;
+    }
+    .phase:last-child { padding-bottom: 0; }
+    .phase::before {
+      position: absolute;
+      top: 1.65rem;
+      bottom: 0;
+      left: 3.56rem;
+      width: 1px;
+      background: var(--line-strong);
+      content: "";
+    }
+    .phase:last-child::before { display: none; }
+
+    .phase-index { position: relative; text-align: center; }
+    .phase-index strong {
+      position: relative;
+      z-index: 1;
+      display: inline-grid;
+      place-items: center;
+      width: 3.3rem;
+      height: 3.3rem;
+      border: 1px solid var(--line-strong);
+      border-radius: 50%;
+      background: var(--paper);
+      color: var(--accent);
+      font-size: 0.9rem;
+    }
+    .phase-index span { display: block; margin-top: 0.45rem; color: var(--faint); font-size: 0.7rem; font-weight: 700; }
+
+    .phase-content { padding-bottom: 0.2rem; }
+    .phase-heading { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; }
+    .phase-heading h3 { margin-bottom: 0.2rem; }
+    .size { color: var(--faint); font-size: 0.7rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; white-space: nowrap; }
+    .objective { max-width: 68ch; margin: 0.35rem 0 1rem; color: var(--muted); }
+
+    .phase-details {
+      display: grid;
+      grid-template-columns: minmax(0, 1.2fr) minmax(16rem, 0.8fr);
+      gap: 1.5rem;
+      padding: 1.1rem 0;
+      border-top: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+    }
+    .phase-details ul { margin-top: 0.35rem; }
+    .gate { padding: 0.9rem; border-radius: 9px; background: var(--accent-soft); }
+    .gate p { margin: 0.35rem 0 0; color: var(--muted); font-size: 0.82rem; }
+
+    .critical-path {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      align-items: center;
+      margin: 1.4rem 0 0;
+      padding: 1rem;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: var(--paper);
+    }
+    .critical-path span { padding: 0.35rem 0.55rem; border-radius: 6px; background: var(--accent-soft); font-size: 0.76rem; font-weight: 700; }
+    .critical-path b { color: var(--faint); font-weight: 600; }
+
+    .workstreams { width: 100%; margin-top: 1.3rem; border-collapse: collapse; font-size: 0.82rem; }
+    .workstreams th, .workstreams td { padding: 0.72rem 0.65rem; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
+    .workstreams th { color: var(--faint); font-size: 0.68rem; letter-spacing: 0.08em; text-transform: uppercase; }
+    .workstreams td:first-child { font-weight: 700; }
+
+    .risk-list { border-top: 1px solid var(--line-strong); }
+    .risk-item {
+      display: grid;
+      grid-template-columns: 5rem minmax(10rem, 0.8fr) minmax(0, 1.2fr);
+      gap: 1rem;
+      padding: 0.9rem 0;
+      border-bottom: 1px solid var(--line);
+      align-items: start;
+    }
+    .risk-level { width: fit-content; padding: 0.2rem 0.45rem; border-radius: 5px; font-size: 0.68rem; font-weight: 800; text-transform: uppercase; }
+    .risk-level.high { background: var(--danger-soft); color: var(--danger); }
+    .risk-level.medium { background: var(--warning-soft); color: var(--warning); }
+    .risk-item strong { font-size: 0.88rem; }
+    .risk-item p { margin: 0; color: var(--muted); font-size: 0.82rem; }
+
+    .dod-list { counter-reset: done; margin: 1.2rem 0 0; padding: 0; list-style: none; }
+    .dod-list li {
+      counter-increment: done;
+      display: grid;
+      grid-template-columns: 2rem minmax(0, 1fr);
+      gap: 0.7rem;
+      padding: 0.68rem 0;
+      border-bottom: 1px solid var(--line);
+    }
+    .dod-list li::before { content: counter(done, decimal-leading-zero); color: var(--accent); font-size: 0.72rem; font-weight: 850; }
+
+    .review-panel {
+      margin-top: 1.5rem;
+      padding: 1.2rem;
+      border: 1px solid var(--line-strong);
+      border-radius: var(--radius);
+      background: var(--paper);
+      box-shadow: var(--shadow);
+    }
+    .review-panel header { display: flex; justify-content: space-between; gap: 1rem; align-items: baseline; }
+    .review-panel header h4 { margin: 0; }
+    .saved-state { min-width: 5rem; color: var(--faint); font-size: 0.7rem; text-align: right; }
+    .review-buttons { display: flex; flex-wrap: wrap; gap: 0.45rem; margin: 0.85rem 0; }
+    .review-button {
+      padding: 0.38rem 0.65rem;
+      border: 1px solid var(--line-strong);
+      border-radius: 7px;
+      background: var(--paper);
+      cursor: pointer;
+      color: var(--muted);
+      font-size: 0.75rem;
+      font-weight: 700;
+    }
+    .review-button:hover { border-color: var(--accent); }
+    .review-button[data-value="approved"].active { border-color: var(--success); background: var(--success-soft); color: var(--success); }
+    .review-button[data-value="changes"].active { border-color: var(--warning); background: var(--warning-soft); color: var(--warning); }
+    .review-button[data-value="unreviewed"].active { border-color: var(--accent); background: var(--accent-soft); color: var(--accent); }
+
+    textarea {
+      display: block;
+      width: 100%;
+      min-height: 88px;
+      resize: vertical;
+      padding: 0.75rem;
+      border: 1px solid var(--line-strong);
+      border-radius: 8px;
+      background: var(--canvas);
+      color: var(--ink);
+      line-height: 1.45;
+    }
+    textarea::placeholder { color: var(--faint); }
+
+    .source-list { columns: 2; gap: 2rem; margin-top: 1rem; padding-left: 1.2rem; }
+    .source-list li { break-inside: avoid; margin: 0.4rem 0; color: var(--muted); font-size: 0.82rem; }
+    code { padding: 0.12rem 0.3rem; border-radius: 4px; background: var(--accent-soft); color: var(--ink); font-family: "SFMono-Regular", Consolas, monospace; font-size: 0.86em; }
+
+    footer { max-width: 960px; margin-top: 5rem; padding: 1.4rem 0 2rem; border-top: 1px solid var(--line-strong); color: var(--faint); font-size: 0.76rem; }
+
+    .toast {
+      position: fixed;
+      z-index: 60;
+      right: 1rem;
+      bottom: 1rem;
+      max-width: min(24rem, calc(100vw - 2rem));
+      padding: 0.75rem 0.95rem;
+      border: 1px solid var(--line-strong);
+      border-radius: 9px;
+      background: var(--ink);
+      color: var(--paper);
+      box-shadow: var(--shadow);
+      opacity: 0;
+      transform: translateY(12px);
+      pointer-events: none;
+      transition: opacity 180ms ease, transform 180ms cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    .toast.show { opacity: 1; transform: translateY(0); }
+
+    @media (max-width: 950px) {
+      .layout { grid-template-columns: 1fr; }
+      .sidebar { display: none; }
+      main { padding-top: 2.5rem; }
+      .phase-details { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 680px) {
+      .brand span, .button.print { display: none; }
+      .topbar { position: static; flex-direction: column; align-items: stretch; gap: 0.6rem; }
+      .top-actions { display: grid; grid-template-columns: auto minmax(0, 1fr) minmax(0, 1.35fr); width: 100%; }
+      .top-actions .button { width: 100%; padding-inline: 0.45rem; white-space: normal; }
+      h1 { font-size: 2.35rem; }
+      .status-row, .scope-grid { grid-template-columns: 1fr; }
+      .phase { grid-template-columns: 3.6rem minmax(0, 1fr); gap: 0.9rem; }
+      .phase::before { left: 1.76rem; }
+      .phase-index strong { width: 2.7rem; height: 2.7rem; }
+      .phase-heading { display: block; }
+      .decision { grid-template-columns: 2rem 1fr; }
+      .decision-tag { grid-column: 2; width: fit-content; }
+      .risk-item { grid-template-columns: 4.2rem 1fr; }
+      .risk-item p { grid-column: 2; }
+      .source-list { columns: 1; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; transition-duration: 0.01ms !important; }
+    }
+
+    @media print {
+      :root, html[data-theme="dark"] {
+        --canvas: oklch(97.5% 0.008 245);
+        --paper: oklch(99.2% 0.004 245);
+        --ink: oklch(24% 0.025 255);
+        --muted: oklch(50% 0.025 255);
+        --faint: oklch(65% 0.018 255);
+        --line: oklch(88% 0.015 245);
+        --line-strong: oklch(78% 0.025 245);
+        --accent: oklch(52% 0.15 255);
+        --accent-soft: oklch(94% 0.025 255);
+      }
+      body { background: var(--paper); font-size: 10.5pt; }
+      .topbar, .sidebar, .review-buttons, .toast { display: none !important; }
+      .layout { display: block; width: auto; padding: 0; }
+      main { padding: 0; }
+      .hero, section, footer { max-width: none; }
+      section { padding-top: 2rem; break-inside: avoid; }
+      h1 { font-size: 30pt; }
+      .review-panel { box-shadow: none; break-inside: avoid; }
+      textarea { min-height: 48px; background: transparent; }
+      .phase { break-inside: avoid; }
+      .phase::before { display: none; }
+      .button { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to plan</a>
+
+  <header class="topbar">
+    <div class="brand">
+      <strong>YGO Story Duel Simulator</strong>
+      <span>MVP planning workspace</span>
+    </div>
+    <div class="top-actions" aria-label="Document actions">
+      <button class="button" type="button" id="themeToggle" aria-label="Switch to dark mode" aria-pressed="false"><span class="theme-icon" aria-hidden="true">◐</span> <span id="themeLabel">Dark</span></button>
+      <button class="button print" type="button" onclick="window.print()">Print</button>
+      <button class="button" type="button" id="copyReview">Copy review</button>
+      <button class="button primary" type="button" id="downloadReview">Download corrections</button>
+    </div>
+  </header>
+
+  <div class="layout">
+    <aside class="sidebar" aria-label="Document navigation">
+      <p class="sidebar-title">Contents</p>
+      <nav>
+        <ul class="toc">
+          <li><a href="#summary">Executive summary</a></li>
+          <li><a href="#baseline">Baseline</a></li>
+          <li><a href="#scope">MVP boundary</a></li>
+          <li><a href="#decisions">Decisions to lock</a></li>
+          <li><a href="#roadmap">Macro roadmap</a></li>
+          <li><a href="#delivery">Delivery model</a></li>
+          <li><a href="#risks">Risks and controls</a></li>
+          <li><a href="#done">Definition of done</a></li>
+          <li><a href="#review">Plan validation</a></li>
+          <li><a href="#sources">Sources</a></li>
+        </ul>
+      </nav>
+      <div class="review-progress" aria-live="polite">
+        <div class="progress-label"><span>Review progress</span><strong id="progressText">0 / 9</strong></div>
+        <div class="progress-track" aria-hidden="true"><div class="progress-value" id="progressValue"></div></div>
+        <p class="local-note">Review choices and notes are saved only in this browser.</p>
+      </div>
+    </aside>
+
+    <main id="main">
+      <article>
+        <header class="hero" id="summary">
+          <p class="eyebrow">Review draft 0.1 · 12 July 2026</p>
+          <h1>MVP macro implementation plan</h1>
+          <p class="hero-copy">A staged path from the verified asset pipeline to a production browser build that completes legal preset-deck duels through Project Ignis <code>ocgcore</code>. This plan preserves the accepted architecture and keeps story systems outside the first release.</p>
+          <div class="meta-strip" aria-label="Plan metadata">
+            <div class="meta-item"><span>Target</span><strong>Offline browser duel client</strong></div>
+            <div class="meta-item"><span>Delivery shape</span><strong>7 implementation phases</strong></div>
+            <div class="meta-item"><span>Estimate</span><strong>18–30 engineer-weeks</strong></div>
+            <div class="meta-item"><span>Confidence</span><strong>Low until Worker spike</strong></div>
+          </div>
+        </header>
+
+        <section id="baseline">
+          <p class="eyebrow">01 · Baseline</p>
+          <h2>Where implementation actually starts</h2>
+          <p>The project is not a blank slate. Architecture research is accepted and the build-time asset importer is working. The browser application, engine adapter and duel experience are not implemented yet.</p>
+
+          <div class="status-row">
+            <div class="status-block done">
+              <span class="status-label">Complete</span>
+              <strong>Architecture and asset ingestion</strong>
+              <p>Canonical TypeScript, Svelte, Phaser and Worker architecture. Atomic BabelCDB, CardScripts, strings and image-manifest generation.</p>
+            </div>
+            <div class="status-block active">
+              <span class="status-label">Verified now</span>
+              <strong>Asset snapshot health</strong>
+              <p>Pinned WASM engine, 14,794 cards and image records, 13,524 card scripts, 25 global scripts, and 14,579 archived images. Twenty tests and strict typecheck pass.</p>
+            </div>
+            <div class="status-block pending">
+              <span class="status-label">Not built</span>
+              <strong>Playable browser client</strong>
+              <p>No Vite/Svelte shell, WASM Worker, protocol adapter, projected state, opponent policy, duel UI or browser test exists yet.</p>
+            </div>
+          </div>
+
+          <div class="callout">
+            <span class="marker" aria-hidden="true">!</span>
+            <p><strong>Repository baseline:</strong> the project now lives at <code>C:\Users\Natha\coding\ygo-story-duel-simulator</code> with ignored generated assets, the verified engine/data snapshot and the complete available image archive preserved.</p>
+          </div>
+
+          <div class="review-panel" data-review="baseline">
+            <header><h4>Validate the baseline</h4><span class="saved-state">Unreviewed</span></header>
+            <div class="review-buttons" role="group" aria-label="Baseline review status">
+              <button class="review-button active" type="button" data-value="unreviewed">Unreviewed</button>
+              <button class="review-button" type="button" data-value="approved">Approved</button>
+              <button class="review-button" type="button" data-value="changes">Needs changes</button>
+            </div>
+            <textarea aria-label="Baseline correction notes" placeholder="Correct the current status, assumptions or completed work…"></textarea>
+          </div>
+        </section>
+
+        <section id="scope">
+          <p class="eyebrow">02 · MVP boundary</p>
+          <h2>One complete duel product, not the story game</h2>
+          <p>The release proves the hardest reusable foundation: a custom browser client can legally drive the current Project Ignis engine from initialization through a structured result.</p>
+
+          <div class="scope-grid">
+            <div class="scope-column">
+              <h3>Inside the cut line</h3>
+              <ul class="clean">
+                <li>One human player versus one deterministic, deck-specific opponent.</li>
+                <li>Bundled preset decks and a direct-to-duel launch flow.</li>
+                <li>Dedicated Worker owning synchronous <code>ocgcore</code> WASM.</li>
+                <li>Current standard-format card data, official scripts and system strings.</li>
+                <li>Typed prompts, legal responses, projected state and hidden-information controls.</li>
+                <li>Svelte controls and overlays plus a Phaser duel field.</li>
+                <li>Card image preload, lazy cache, card backs and deterministic fallback.</li>
+                <li>Restart, surrender, final result and downloadable diagnostics.</li>
+                <li>Automated asset, unit, integration and browser verification.</li>
+              </ul>
+            </div>
+            <div class="scope-column out">
+              <h3>Explicitly deferred</h3>
+              <ul class="clean">
+                <li>Story chapters, dialogue, maps, relationships and progression.</li>
+                <li>Deck editor, collection, packs, rewards and shops.</li>
+                <li>General simulator menus, repositories and replay browser.</li>
+                <li>Generic AI or support for arbitrary user decks.</li>
+                <li>Online play, server authority, lobbies, chat and side decking.</li>
+                <li>Mobile-first polish and pixel-level EDOPro parity.</li>
+                <li>Bulk shipment of every high-resolution card image.</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="review-panel" data-review="scope">
+            <header><h4>Validate the MVP boundary</h4><span class="saved-state">Unreviewed</span></header>
+            <div class="review-buttons" role="group" aria-label="Scope review status">
+              <button class="review-button active" type="button" data-value="unreviewed">Unreviewed</button>
+              <button class="review-button" type="button" data-value="approved">Approved</button>
+              <button class="review-button" type="button" data-value="changes">Needs changes</button>
+            </div>
+            <textarea aria-label="Scope correction notes" placeholder="Add, remove or move capabilities across the MVP cut line…"></textarea>
+          </div>
+        </section>
+
+        <section id="decisions">
+          <p class="eyebrow">03 · Decisions to lock</p>
+          <h2>Resolve these before the critical path expands</h2>
+          <div class="decision-list">
+            <div class="decision">
+              <span class="decision-number">D1</span>
+              <div><strong>Compatibility promise</strong><p>Keep the accepted broad target: fixture and classify every current core prompt family, while only requiring end-to-end scenarios for the final preset decks. Reducing this to preset-reachable messages would shorten the MVP substantially, but changes the accepted product claim.</p></div>
+              <span class="decision-tag">Scope driver</span>
+            </div>
+            <div class="decision">
+              <span class="decision-number">D2</span>
+              <div><strong>Exact preset decks</strong><p>Choose simple, stable 40-card lists that prove summon, set, activation, targeting, battle, damage and at least one chain. Avoid unusual zones and free-form announcements until the foundation is green.</p></div>
+              <span class="decision-tag">Required</span>
+            </div>
+            <div class="decision">
+              <span class="decision-number">D3</span>
+              <div><strong>Atomic upstream revision set</strong><p>Pin compatible <code>ocgcore-wasm</code>, embedded <code>ygopro-core</code>, BabelCDB, CardScripts, Distribution strings and image metadata. Upgrades move as one tested snapshot.</p></div>
+              <span class="decision-tag">Required</span>
+            </div>
+            <div class="decision">
+              <span class="decision-number">D4</span>
+              <div><strong>Image provider and deployment posture</strong><p>Use the existing YGOPRODeck URL convention for development unless availability or CORS testing fails. Public deployment remains blocked until redistribution, caching and IP posture are explicitly approved.</p></div>
+              <span class="decision-tag">Release gate</span>
+            </div>
+            <div class="decision">
+              <span class="decision-number">D5</span>
+              <div><strong>Primary browser and support floor</strong><p>Use current Chromium for daily development. Firefox and Safari are release verification targets. Avoid JSPI, SharedArrayBuffer and cross-origin-isolation dependencies in the MVP.</p></div>
+              <span class="decision-tag">Recommended</span>
+            </div>
+          </div>
+
+          <div class="callout">
+            <span class="marker" aria-hidden="true">?</span>
+            <p><strong>Largest correction opportunity:</strong> the existing MVP combines a focused preset-duel product with broad current-protocol conformance. That is defensible, but it is the main reason this is an 18–30 week effort rather than a small prototype.</p>
+          </div>
+
+          <div class="review-panel" data-review="decisions">
+            <header><h4>Validate the decision set</h4><span class="saved-state">Unreviewed</span></header>
+            <div class="review-buttons" role="group" aria-label="Decisions review status">
+              <button class="review-button active" type="button" data-value="unreviewed">Unreviewed</button>
+              <button class="review-button" type="button" data-value="approved">Approved</button>
+              <button class="review-button" type="button" data-value="changes">Needs changes</button>
+            </div>
+            <textarea aria-label="Decision correction notes" placeholder="Record decisions, preferred deck concepts or a narrower compatibility promise…"></textarea>
+          </div>
+        </section>
+
+        <section id="roadmap">
+          <p class="eyebrow">04 · Macro roadmap</p>
+          <h2>Seven gates from source move to release candidate</h2>
+          <p>Each phase ends in observable proof. Work does not advance because files exist; it advances when the engine or browser demonstrates the required behavior.</p>
+
+          <div class="critical-path" aria-label="Critical path">
+            <span>Move</span><b>→</b><span>Freeze</span><b>→</b><span>Headless duel</span><b>→</b><span>Protocol and state</span><b>→</b><span>Controls and AI</span><b>→</b><span>UI</span><b>→</b><span>Hardening</span><b>→</b><span>Release</span>
+          </div>
+
+          <div class="roadmap">
+            <article class="phase">
+              <div class="phase-index"><strong>0</strong><span>0.5–1 wk</span></div>
+              <div class="phase-content">
+                <div class="phase-heading"><h3>Move and establish the repository</h3><span class="size">Small</span></div>
+                <p class="objective">Transfer the planning project into the implementation folder without losing history or the known-good asset baseline.</p>
+                <div class="phase-details">
+                  <div><h4>Outputs</h4><ul class="clean"><li>Project files and Git metadata in the current folder.</li><li>Generated and cache directories remain ignored.</li><li>Install, tests, typecheck and asset verification run from the new location.</li><li>README-level developer commands reflect the final path.</li></ul></div>
+                  <div class="gate"><h4>Gate 0</h4><p>Clean checkout reproduces the package install and all current verification commands. The generated snapshot either verifies after transfer or can be regenerated exactly.</p></div>
+                </div>
+              </div>
+            </article>
+
+            <article class="phase">
+              <div class="phase-index"><strong>1</strong><span>1–2 wks</span></div>
+              <div class="phase-content">
+                <div class="phase-heading"><h3>Freeze the playable slice</h3><span class="size">Medium</span></div>
+                <p class="objective">Turn architecture choices into immutable inputs and executable contracts before UI work begins.</p>
+                <div class="phase-details">
+                  <div><h4>Outputs</h4><ul class="clean"><li>Vite, strict TypeScript and Svelte skeleton with Phaser installed but not yet driving rules.</li><li>Final player and opponent deck lists plus parsed <code>.ydk</code> fixtures.</li><li>Atomic revision manifest including the WASM core and all data sources.</li><li>Typed Worker command/event contract, result/error schema and run-trace schema.</li><li>Current message/prompt/response inventory generated from pinned sources.</li></ul></div>
+                  <div class="gate"><h4>Gate 1</h4><p>Production build opens, a Worker boots, reports the pinned core version and rejects a mismatched snapshot before any duel starts.</p></div>
+                </div>
+              </div>
+            </article>
+
+            <article class="phase">
+              <div class="phase-index"><strong>2</strong><span>2–4 wks</span></div>
+              <div class="phase-content">
+                <div class="phase-heading"><h3>Prove the headless engine loop</h3><span class="size">Large · risk burn-down</span></div>
+                <p class="objective">Demonstrate the central technical claim before investing in the complete client: browser Worker plus synchronous callbacks can drive a deterministic legal duel.</p>
+                <div class="phase-details">
+                  <div><h4>Outputs</h4><ul class="clean"><li>Owned or forked <code>ocgcore-wasm</code> adapter loaded only inside the Worker.</li><li>Active-duel card, script and string shards expanded into synchronous maps.</li><li>Duel creation, deck population, processing loop, responses and disposal.</li><li>Simple deterministic auto-responder for both sides.</li><li>Ordered trace with seed, revisions, messages, responses and fatal diagnostics.</li></ul></div>
+                  <div class="gate"><h4>Gate 2 · Go or re-plan</h4><p>A fixed seed reaches <code>MSG_WIN</code> twice with the same ordered trace and no runtime Node API or asynchronous core callback. If this fails, stop UI development and re-plan the adapter.</p></div>
+                </div>
+              </div>
+            </article>
+
+            <article class="phase">
+              <div class="phase-index"><strong>3</strong><span>5–8 wks</span></div>
+              <div class="phase-content">
+                <div class="phase-heading"><h3>Build the protocol and state foundation</h3><span class="size">Extra large · critical path</span></div>
+                <p class="objective">Translate core binary semantics into stable domain prompts, events and immutable public state without leaking hidden information.</p>
+                <div class="phase-details">
+                  <div><h4>Outputs</h4><ul class="clean"><li>Raw message parser and response encoders contained inside the Worker.</li><li>Prompt families classified, typed and backed by fixtures.</li><li>Opaque prompt/choice IDs with stale, duplicate and invalid-response rejection.</li><li>State projector for LP, turn, phase, zones, positions, chain, counts and result.</li><li>Query-based reconciliation and invariants against card duplication/loss.</li><li>Public-state projection that strips opponent secrets before <code>postMessage</code>.</li></ul></div>
+                  <div class="gate"><h4>Gate 3</h4><p>The compatibility matrix has no unclassified pinned-core prompt type. Recorded fixtures produce expected prompts and state. Hidden opponent data never reaches the main thread.</p></div>
+                </div>
+              </div>
+            </article>
+
+            <article class="phase">
+              <div class="phase-index"><strong>4</strong><span>2–4 wks</span></div>
+              <div class="phase-content">
+                <div class="phase-heading"><h3>Add human control and the opponent policy</h3><span class="size">Large</span></div>
+                <p class="objective">Replace automatic responses with one transparent human decision path and one finite, reproducible policy for the bundled opponent deck.</p>
+                <div class="phase-details">
+                  <div><h4>Outputs</h4><ul class="clean"><li>Debug prompt console or minimal Svelte action controls for every typed prompt.</li><li>Deck-specific priorities for phases, summons, activations, chains, targets and battle.</li><li>Mandatory fallback behavior and decision reason logging.</li><li>Hot-seat diagnostic mode using the same human prompt path.</li><li>Unit tests for opponent choices and stale-response safety.</li></ul></div>
+                  <div class="gate"><h4>Gate 4</h4><p>A human can complete a duel without raw protocol knowledge. The opponent takes meaningful turns and answers every prompt reachable by its deck under fixed scenarios.</p></div>
+                </div>
+              </div>
+            </article>
+
+            <article class="phase">
+              <div class="phase-index"><strong>5</strong><span>3–5 wks</span></div>
+              <div class="phase-content">
+                <div class="phase-heading"><h3>Deliver the duel experience</h3><span class="size">Large</span></div>
+                <p class="objective">Build the usable, image-backed duel surface while keeping presentation strictly downstream of authoritative Worker state.</p>
+                <div class="phase-details">
+                  <div><h4>Outputs</h4><ul class="clean"><li>Svelte loading, error, prompt, inspector, log, surrender and result surfaces.</li><li>Phaser board, zones, field cards, hand, selection states and essential movement feedback.</li><li>Small presentation-store boundary between Svelte and Phaser.</li><li>Active-deck image preload, cache keys, card backs and missing-image placeholders.</li><li>Accessible keyboard path and clear focus for prompt selection.</li><li>Responsive desktop layout for Chromium, Firefox and Safari targets.</li></ul></div>
+                  <div class="gate"><h4>Gate 5</h4><p>The complete human flow works without debug controls. Correct public images appear in every required zone and prompt. Animation cannot block, duplicate or reorder responses.</p></div>
+                </div>
+              </div>
+            </article>
+
+            <article class="phase">
+              <div class="phase-index"><strong>6</strong><span>3–5 wks</span></div>
+              <div class="phase-content">
+                <div class="phase-heading"><h3>Close compatibility and reliability gaps</h3><span class="size">Extra large</span></div>
+                <p class="objective">Turn the successful vertical slice into a repeatable MVP that fails with evidence rather than hanging silently.</p>
+                <div class="phase-details">
+                  <div><h4>Outputs</h4><ul class="clean"><li>Final preset decks and deterministic scenarios for their key interactions.</li><li>Both win directions, deck-out where applicable, surrender, restart and clean disposal.</li><li>Protocol conformance corpus for the broad accepted compatibility promise.</li><li>Downloadable diagnostics for unsupported messages, missing assets and engine faults.</li><li>Snapshot cache validation, atomic activation and rollback to known-good data.</li><li>Leak checks for repeated restarts and Worker termination.</li></ul></div>
+                  <div class="gate"><h4>Gate 6</h4><p>Multiple full duels complete to core-provided results. All supported prompt families have fixtures. No reachable human choice is silently selected, and every failure path leaves a useful trace.</p></div>
+                </div>
+              </div>
+            </article>
+
+            <article class="phase">
+              <div class="phase-index"><strong>7</strong><span>1–2 wks</span></div>
+              <div class="phase-content">
+                <div class="phase-heading"><h3>Package the release candidate</h3><span class="size">Medium</span></div>
+                <p class="objective">Verify that the static production artifact, not only the development server, satisfies the MVP contract.</p>
+                <div class="phase-details">
+                  <div><h4>Outputs</h4><ul class="clean"><li>One command for typecheck, lint, formatting, unit, integration, asset and browser gates.</li><li>Production-bundle browser smoke test: initialize, render an image, take an action and reach a result.</li><li>Chrome, Firefox and Safari desktop manual matrix.</li><li>Licensing/source-offer checklist and image-provider deployment decision.</li><li>Known limitations, rollback procedure and reproducible build instructions.</li></ul></div>
+                  <div class="gate"><h4>Gate 7 · MVP accepted</h4><p>A clean checkout builds deployable static assets and completes the same deterministic duel without filesystem assumptions. Legal and image-host release blockers are either closed or deployment remains private.</p></div>
+                </div>
+              </div>
+            </article>
+          </div>
+
+          <div class="review-panel" data-review="roadmap">
+            <header><h4>Validate the phase sequence</h4><span class="saved-state">Unreviewed</span></header>
+            <div class="review-buttons" role="group" aria-label="Roadmap review status">
+              <button class="review-button active" type="button" data-value="unreviewed">Unreviewed</button>
+              <button class="review-button" type="button" data-value="approved">Approved</button>
+              <button class="review-button" type="button" data-value="changes">Needs changes</button>
+            </div>
+            <textarea aria-label="Roadmap correction notes" placeholder="Reorder, split, merge or redefine a phase and its exit gate…"></textarea>
+          </div>
+        </section>
+
+        <section id="delivery">
+          <p class="eyebrow">05 · Delivery model</p>
+          <h2>Organize around proofs, not component completion</h2>
+          <p>The implementation should stay vertically testable. Parser, state, AI and UI work all follow a deterministic duel scenario rather than growing as disconnected subsystems.</p>
+
+          <table class="workstreams">
+            <thead><tr><th>Workstream</th><th>Primary phase</th><th>Can overlap</th><th>Control</th></tr></thead>
+            <tbody>
+              <tr><td>Engine and Worker</td><td>1–3</td><td>Asset preload integration</td><td>Worker exclusively owns WASM and raw protocol.</td></tr>
+              <tr><td>Protocol and state</td><td>3–6</td><td>AI fixtures, minimal UI</td><td>Every protocol addition includes a fixture and typed public shape.</td></tr>
+              <tr><td>Opponent policy</td><td>4, 6</td><td>Final deck tuning</td><td>Only legal prompt options and legitimately visible information.</td></tr>
+              <tr><td>Svelte and Phaser</td><td>4–5</td><td>Image pipeline tests</td><td>Presentation never becomes rules state.</td></tr>
+              <tr><td>Assets and updates</td><td>Already active, then 1, 5–7</td><td>All phases</td><td>One atomic manifest, hashes, staging verification and rollback.</td></tr>
+              <tr><td>Quality and diagnostics</td><td>Every phase</td><td>Continuous</td><td>No milestone closes without an automated or recorded proof.</td></tr>
+              <tr><td>Licensing and deployment</td><td>1 and 7</td><td>Provider validation during 2–6</td><td>Public deployment cannot precede approval.</td></tr>
+            </tbody>
+          </table>
+
+          <h3 style="margin-top:2.2rem">Planning estimate</h3>
+          <p>The range is a solo-developer planning estimate, not a delivery commitment. It assumes the existing asset pipeline is retained, the synchronous WASM package is salvageable and the selected decks remain intentionally simple.</p>
+          <div class="callout">
+            <span class="marker" aria-hidden="true">≈</span>
+            <p><strong>18–30 engineer-weeks.</strong> The confidence interval should be recalculated after Gate 2. A core adapter rewrite, missing protocol support or complex deck choice can push beyond this range. Narrowing compatibility to preset-reachable messages is the strongest schedule lever.</p>
+          </div>
+
+          <div class="review-panel" data-review="delivery">
+            <header><h4>Validate delivery and estimate</h4><span class="saved-state">Unreviewed</span></header>
+            <div class="review-buttons" role="group" aria-label="Delivery review status">
+              <button class="review-button active" type="button" data-value="unreviewed">Unreviewed</button>
+              <button class="review-button" type="button" data-value="approved">Approved</button>
+              <button class="review-button" type="button" data-value="changes">Needs changes</button>
+            </div>
+            <textarea aria-label="Delivery correction notes" placeholder="Correct staffing, sequencing, time range or desired checkpoints…"></textarea>
+          </div>
+        </section>
+
+        <section id="risks">
+          <p class="eyebrow">06 · Risks and controls</p>
+          <h2>Burn down unknowns in impact order</h2>
+          <div class="risk-list">
+            <div class="risk-item"><span class="risk-level high">High</span><strong>WASM adapter maturity</strong><p>Own and pin the adapter. Gate the project at the deterministic headless Worker duel before complete protocol or UI investment.</p></div>
+            <div class="risk-item"><span class="risk-level high">High</span><strong>Protocol breadth</strong><p>Generate an inventory from pinned sources, classify every type and require a fixture whenever support is added or changed.</p></div>
+            <div class="risk-item"><span class="risk-level high">High</span><strong>Core/data/script drift</strong><p>Treat all revisions as one release unit. Reject partial snapshots before duel initialization and retain a previous known-good snapshot.</p></div>
+            <div class="risk-item"><span class="risk-level high">High</span><strong>State divergence or secret leakage</strong><p>Core remains authoritative. Reconcile with queries, assert invariants and project a separate public state before crossing the Worker boundary.</p></div>
+            <div class="risk-item"><span class="risk-level high">High</span><strong>Licensing and card images</strong><p>Keep image provider configurable. Separate technical availability from permission. Block public release without a documented posture.</p></div>
+            <div class="risk-item"><span class="risk-level medium">Medium</span><strong>Opponent stalls</strong><p>Choose simple decks, enumerate reachable prompts, include mandatory fallbacks and keep a hot-seat mode for diagnosis.</p></div>
+            <div class="risk-item"><span class="risk-level medium">Medium</span><strong>Storage and host failures</strong><p>Preload active-duel assets, use snapshot-aware caches and provide deterministic placeholders plus diagnostics.</p></div>
+            <div class="risk-item"><span class="risk-level medium">Medium</span><strong>UI outruns engine truth</strong><p>Make animations cancellable and presentation-only. Prompt IDs, not animation completion, control accepted responses.</p></div>
+          </div>
+
+          <div class="review-panel" data-review="risks">
+            <header><h4>Validate the risk order</h4><span class="saved-state">Unreviewed</span></header>
+            <div class="review-buttons" role="group" aria-label="Risk review status">
+              <button class="review-button active" type="button" data-value="unreviewed">Unreviewed</button>
+              <button class="review-button" type="button" data-value="approved">Approved</button>
+              <button class="review-button" type="button" data-value="changes">Needs changes</button>
+            </div>
+            <textarea aria-label="Risk correction notes" placeholder="Add risks, change severity or replace a mitigation…"></textarea>
+          </div>
+        </section>
+
+        <section id="done">
+          <p class="eyebrow">07 · Definition of done</p>
+          <h2>The MVP is accepted only when all outcomes hold</h2>
+          <ol class="dod-list">
+            <li>Production browser assets initialize pinned <code>ocgcore.sync.wasm</code> inside a dedicated Worker.</li>
+            <li>A verified atomic snapshot supplies all current standard-format card records, text, official scripts, required globals, strings and image references.</li>
+            <li>The human and deterministic opponent can complete legal preset-deck duels from initial draw to a core-provided result.</li>
+            <li>Typed prompt and response handling covers the accepted compatibility inventory, with fixtures and fail-fast diagnostics for unsupported input.</li>
+            <li>Public state displays LP, turn, phase, chain and required zones without revealing hidden opponent information.</li>
+            <li>Required card images appear in hand, field, inspector, GY, banished, Extra Deck and selection surfaces, with backs or reported fallback where appropriate.</li>
+            <li>Surrender, restart and every tested finish path dispose the previous duel cleanly.</li>
+            <li>A fixed seed and response sequence reproduce the ordered trace and final result.</li>
+            <li>Asset integrity, typecheck, lint, unit, Worker integration and production browser smoke gates pass from a clean checkout.</li>
+            <li>Errors download a structured trace containing revisions, seed, messages, responses, pending prompt and last successful event.</li>
+            <li>Current desktop Chrome, Firefox and Safari pass the release verification matrix.</li>
+            <li>Public deployment occurs only after AGPL/source obligations and database, strings and image-provider posture are documented.</li>
+          </ol>
+
+          <div class="review-panel" data-review="done">
+            <header><h4>Validate acceptance criteria</h4><span class="saved-state">Unreviewed</span></header>
+            <div class="review-buttons" role="group" aria-label="Definition of done review status">
+              <button class="review-button active" type="button" data-value="unreviewed">Unreviewed</button>
+              <button class="review-button" type="button" data-value="approved">Approved</button>
+              <button class="review-button" type="button" data-value="changes">Needs changes</button>
+            </div>
+            <textarea aria-label="Definition of done correction notes" placeholder="Tighten, remove or add a measurable acceptance outcome…"></textarea>
+          </div>
+        </section>
+
+        <section id="review">
+          <p class="eyebrow">08 · Plan validation</p>
+          <h2>Record cross-cutting corrections</h2>
+          <p>Use this section for changes that affect several phases. Section-level notes above are included in the same exported review.</p>
+
+          <div class="review-panel" data-review="global">
+            <header><h4>Overall plan disposition</h4><span class="saved-state">Unreviewed</span></header>
+            <div class="review-buttons" role="group" aria-label="Overall plan review status">
+              <button class="review-button active" type="button" data-value="unreviewed">Unreviewed</button>
+              <button class="review-button" type="button" data-value="approved">Approved</button>
+              <button class="review-button" type="button" data-value="changes">Needs changes</button>
+            </div>
+            <textarea aria-label="Overall plan correction notes" placeholder="Example: narrow protocol compatibility for MVP, use these two decks, or split UI into a later release…"></textarea>
+          </div>
+
+          <div class="callout">
+            <span class="marker" aria-hidden="true">✓</span>
+            <p><strong>Recommended validation order:</strong> approve or correct the scope boundary, compatibility promise, preset-deck criteria, seven phase gates and definition of done. The detailed implementation backlog should be generated only after those choices are settled.</p>
+          </div>
+        </section>
+
+        <section id="sources">
+          <p class="eyebrow">09 · Sources and assumptions</p>
+          <h2>Planning basis</h2>
+          <ul class="source-list">
+            <li><code>architecture.md</code>, accepted canonical architecture</li>
+            <li><code>mvp_duel_ui_plan.md</code>, detailed MVP milestones and scope</li>
+            <li><code>asset_import_pipeline.md</code>, implemented asset generation</li>
+            <li><code>archive/browser_wasm_implementation.md</code>, WASM feasibility research</li>
+            <li><code>archive/card_pool_requirements.md</code>, runtime data dependencies</li>
+            <li><code>index.md</code>, project status and next actions</li>
+            <li>Historical wrapper, Odin and packaging decisions, read as superseded context</li>
+            <li>Live verification on 12 July 2026: ten tests pass, typecheck passes, asset snapshot verifies</li>
+          </ul>
+          <p><strong>Estimate assumptions:</strong> one experienced full-time engineer; no story or deck-editor work; selected decks remain simple; upstream WASM can be adapted rather than rewritten; generated assets stay outside Git; public legal review is a release gate rather than an implementation dependency.</p>
+
+          <div class="review-panel" data-review="sources">
+            <header><h4>Validate assumptions</h4><span class="saved-state">Unreviewed</span></header>
+            <div class="review-buttons" role="group" aria-label="Assumptions review status">
+              <button class="review-button active" type="button" data-value="unreviewed">Unreviewed</button>
+              <button class="review-button" type="button" data-value="approved">Approved</button>
+              <button class="review-button" type="button" data-value="changes">Needs changes</button>
+            </div>
+            <textarea aria-label="Assumption correction notes" placeholder="Correct staffing, tooling, legal, browser or repository assumptions…"></textarea>
+          </div>
+        </section>
+      </article>
+
+      <footer>
+        Review draft 0.1. Generated from the planning resources now archived or retained in <code>C:\Users\Natha\coding\ygo-story-duel-simulator</code>.
+      </footer>
+    </main>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    (() => {
+      const STORAGE_KEY = "ygo-mvp-macro-plan-review-v1";
+      const THEME_KEY = "ygo-mvp-plan-theme";
+      const panels = [...document.querySelectorAll("[data-review]")];
+      const toast = document.getElementById("toast");
+      const themeToggle = document.getElementById("themeToggle");
+      const themeLabel = document.getElementById("themeLabel");
+      let toastTimer;
+
+      function renderTheme(theme) {
+        const dark = theme === "dark";
+        document.documentElement.dataset.theme = theme;
+        themeLabel.textContent = dark ? "Light" : "Dark";
+        themeToggle.setAttribute("aria-label", `Switch to ${dark ? "light" : "dark"} mode`);
+        themeToggle.setAttribute("aria-pressed", String(dark));
+      }
+
+      renderTheme(document.documentElement.dataset.theme || "light");
+      themeToggle.addEventListener("click", () => {
+        const theme = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
+        localStorage.setItem(THEME_KEY, theme);
+        renderTheme(theme);
+      });
+
+      function readState() {
+        try {
+          return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {};
+        } catch {
+          return {};
+        }
+      }
+
+      function saveState(state) {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      }
+
+      function stateLabel(value) {
+        return value === "approved" ? "Approved" : value === "changes" ? "Needs changes" : "Unreviewed";
+      }
+
+      function showToast(message) {
+        toast.textContent = message;
+        toast.classList.add("show");
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => toast.classList.remove("show"), 2400);
+      }
+
+      function updateProgress() {
+        const state = readState();
+        const reviewed = panels.filter(panel => (state[panel.dataset.review]?.status || "unreviewed") !== "unreviewed").length;
+        const total = panels.length;
+        document.getElementById("progressText").textContent = `${reviewed} / ${total}`;
+        document.getElementById("progressValue").style.width = `${(reviewed / total) * 100}%`;
+      }
+
+      function renderPanel(panel, value) {
+        panel.querySelectorAll(".review-button").forEach(button => {
+          button.classList.toggle("active", button.dataset.value === value);
+          button.setAttribute("aria-pressed", String(button.dataset.value === value));
+        });
+        panel.querySelector(".saved-state").textContent = stateLabel(value);
+      }
+
+      function persistPanel(panel, announce = false) {
+        const state = readState();
+        const key = panel.dataset.review;
+        const active = panel.querySelector(".review-button.active")?.dataset.value || "unreviewed";
+        state[key] = {
+          status: active,
+          notes: panel.querySelector("textarea").value.trim(),
+          updatedAt: new Date().toISOString()
+        };
+        saveState(state);
+        updateProgress();
+        if (announce) showToast("Review saved in this browser");
+      }
+
+      const initialState = readState();
+      panels.forEach(panel => {
+        const key = panel.dataset.review;
+        const saved = initialState[key] || { status: "unreviewed", notes: "" };
+        panel.querySelector("textarea").value = saved.notes || "";
+        renderPanel(panel, saved.status || "unreviewed");
+
+        panel.querySelectorAll(".review-button").forEach(button => {
+          button.addEventListener("click", () => {
+            renderPanel(panel, button.dataset.value);
+            persistPanel(panel, true);
+          });
+        });
+
+        let inputTimer;
+        panel.querySelector("textarea").addEventListener("input", () => {
+          panel.querySelector(".saved-state").textContent = "Saving…";
+          clearTimeout(inputTimer);
+          inputTimer = setTimeout(() => {
+            persistPanel(panel);
+            const status = panel.querySelector(".review-button.active")?.dataset.value || "unreviewed";
+            panel.querySelector(".saved-state").textContent = stateLabel(status);
+          }, 350);
+        });
+      });
+      updateProgress();
+
+      function reviewPayload() {
+        const state = readState();
+        return {
+          document: "YGO Story Duel Simulator MVP Macro Implementation Plan",
+          revision: "0.1",
+          exportedAt: new Date().toISOString(),
+          sections: panels.map(panel => {
+            const key = panel.dataset.review;
+            return {
+              section: key,
+              status: state[key]?.status || "unreviewed",
+              notes: state[key]?.notes || ""
+            };
+          })
+        };
+      }
+
+      function reviewText() {
+        const payload = reviewPayload();
+        const lines = [
+          `# ${payload.document} review`,
+          "",
+          `Revision: ${payload.revision}`,
+          `Exported: ${payload.exportedAt}`,
+          ""
+        ];
+        payload.sections.forEach(item => {
+          lines.push(`## ${item.section}`);
+          lines.push(`Status: ${stateLabel(item.status)}`);
+          lines.push(item.notes ? `Corrections: ${item.notes}` : "Corrections: None recorded");
+          lines.push("");
+        });
+        return lines.join("\n");
+      }
+
+      document.getElementById("copyReview").addEventListener("click", async () => {
+        try {
+          await navigator.clipboard.writeText(reviewText());
+          showToast("Review copied to clipboard");
+        } catch {
+          showToast("Clipboard access was blocked. Download the review instead.");
+        }
+      });
+
+      document.getElementById("downloadReview").addEventListener("click", () => {
+        const blob = new Blob([JSON.stringify(reviewPayload(), null, 2)], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const anchor = document.createElement("a");
+        anchor.href = url;
+        anchor.download = "ygo-mvp-plan-review.json";
+        document.body.appendChild(anchor);
+        anchor.click();
+        anchor.remove();
+        URL.revokeObjectURL(url);
+        showToast("Corrections downloaded");
+      });
+    })();
+  </script>
+</body>
+</html>
