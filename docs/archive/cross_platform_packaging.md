@@ -12,7 +12,7 @@ tags:
 
 ## Status
 
-Historical desktop/Electron packaging research. The accepted MVP is a static browser application described in [[architecture|Architecture]].
+Historical desktop/Electron packaging research. The accepted static-browser MVP is described in [`../architecture/architecture.md`](../architecture/architecture.md).
 
 ## Summary
 

@@ -11,7 +11,7 @@ tags:
 
 ## Status
 
-Historical EDOPro-wrapper research. The accepted custom browser client no longer launches an external EDOPro application. See [[architecture|Architecture]].
+Historical EDOPro-wrapper research. The accepted custom browser client no longer launches an external EDOPro application. See [`../architecture/architecture.md`](../architecture/architecture.md).
 
 ## Hard Requirement
 

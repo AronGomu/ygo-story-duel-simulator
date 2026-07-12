@@ -13,7 +13,7 @@ tags:
 
 ## Status
 
-**Superseded on 2026-07-12.** The accepted browser architecture is documented in [[architecture|Architecture]]. This file remains as historical research for a possible native client.
+**Superseded on 2026-07-12.** Current browser architecture is documented in [`../architecture/architecture.md`](../architecture/architecture.md). This file remains as historical research for a possible native client.
 
 ## Historical decision
 

@@ -14,7 +14,7 @@ tags:
 
 ## Status
 
-Research validated and accepted on 2026-07-12. The canonical decisions are now recorded in [[architecture|Architecture]], and active milestones are in [[mvp_duel_ui_plan|Browser Duel MVP Plan]].
+Research validated and accepted on 2026-07-12. Current decisions are in [`../architecture/architecture.md`](../architecture/architecture.md), and active milestones are in [`../MVP_TECHNICAL_IMPLEMENTATION_PLAN.md`](../MVP_TECHNICAL_IMPLEMENTATION_PLAN.md).
 
 ## Goal
 
@@ -246,7 +246,7 @@ If the duel UI needs heavy game rendering:
 
 ## Recommendation
 
-This browser architecture is accepted. The first implementation milestone is the preset-deck duel defined in [[mvp_duel_ui_plan|Browser Duel MVP Plan]].
+This browser direction was accepted. Current implementation milestones are defined in [`../MVP_TECHNICAL_IMPLEMENTATION_PLAN.md`](../MVP_TECHNICAL_IMPLEMENTATION_PLAN.md).
 
 Recommended first spike:
 

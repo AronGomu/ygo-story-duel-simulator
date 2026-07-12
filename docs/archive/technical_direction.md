@@ -13,7 +13,7 @@ tags:
 
 ## Status
 
-Historical research. The architecture decision was finalized on 2026-07-12 in [[architecture|Architecture]]. The active scope is defined in [[mvp_duel_ui_plan|Browser Duel MVP Plan]].
+Historical research. Current decisions are centralized in [`../architecture/architecture.md`](../architecture/architecture.md), and active scope is defined in [`../MVP_TECHNICAL_IMPLEMENTATION_PLAN.md`](../MVP_TECHNICAL_IMPLEMENTATION_PLAN.md).
 
 ## Project Premise
 

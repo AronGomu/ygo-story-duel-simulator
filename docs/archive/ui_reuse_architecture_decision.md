@@ -13,7 +13,7 @@ tags:
 
 ## Status
 
-Superseded. The accepted direction is now a TypeScript/Svelte/Phaser browser client using `ocgcore.sync.wasm` in a Web Worker. See [[architecture|Architecture]].
+Superseded. The current TypeScript/Svelte/Phaser browser direction is documented in [`../architecture/architecture.md`](../architecture/architecture.md).
 
 ## Decision
 
