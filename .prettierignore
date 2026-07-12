@@ -1,0 +1,7 @@
+.agentsystem/
+.cache/
+.pi/
+generated/
+node_modules/
+vendor/
+package-lock.json

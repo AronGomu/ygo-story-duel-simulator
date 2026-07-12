@@ -10,7 +10,12 @@
     "exactOptionalPropertyTypes": true,
     "forceConsistentCasingInFileNames": true,
     "skipLibCheck": true,
-    "types": ["node"]
+    "types": ["node", "vitest/globals"]
   },
-  "include": ["scripts/**/*.ts", "tests/**/*.ts"]
+  "include": [
+    "scripts/**/*.ts",
+    "src/**/*.ts",
+    "tests/**/*.ts",
+    "vitest.config.ts"
+  ]
 }
