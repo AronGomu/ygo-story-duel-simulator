@@ -22,12 +22,12 @@ The MVP is complete when a production browser build can initialize the vendored 
 ### Included
 
 - [ ] Direct-to-duel browser application.
-- [ ] One bundled player deck and one deliberately simple opponent deck.
-- [ ] Normal randomized deck shuffling and starting hands in production duels.
+- [x] One bundled player deck and one deliberately simple opponent deck.
+- [x] Normal randomized deck shuffling and starting hands in production duels.
 - [ ] Programmed integration scenarios that inject exact deck order, starting hands and responses for the same two preset decks.
-- [ ] Current standard-format BabelCDB catalog converted to browser artifacts.
-- [ ] Current official and prerelease CardScripts plus required global scripts.
-- [ ] Project Ignis system strings required by the duel protocol.
+- [x] Current standard-format BabelCDB catalog converted to browser artifacts.
+- [x] Current official and prerelease CardScripts plus required global scripts.
+- [x] Project Ignis system strings required by the duel protocol.
 - [ ] Versioned card-image manifest and active-duel image preload.
 - [ ] Typed Worker protocol, raw core adapter and serializable public state.
 - [ ] Human prompt controls and a basic legal-action opponent policy with no combo planning.
@@ -194,19 +194,19 @@ All upstream revisions must be recorded in one generated `manifest.json` with ha
 ## 6. Non-negotiable architecture rules
 
 - [ ] `ocgcore` is the only authority for legal actions and duel results.
-- [ ] Production games use normal randomized deck order and starting hands; only tests and diagnostic replay may inject deterministic orders or seeds.
-- [ ] `ocgcore-wasm@0.1.2` is checked into `vendor/` with provenance and hashes; npm or live Git resolution is forbidden at runtime and build time.
-- [ ] The main thread never imports or calls `ocgcore-wasm`.
-- [ ] Raw core messages and response indexes never leave the Worker.
-- [ ] The Worker sends typed domain prompts and immutable public snapshots.
-- [ ] Opponent hidden information is removed before a snapshot crosses the Worker boundary.
+- [x] Production games use normal randomized deck order and starting hands; only tests and diagnostic replay may inject deterministic orders or seeds.
+- [x] `ocgcore-wasm@0.1.2` is checked into `vendor/` with provenance and hashes; npm or live Git resolution is forbidden at runtime and build time.
+- [x] The main thread never imports or calls `ocgcore-wasm`.
+- [x] Raw core messages and response indexes never leave the Worker.
+- [x] The Worker sends typed domain prompts and immutable public snapshots.
+- [x] Opponent hidden information is removed before a snapshot crosses the Worker boundary.
 - [ ] Phaser state is presentation-only and is never queried to decide legality.
-- [ ] Synchronous core callbacks read only preloaded in-memory card and script maps.
-- [ ] No callback performs `fetch`, IndexedDB access or other asynchronous I/O.
+- [x] Synchronous core callbacks read only preloaded in-memory card and script maps.
+- [x] No callback performs `fetch`, IndexedDB access or other asynchronous I/O.
 - [ ] Every duel records the exact seed, revision manifest and ordered responses.
 - [ ] Every newly supported protocol shape receives a permanent fixture test.
 - [ ] The programmed real-WASM integration suite is written first and must cover every supported game-action family using the two preset decks.
-- [ ] No Svelte duel controls, Phaser field, card rendering or other visual duel-simulator work begins until that complete headless suite is green.
+- [x] No Svelte duel controls, Phaser field, card rendering or other visual duel-simulator work begins until that complete headless suite is green.
 - [ ] Every implementation step below is one commit and leaves working software.
 
 ## 7. Definition of a valid implementation commit
@@ -214,10 +214,10 @@ All upstream revisions must be recorded in one generated `manifest.json` with ha
 Every step below is accepted only when:
 
 - [ ] The step's localized code change is complete.
-- [ ] Existing tests still pass.
+- [x] Existing tests still pass.
 - [ ] New behavior has an automated test at the lowest practical layer, written before its implementation.
-- [ ] `npm run typecheck` passes.
-- [ ] `npm test` passes.
+- [x] `npm run typecheck` passes.
+- [x] `npm test` passes.
 - [ ] `npm run build` passes after the application skeleton exists.
 - [ ] The documented manual validation for that step succeeds.
 - [ ] No temporary logging, skipped test or untracked generated artifact remains.
@@ -251,13 +251,13 @@ Every step below is accepted only when:
 
 **Working software after commit:** an executable integration specification defines two preset decks, exact test-only deck orders and starting hands, programmed responses, expected traces and a complete supported-action coverage matrix. This suite is the primary acceptance contract for all headless implementation work.
 
-- [ ] Select one preset human deck and one opponent deck made only from simple, straightforward cards.
-- [ ] Keep production deck lists separate from test-only ordering and starting-hand overrides.
-- [ ] Define multiple programmed games using the same two decks when one game cannot cover every action family.
+- [x] Select one preset human deck and one opponent deck made only from simple, straightforward cards.
+- [x] Keep production deck lists separate from test-only ordering and starting-hand overrides.
+- [x] Define multiple programmed games using the same two decks when one game cannot cover every action family.
 - [ ] Record exact per-player deck order, starting hand, seed, ordered prompt choices, expected winner and finish reason for each scenario.
 - [ ] Define stable scenario card-instance aliases so fixtures remain readable.
-- [ ] Create an exhaustive MVP action matrix for draw, shuffle, phase changes, normal/tribute/special/flip summon, set, activate, chain/pass, target/select, position change, direct and monster attacks, battle damage, effect damage/recovery, destruction, send to GY, banish, surrender and every prompt family in the pinned compatibility inventory—not only actions chosen by the basic AI.
-- [ ] Add a real-WASM integration entry point that will run the programmed scenarios once the headless adapter exists.
+- [x] Create an exhaustive MVP action matrix for draw, shuffle, phase changes, normal/tribute/special/flip summon, set, activate, chain/pass, target/select, position change, direct and monster attacks, battle damage, effect damage/recovery, destruction, send to GY, banish, surrender and every prompt family in the pinned compatibility inventory—not only actions chosen by the basic AI.
+- [x] Add a real-WASM integration entry point that will run the programmed scenarios once the headless adapter exists.
 - [ ] Make missing action coverage a test failure rather than a documentation warning.
 - [ ] Require every future preset-deck change to update the programmed scenarios intentionally.
 
@@ -269,14 +269,14 @@ Every step below is accepted only when:
 
 **Working software after commit:** one command runs formatting, lint, typecheck, unit tests, asset verification and the programmed integration suite without a browser or visual framework.
 
-- [ ] Install Vitest and coverage support.
-- [ ] Install ESLint with TypeScript support.
-- [ ] Install Prettier.
-- [ ] Add `lint`, `format`, `format:check`, `test:unit`, `test:integration` and `check:headless` scripts.
-- [ ] Preserve the existing Node tests or migrate them to Vitest without reducing assertions.
-- [ ] Keep the programmed integration suite visibly gated in `check:headless`; do not silently skip it.
+- [x] Install Vitest and coverage support.
+- [x] Install ESLint with TypeScript support.
+- [x] Install Prettier.
+- [x] Add `lint`, `format`, `format:check`, `test:unit`, `test:integration` and `check:headless` scripts.
+- [x] Preserve the existing Node tests or migrate them to Vitest without reducing assertions.
+- [x] Keep the programmed integration suite visibly gated in `check:headless`; do not silently skip it.
 - [ ] Add CI configuration running clean install, asset verification, typecheck, lint, unit tests and programmed integration tests.
-- [ ] Defer Svelte, Phaser, Vite and Playwright installation until the headless visual-implementation gate is green.
+- [x] Defer Svelte, Phaser, Vite and Playwright installation until the headless visual-implementation gate is green.
 
 **Long-term test:** `npm run check:headless` remains mandatory and must pass before any visual change is accepted.
 
@@ -286,10 +286,10 @@ Every step below is accepted only when:
 
 **Working software after commit:** the programmed integration harness compiles against typed commands, prompts, events and `PublicDuelState`; no visual consumer exists yet.
 
-- [ ] Add branded types for `DuelId`, `PromptId`, `ChoiceId`, `CardCode` and `SnapshotId`.
-- [ ] Define `DuelCommand`: `initialize`, `startDuel`, `respond`, `surrender`, `dispose`.
-- [ ] Define `DuelWorkerEvent`: `ready`, `loading`, `state`, `event`, `prompt`, `result`, `error`.
-- [ ] Define `PublicDuelState` without raw protocol fields.
+- [x] Add branded types for `DuelId`, `PromptId`, `ChoiceId`, `CardCode` and `SnapshotId`.
+- [x] Define `DuelCommand`: `initialize`, `startDuel`, `respond`, `surrender`, `dispose`.
+- [x] Define `DuelWorkerEvent`: `ready`, `loading`, `state`, `event`, `prompt`, `result`, `error`.
+- [x] Define `PublicDuelState` without raw protocol fields.
 - [ ] Define `PlayerPrompt`, `DuelPresentationEvent`, `DuelResult` and `DuelError` discriminated unions.
 - [ ] Add exhaustive `assertNever` handling for every union consumer.
 - [ ] Add serialization tests proving all contract examples survive structured cloning.
@@ -297,20 +297,20 @@ Every step below is accepted only when:
 
 **Long-term test:** contract fixtures become mandatory review points for any protocol shape change.
 
-## [ ] Step 04: Vendor `ocgcore-wasm@0.1.2`
+## [x] Step 04: Vendor `ocgcore-wasm@0.1.2`
 
 **Commit:** `build: vendor ocgcore wasm 0.1.2`
 
 **Working software after commit:** a clean checkout contains the complete approved synchronous engine package under `vendor/` and verifies it without contacting npm or GitHub.
 
-- [ ] Extract the integrity-verified `ocgcore-wasm@0.1.2` package into `vendor/ocgcore-wasm/0.1.2/`.
-- [ ] Include the synchronous WASM binary, Emscripten module, distributed adapter files, declarations, package metadata, README and applicable license text.
-- [ ] Record the npm tarball URL and exact SHA-512 integrity value.
-- [ ] Generate a reviewed manifest containing every vendored file's path, size and SHA-256.
-- [ ] Record any local patch in a dedicated patch/provenance section; do not edit vendored files silently.
-- [ ] Add a verifier that rejects missing, extra or hash-mismatched vendor files.
-- [ ] Make application builds and tests fail if they resolve `ocgcore-wasm` from `node_modules`.
-- [ ] Keep future vendor updates isolated and require the complete programmed integration suite.
+- [x] Extract the integrity-verified `ocgcore-wasm@0.1.2` package into `vendor/ocgcore-wasm/0.1.2/`.
+- [x] Include the synchronous WASM binary, Emscripten module, distributed adapter files, declarations, package metadata, README and applicable license text.
+- [x] Record the npm tarball URL and exact SHA-512 integrity value.
+- [x] Generate a reviewed manifest containing every vendored file's path, size and SHA-256.
+- [x] Record any local patch in a dedicated patch/provenance section; do not edit vendored files silently.
+- [x] Add a verifier that rejects missing, extra or hash-mismatched vendor files.
+- [x] Make application builds and tests fail if they resolve `ocgcore-wasm` from `node_modules`.
+- [x] Keep future vendor updates isolated and require the complete programmed integration suite.
 
 **Manual validation:** remove npm/network access and confirm the vendored engine verifier still passes.
 
@@ -321,14 +321,14 @@ Every step below is accepted only when:
 **Working software after commit:** the headless integration harness loads the vendored `ocgcore.sync.wasm`, reports the real core version and performs no network or `node_modules` engine resolution.
 
 - [ ] Add a headless `src/worker/duel.worker.ts` entry point used directly by the integration harness, without a main-thread visual client.
-- [ ] Add a Worker-owned `OcgCoreAdapter` module as the only engine import location.
-- [ ] Resolve the synchronous module and WASM binary only from `vendor/ocgcore-wasm/0.1.2/`.
-- [ ] Record the vendored package and embedded core revisions in the project manifest.
-- [ ] Load only the synchronous build.
-- [ ] Read and validate the exposed core version.
+- [x] Add a Worker-owned `OcgCoreAdapter` module as the only engine import location.
+- [x] Resolve the synchronous module and WASM binary only from `vendor/ocgcore-wasm/0.1.2/`.
+- [x] Record the vendored package and embedded core revisions in the project manifest.
+- [x] Load only the synchronous build.
+- [x] Read and validate the exposed core version.
 - [ ] Fail with `engine_initialization_failed` when a vendored module or binary cannot load.
 - [ ] Terminate the headless Worker after a configurable initialization timeout.
-- [ ] Add adapter tests with a fake WASM module and one real vendored-WASM smoke test.
+- [x] Add adapter tests with a fake WASM module and one real vendored-WASM smoke test.
 - [ ] Assert the test succeeds with npm/network access disabled.
 
 **Manual validation:** temporarily remove the vendored WASM asset and confirm the headless test reports a bounded, readable initialization error.
@@ -339,13 +339,13 @@ Every step below is accepted only when:
 
 **Working software after commit:** the headless integration harness reports the active snapshot ID and refuses to create a duel when an artifact hash or schema is incompatible.
 
-- [ ] Define a versioned runtime manifest TypeScript schema.
+- [x] Define a versioned runtime manifest TypeScript schema.
 - [ ] Extend the existing generator to publish runtime-consumable immutable artifacts without depending on Vite or visual application code.
-- [ ] Add a generated snapshot ID derived from the complete manifest digest.
-- [ ] Add artifact byte length and SHA-256 validation.
-- [ ] Load the manifest before enabling `startDuel`.
-- [ ] Compare core, database, CardScripts, strings and image-manifest revisions as one unit.
-- [ ] Reject unsupported manifest schema versions.
+- [x] Add a generated snapshot ID derived from the complete manifest digest.
+- [x] Add artifact byte length and SHA-256 validation.
+- [x] Load the manifest before enabling `startDuel`.
+- [x] Compare core, database, CardScripts, strings and image-manifest revisions as one unit.
+- [x] Reject unsupported manifest schema versions.
 - [ ] Add fixtures for valid, missing, malformed and hash-mismatched manifests.
 - [ ] Emit structured snapshot validation progress and specific failure information for tests and future UI consumers.
 
@@ -357,15 +357,15 @@ Every step below is accepted only when:
 
 **Working software after commit:** the headless harness validates the one bundled preset matchup against the active catalog without starting the engine.
 
-- [ ] Select the final player deck and an opponent deck containing only simple, straightforward cards with no combo line required.
-- [ ] Store the single preset matchup as versioned project data, not component constants or a user-facing deck picker.
-- [ ] Keep production deck lists unordered; store programmed test order and starting hands only in integration fixtures.
-- [ ] Implement strict `.ydk` parsing for Main, Extra and Side sections.
-- [ ] Reject malformed lines, invalid IDs and unsupported Side Deck content.
-- [ ] Validate every card code against the active catalog.
+- [x] Select the final player deck and an opponent deck containing only simple, straightforward cards with no combo line required.
+- [x] Store the single preset matchup as versioned project data, not component constants or a user-facing deck picker.
+- [x] Keep production deck lists unordered; store programmed test order and starting hands only in integration fixtures.
+- [x] Implement strict `.ydk` parsing for Main, Extra and Side sections.
+- [x] Reject malformed lines, invalid IDs and unsupported Side Deck content.
+- [x] Validate every card code against the active catalog.
 - [ ] Validate MVP constraints such as deck size and supported mechanics.
-- [ ] Derive the unique active-duel card-code set.
-- [ ] Add parser tests for comments, line endings, invalid values and duplicate entries.
+- [x] Derive the unique active-duel card-code set.
+- [x] Add parser tests for comments, line endings, invalid values and duplicate entries.
 - [ ] Add a locked fixture containing the exact MVP deck lists and expected counts.
 
 **Manual validation:** corrupt one deck ID and confirm duel start is disabled with the exact missing code.
@@ -376,14 +376,14 @@ Every step below is accepted only when:
 
 **Working software after commit:** loading the bundled preset matchup resolves all required card records, text, global scripts and card scripts into Worker-owned memory and reports dependency counts.
 
-- [ ] Load only catalog shards needed by the active card-code set.
-- [ ] Load localized text shards for the same cards.
-- [ ] Load `constant.lua`, `utility.lua` and all required global/procedure scripts.
-- [ ] Load the active decks' `c<ID>.lua` scripts.
+- [x] Load only catalog shards needed by the active card-code set.
+- [x] Load localized text shards for the same cards.
+- [x] Load `constant.lua`, `utility.lua` and all required global/procedure scripts.
+- [x] Load the active decks' `c<ID>.lua` scripts.
 - [ ] Resolve aliases and script dependencies required by the selected cards.
-- [ ] Store normalized card data in a synchronous `Map<CardCode, OcgCardData>`.
-- [ ] Store scripts in a synchronous `Map<string, string>`.
-- [ ] Fail before duel creation if required data, text or script is missing.
+- [x] Store normalized card data in a synchronous `Map<CardCode, OcgCardData>`.
+- [x] Store scripts in a synchronous `Map<string, string>`.
+- [x] Fail before duel creation if required data, text or script is missing.
 - [ ] Emit loading progress by artifact group.
 - [ ] Add dependency-resolver tests with complete and intentionally incomplete fixtures.
 
@@ -395,13 +395,13 @@ Every step below is accepted only when:
 
 **Working software after commit:** the Worker can create and immediately destroy a duel using real synchronous card and script callbacks without leaking handles.
 
-- [ ] Implement synchronous `cardReader` using only the in-memory card map.
-- [ ] Implement synchronous `scriptReader` using only the in-memory script map.
-- [ ] Convert missing callback inputs into captured fatal diagnostics.
-- [ ] Add a `DuelSession` owner around the raw duel handle.
-- [ ] Make `dispose` idempotent.
-- [ ] Ensure initialization failure also destroys a partially created duel.
-- [ ] Reject a second `startDuel` while a live session exists.
+- [x] Implement synchronous `cardReader` using only the in-memory card map.
+- [x] Implement synchronous `scriptReader` using only the in-memory script map.
+- [x] Convert missing callback inputs into captured fatal diagnostics.
+- [x] Add a `DuelSession` owner around the raw duel handle.
+- [x] Make `dispose` idempotent.
+- [x] Ensure initialization failure also destroys a partially created duel.
+- [x] Reject a second `startDuel` while a live session exists.
 - [ ] Add handle-lifecycle tests with create/destroy counters.
 - [ ] Add a repeated create/dispose integration test.
 
@@ -413,18 +413,18 @@ Every step below is accepted only when:
 
 **Working software after commit:** the Worker creates the preset duel, shuffles and draws normally in production mode, accepts exact test-only orders and starting hands in programmed mode, starts processing and stops cleanly at the first unimplemented interactive message.
 
-- [ ] Generate and record a fresh non-zero production seed for every new duel.
-- [ ] Let `ocgcore` shuffle both production Main Decks and draw normal randomized starting hands.
-- [ ] Expose deterministic seed, deck-order and starting-hand injection only through a test/diagnostic adapter that cannot be selected by normal application commands.
-- [ ] Add cards to the correct player, location, sequence and position.
-- [ ] Apply starting LP, draw count and Master Rule configuration.
-- [ ] Start the duel only after all synchronous callback inputs are available.
-- [ ] Implement the `duelProcess` loop and message-buffer reads.
+- [x] Generate and record a fresh non-zero production seed for every new duel.
+- [x] Let `ocgcore` shuffle both production Main Decks and draw normal randomized starting hands.
+- [x] Expose deterministic seed, deck-order and starting-hand injection only through a test/diagnostic adapter that cannot be selected by normal application commands.
+- [x] Add cards to the correct player, location, sequence and position.
+- [x] Apply starting LP, draw count and Master Rule configuration.
+- [x] Start the duel only after all synchronous callback inputs are available.
+- [x] Implement the `duelProcess` loop and message-buffer reads.
 - [ ] Capture process statuses and raw message bytes in development traces.
 - [ ] Detect `MSG_WIN`, engine error, process timeout and unsupported message.
-- [ ] Add a maximum process-iteration guard against runaway execution.
+- [x] Add a maximum process-iteration guard against runaway execution.
 - [ ] Emit a structured failure instead of hanging on the first unsupported prompt.
-- [ ] Add an integration test asserting the first programmed message sequence.
+- [x] Add an integration test asserting the first programmed message sequence.
 - [ ] Add a production-mode test proving repeated unseeded starts do not always produce the same deck order or starting hand.
 
 **Long-term test:** a recorded test seed, explicit deck order and snapshot must preserve the expected trace prefix, while normal production starts remain randomized.
@@ -435,14 +435,14 @@ Every step below is accepted only when:
 
 **Working software after commit:** the headless trace shows typed draw, move, summon, phase, LP, chain and finish events until an interactive prompt is reached.
 
-- [ ] Inventory non-interactive message constants from the pinned core.
+- [x] Inventory non-interactive message constants from the pinned core.
 - [ ] Implement a bounded binary reader with offset and length errors.
 - [ ] Parse draw, shuffle, move, position and set events.
 - [ ] Parse summon, special summon, flip summon and negation events.
 - [ ] Parse phase, turn, attack, battle and damage/recovery events.
 - [ ] Parse chain creation, solving and completion events.
 - [ ] Parse hints, card hints and system-string references.
-- [ ] Parse `MSG_WIN` into a domain `DuelResult`.
+- [x] Parse `MSG_WIN` into a domain `DuelResult`.
 - [ ] Preserve unknown message type and bytes in a diagnostic error.
 - [ ] Add one binary fixture per parsed message shape.
 
@@ -454,18 +454,18 @@ Every step below is accepted only when:
 
 **Working software after commit:** the programmed integration harness asserts live LP, turn, phase and zone state from immutable Worker snapshots while the headless duel progresses.
 
-- [ ] Implement a Worker-side `DuelStateProjector`.
-- [ ] Project player identities, LP, turn player and current phase.
-- [ ] Project Main Deck and Extra Deck counts.
-- [ ] Project human hand identities and opponent hand count only.
-- [ ] Project monster, spell/trap, field, GY and banished zones.
-- [ ] Project card position, controller, owner and public/hidden state.
+- [x] Implement a Worker-side `DuelStateProjector`.
+- [x] Project player identities, LP, turn player and current phase.
+- [x] Project Main Deck and Extra Deck counts.
+- [x] Project human hand identities and opponent hand count only.
+- [x] Project monster, spell/trap, field, GY and banished zones.
+- [x] Project card position, controller, owner and public/hidden state.
 - [ ] Project overlay materials and active chain summary where available.
 - [ ] Reconcile ambiguous event state through core field/location queries.
-- [ ] Assert that a physical card instance cannot occupy two zones.
-- [ ] Strip private opponent fields before posting snapshots.
-- [ ] Add recorded event-to-state fixture tests.
-- [ ] Add explicit hidden-information regression tests.
+- [x] Assert that a physical card instance cannot occupy two zones.
+- [x] Strip private opponent fields before posting snapshots.
+- [x] Add recorded event-to-state fixture tests.
+- [x] Add explicit hidden-information regression tests.
 
 **Manual validation:** inspect Worker messages and confirm opponent hand identities are absent, not merely hidden by CSS.
 
@@ -475,15 +475,15 @@ Every step below is accepted only when:
 
 **Working software after commit:** the programmed scenario driver can select legal Main Phase and Battle Phase commands and return encoded responses to the core.
 
-- [ ] Parse idle-command options into stable domain choices.
-- [ ] Parse battle-command options into stable domain choices.
-- [ ] Represent summon, set, activate, change position, attack, phase and cancel choices.
-- [ ] Generate opaque prompt and choice IDs.
-- [ ] Keep raw response indexes in a Worker-private lookup.
-- [ ] Encode the selected command through the pinned adapter.
-- [ ] Reject stale, duplicate and unknown choice IDs.
+- [x] Parse idle-command options into stable domain choices.
+- [x] Parse battle-command options into stable domain choices.
+- [x] Represent summon, set, activate, change position, attack, phase and cancel choices.
+- [x] Generate opaque prompt and choice IDs.
+- [x] Keep raw response indexes in a Worker-private lookup.
+- [x] Encode the selected command through the pinned adapter.
+- [x] Reject stale, duplicate and unknown choice IDs.
 - [ ] Add binary prompt fixtures and response-byte assertions.
-- [ ] Add a test proving a response cannot answer a later prompt.
+- [x] Add a test proving a response cannot answer a later prompt.
 
 **Long-term test:** all command response encodings remain pinned to fixtures when the core dependency changes.
 
@@ -493,13 +493,13 @@ Every step below is accepted only when:
 
 **Working software after commit:** the programmed scenario driver handles effect confirmation, options and chain decisions and can continue past the preset decks' first interaction.
 
-- [ ] Parse generic yes/no prompts.
+- [x] Parse generic yes/no prompts.
 - [ ] Parse effect yes/no prompts with card and effect context.
 - [ ] Parse option selection using localized card/system strings.
-- [ ] Parse chain selection including pass/cancel rules.
-- [ ] Preserve mandatory versus optional semantics.
-- [ ] Encode each response family inside the Worker.
-- [ ] Add labels suitable for human UI without exposing protocol indexes.
+- [x] Parse chain selection including pass/cancel rules.
+- [x] Preserve mandatory versus optional semantics.
+- [x] Encode each response family inside the Worker.
+- [x] Add labels suitable for human UI without exposing protocol indexes.
 - [ ] Add fixture tests for zero, one and multiple chain candidates.
 - [ ] Add fixture tests for missing string fallback diagnostics.
 
@@ -511,14 +511,14 @@ Every step below is accepted only when:
 
 **Working software after commit:** the programmed scenario driver supports single and multi-card selection required by the programmed action matrix.
 
-- [ ] Parse card selection with minimum, maximum and cancelability.
-- [ ] Parse unselect-card toggles.
-- [ ] Parse tribute selection and contribution values.
-- [ ] Parse sum selection and required arithmetic constraints.
+- [x] Parse card selection with minimum, maximum and cancelability.
+- [x] Parse unselect-card toggles.
+- [x] Parse tribute selection and contribution values.
+- [x] Parse sum selection and required arithmetic constraints.
 - [ ] Represent selectable cards using stable public card-instance IDs.
-- [ ] Validate minimum, maximum and sum constraints before encoding.
-- [ ] Prevent selection of stale or non-candidate card instances.
-- [ ] Encode ordered and unordered selections as required by each message.
+- [x] Validate minimum, maximum and sum constraints before encoding.
+- [x] Prevent selection of stale or non-candidate card instances.
+- [x] Encode ordered and unordered selections as required by each message.
 - [ ] Add boundary fixtures for minimum, maximum, cancellation and impossible sum.
 - [ ] Add property-style tests for valid sum combinations if the algorithm is non-trivial.
 
@@ -530,15 +530,15 @@ Every step below is accepted only when:
 
 **Working software after commit:** the programmed scenario driver can represent and answer every interactive prompt family in the pinned compatibility inventory.
 
-- [ ] Parse place and disabled-field selection.
-- [ ] Parse battle-position selection.
-- [ ] Parse card and chain sorting.
-- [ ] Parse counter allocation.
-- [ ] Parse number announcement.
-- [ ] Parse attribute and race announcement.
-- [ ] Parse card-name announcement without adding a user-facing deck editor.
+- [x] Parse place and disabled-field selection.
+- [x] Parse battle-position selection.
+- [x] Parse card and chain sorting.
+- [x] Parse counter allocation.
+- [x] Parse number announcement.
+- [x] Parse attribute and race announcement.
+- [x] Parse card-name announcement without adding a user-facing deck editor.
 - [ ] Parse rock-paper-scissors and turn-choice messages where present.
-- [ ] Classify any additional pinned-core prompt family.
+- [x] Classify any additional pinned-core prompt family.
 - [ ] Encode and fixture every response family.
 - [ ] Document internal or non-presentational messages that require no UI.
 - [ ] Fail with a downloadable compatibility trace for an unknown prompt.
@@ -570,14 +570,14 @@ Every step below is accepted only when:
 
 **Working software after commit:** the human side remains controlled by the programmed driver while the opponent performs legal straightforward actions with shallow fixed priorities and no combo planning.
 
-- [ ] Define a pure `OpponentPolicy` interface over typed prompts and visible state.
-- [ ] Restrict the bundled opponent deck to simple monsters and straightforward spell/trap effects that the policy can use locally.
-- [ ] Advance phases when no obvious basic action remains.
-- [ ] Prefer a legal normal summon, then a legal set or simple activation.
-- [ ] Attack with available monsters using a simple strongest-attacker/legal-target rule.
+- [x] Define a pure `OpponentPolicy` interface over typed prompts and visible state.
+- [x] Restrict the bundled opponent deck to simple monsters and straightforward spell/trap effects that the policy can use locally.
+- [x] Advance phases when no obvious basic action remains.
+- [x] Prefer a legal normal summon, then a legal set or simple activation.
+- [x] Attack with available monsters using a simple strongest-attacker/legal-target rule.
 - [ ] Answer mandatory prompts legally and decline optional chains the basic policy does not understand.
-- [ ] Avoid search trees, combo sequencing, future-turn planning, hidden-information inference and deck-generic strategy.
-- [ ] Return a machine-readable reason such as `summon_first_legal`, `set_first_legal`, `attack_strongest` or `advance_phase`.
+- [x] Avoid search trees, combo sequencing, future-turn planning, hidden-information inference and deck-generic strategy.
+- [x] Return a machine-readable reason such as `summon_first_legal`, `set_first_legal`, `attack_strongest` or `advance_phase`.
 - [ ] Prevent access to human hidden information.
 - [ ] Add one unit fixture per basic priority and real-WASM integration coverage for complete opponent turns.
 
@@ -591,7 +591,7 @@ Before Step 19, all of the following must be true:
 - [ ] The supported game-action coverage matrix has no uncovered row.
 - [ ] Both preset decks and all test-only starting-hand/deck-order fixtures pass dependency validation.
 - [ ] Production-mode tests prove decks and starting hands are randomized rather than fixed to integration fixtures.
-- [ ] The basic opponent completes legal turns with its simple bundled deck.
+- [x] The basic opponent completes legal turns with its simple bundled deck.
 - [ ] `npm run check:headless` passes from a clean checkout without network engine resolution.
 
 If any item is red, continue headless engine, protocol, fixture or opponent work. Do not install or implement Svelte, Phaser, visual duel controls, card rendering or browser duel flows.
@@ -706,8 +706,8 @@ If any item is red, continue headless engine, protocol, fixture or opponent work
 **Working software after commit:** users can surrender, see a structured result and start a clean replacement duel without reloading the page.
 
 - [ ] Implement Worker-side surrender handling through the appropriate core path.
-- [ ] Emit winner, loser and finish reason from core messages.
-- [ ] Add completed, surrendered, unsupported and engine-error result variants.
+- [x] Emit winner, loser and finish reason from core messages.
+- [x] Add completed, surrendered, unsupported and engine-error result variants.
 - [ ] Add a Svelte result screen.
 - [ ] Add restart that first disposes the current session.
 - [ ] Replace the Worker if graceful disposal exceeds the timeout.
@@ -725,13 +725,13 @@ If any item is red, continue headless engine, protocol, fixture or opponent work
 
 - [ ] Record application build and browser metadata.
 - [ ] Record core, database, script, string and image-manifest revisions.
-- [ ] Record preset duel ID and the generated production seed, or the explicit programmed-test/replay seed.
+- [x] Record preset duel ID and the generated production seed, or the explicit programmed-test/replay seed.
 - [ ] Record ordered process statuses and parsed message types.
 - [ ] Record projected events and both players' responses.
-- [ ] Record opponent decision reasons.
+- [x] Record opponent decision reasons.
 - [ ] Record the last successful message and pending prompt on failure.
 - [ ] Exclude hidden card identities not needed for an authorized local debug trace, or clearly mark debug traces as sensitive.
-- [ ] Bound in-memory trace size.
+- [x] Bound in-memory trace size.
 - [ ] Add “Download diagnostics” to error and result surfaces.
 - [ ] Add trace-schema and redaction tests.
 
@@ -845,14 +845,14 @@ If any item is red, continue headless engine, protocol, fixture or opponent work
 - [ ] Binary readers reject malformed lengths and offsets.
 - [ ] Every protocol message fixture maps to the expected domain event or prompt.
 - [ ] Every response fixture produces the expected bytes.
-- [ ] State projection preserves zone and hidden-information invariants.
+- [x] State projection preserves zone and hidden-information invariants.
 - [ ] Basic opponent policy returns legal choices and simple decision reasons without strategic planning.
 - [ ] Deck and asset dependency resolvers are deterministic.
 
 ### Worker integration tests
 
 - [ ] Real WASM initializes inside a Worker.
-- [ ] Real pinned assets satisfy synchronous callbacks.
+- [x] Real pinned assets satisfy synchronous callbacks.
 - [ ] Programmed seeds, deck orders, starting hands and responses reproduce exact traces.
 - [ ] The programmed scenario set covers every supported game-action family and reaches expected `MSG_WIN` results.
 - [ ] Production-mode runs shuffle decks and starting hands without exposing test-only overrides.
@@ -869,11 +869,11 @@ If any item is red, continue headless engine, protocol, fixture or opponent work
 ### Asset and compatibility tests
 
 - [ ] Vendored `ocgcore-wasm@0.1.2` contains exactly the reviewed files and hashes, with no `node_modules` fallback.
-- [ ] Manifest hashes and byte lengths match generated files.
-- [ ] Catalog, text and image records have exact ID coverage.
-- [ ] Every indexed script exists and has a unique code.
-- [ ] Required global scripts exist.
-- [ ] Every pinned protocol constant is classified.
+- [x] Manifest hashes and byte lengths match generated files.
+- [x] Catalog, text and image records have exact ID coverage.
+- [x] Every indexed script exists and has a unique code.
+- [x] Required global scripts exist.
+- [x] Every pinned protocol constant is classified.
 - [ ] Upstream updates pass full compatibility tests before activation.
 
 ## Regression rule
