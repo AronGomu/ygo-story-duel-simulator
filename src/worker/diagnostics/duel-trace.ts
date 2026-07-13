@@ -10,7 +10,13 @@ import type { OpponentDecisionReason } from "../opponent/OpponentPolicy.ts";
 export interface DuelTraceEntry {
   readonly sequence: number;
   readonly kind:
-    "process" | "message" | "prompt" | "response" | "result" | "error";
+    | "process"
+    | "message"
+    | "prompt"
+    | "response"
+    | "result"
+    | "error"
+    | "lifecycle";
   readonly status?: number;
   readonly messageType?: number;
   readonly promptId?: PromptId;

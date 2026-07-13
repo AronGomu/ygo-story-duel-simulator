@@ -5,6 +5,7 @@ import type {
 } from "../../duel/contracts/player-prompt.ts";
 import type { PublicDuelState } from "../../duel/contracts/public-duel-state.ts";
 import type { ActiveDuelDependencies } from "../assets/active-duel-dependencies.ts";
+import { findValidContributionSelection } from "../protocol/sum-selection.ts";
 
 export type OpponentDecisionReason =
   | "summon_first_legal"
@@ -166,21 +167,20 @@ function validSum(prompt: PlayerPrompt): readonly ChoiceId[] {
     return prompt.choices.slice(0, prompt.minimum).map((choice) => choice.id);
 
   const candidates = prompt.choices.map((choice) => ({
-    id: choice.id,
-    amount: choice.card?.contribution ?? 0,
+    contribution: choice.card?.contribution ?? 0,
+    ...(choice.card?.alternativeContribution === undefined
+      ? {}
+      : { alternativeContribution: choice.card.alternativeContribution }),
   }));
-  const maximumMask = 1 << Math.min(candidates.length, 20);
-  for (let mask = 1; mask < maximumMask; mask += 1) {
-    const selected = candidates.filter(
-      (_, index) => (mask & (1 << index)) !== 0,
-    );
-    if (
-      selected.length >= prompt.minimum &&
-      selected.length <= prompt.maximum &&
-      selected.reduce((sum, choice) => sum + choice.amount, 0) === target
-    ) {
-      return selected.map((choice) => choice.id);
-    }
-  }
-  throw new Error(`No legal sum selection reaches ${target}`);
+  const selected = findValidContributionSelection(
+    candidates,
+    prompt.mandatoryContributions ?? [],
+    target,
+    prompt.sumMode ?? "exact",
+    prompt.minimum,
+    prompt.maximum,
+  );
+  if (selected === null)
+    throw new Error(`No legal sum selection reaches ${target}`);
+  return selected.map((index) => prompt.choices[index]!.id);
 }

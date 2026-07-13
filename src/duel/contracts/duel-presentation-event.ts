@@ -20,6 +20,11 @@ export type DuelPresentationEvent =
       readonly count: number;
     }
   | {
+      readonly type: "cardsShuffled";
+      readonly player: PlayerIndex;
+      readonly location: "deck" | "hand";
+    }
+  | {
       readonly type: "cardMoved";
       readonly card?: CardCode;
       readonly instanceId?: CardInstanceId;

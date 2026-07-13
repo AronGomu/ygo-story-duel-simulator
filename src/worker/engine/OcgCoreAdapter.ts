@@ -11,7 +11,10 @@ import createCore, {
   type OcgResponse,
   type SelectFieldPlace,
 } from "../../../vendor/ocgcore-wasm/0.1.2/dist/index.js";
-import type { DuelError } from "../../duel/contracts/duel-error.ts";
+import {
+  DuelOperationError,
+  type DuelError,
+} from "../../duel/contracts/duel-error.ts";
 
 export type CoreFactory = (options: InitializerSync) => Promise<OcgCoreSync>;
 export type EngineDuelHandle = OcgDuelHandle;
@@ -144,11 +147,19 @@ export class OcgCoreAdapter {
   }
 
   getMessages(handle: EngineDuelHandle): EngineMessage[] {
-    return this.#core.duelGetMessage(handle);
+    try {
+      return this.#core.duelGetMessage(handle);
+    } catch (error) {
+      throw operationError("parse core message batch", error);
+    }
   }
 
   setResponse(handle: EngineDuelHandle, response: EngineResponse): void {
-    this.#core.duelSetResponse(handle, response);
+    try {
+      this.#core.duelSetResponse(handle, response);
+    } catch (error) {
+      throw operationError(`encode core response type ${response.type}`, error);
+    }
   }
 
   queryField(
@@ -165,13 +176,10 @@ export class OcgCoreAdapter {
   }
 }
 
-export class EngineInitializationError extends Error {
-  readonly duelError: DuelError;
-
+export class EngineInitializationError extends DuelOperationError {
   constructor(duelError: DuelError, cause?: unknown) {
-    super(duelError.message, { cause });
+    super(duelError, cause);
     this.name = "EngineInitializationError";
-    this.duelError = duelError;
   }
 }
 
@@ -186,6 +194,11 @@ function engineInitializationError(cause: unknown): EngineInitializationError {
     },
     cause,
   );
+}
+
+function operationError(operation: string, cause: unknown): Error {
+  const message = cause instanceof Error ? cause.message : String(cause);
+  return new Error(`Unable to ${operation}: ${message}`, { cause });
 }
 
 function isCoreVersion(value: readonly [number, number]): boolean {

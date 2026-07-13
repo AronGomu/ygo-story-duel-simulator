@@ -1,3 +1,4 @@
+import { duelOperationError } from "../duel/contracts/duel-error.ts";
 import type { ChoiceId, PromptId, SnapshotId } from "../duel/contracts/ids.ts";
 import type { DuelPresentationEvent } from "../duel/contracts/duel-presentation-event.ts";
 import type { DuelResult } from "../duel/contracts/duel-result.ts";
@@ -29,6 +30,7 @@ export interface HeadlessDuelControllerOptions {
   readonly extraDeckCounts: readonly [number, number];
   readonly opponentPolicy?: OpponentPolicy;
   readonly maximumAutomaticResponses?: number;
+  readonly promptIdNamespace?: string;
 }
 
 export class HeadlessDuelController {
@@ -47,7 +49,10 @@ export class HeadlessDuelController {
       options.deckCounts,
       options.extraDeckCounts,
     );
-    this.#prompts = new PromptRegistry(options.dependencies);
+    this.#prompts = new PromptRegistry(
+      options.dependencies,
+      options.promptIdNamespace,
+    );
     this.#opponent =
       options.opponentPolicy ?? new BasicOpponentPolicy(options.dependencies);
     this.#trace = new BoundedDuelTrace(
@@ -61,6 +66,15 @@ export class HeadlessDuelController {
 
   advance(): DuelAdvance {
     this.#assertActive();
+    try {
+      return this.#advanceUntilBoundary();
+    } catch (error) {
+      this.#fail(error);
+      throw error;
+    }
+  }
+
+  #advanceUntilBoundary(): DuelAdvance {
     const events: DuelPresentationEvent[] = [];
 
     for (
@@ -75,6 +89,7 @@ export class HeadlessDuelController {
         detail: `${boundary.iterations} iteration(s)`,
       });
       let answeredOpponent = false;
+      let humanPrompt: PlayerPrompt | undefined;
 
       for (const message of boundary.messages) {
         this.#trace.record({ kind: "message", messageType: message.type });
@@ -95,8 +110,15 @@ export class HeadlessDuelController {
           promptId: prompt.id,
           player: prompt.player,
         });
+        if (humanPrompt !== undefined) {
+          throw duelOperationError(
+            "unsupported_message",
+            "ocgcore emitted multiple player prompts in one process batch",
+          );
+        }
         if (prompt.player === 0) {
-          return { state: this.#projector.snapshot(), events, prompt };
+          humanPrompt = prompt;
+          continue;
         }
 
         const decision = this.#opponent.choose(
@@ -116,23 +138,37 @@ export class HeadlessDuelController {
       }
 
       if (this.#result !== null) {
+        const result = this.#result;
+        this.#closeSession("completed");
         return {
           state: this.#projector.snapshot(),
           events,
-          result: this.#result,
+          result,
+        };
+      }
+      if (humanPrompt !== undefined) {
+        return {
+          state: this.#projector.snapshot(),
+          events,
+          prompt: humanPrompt,
         };
       }
       if (boundary.status === "ended") {
-        throw new Error("ocgcore ended without emitting a duel result");
+        throw duelOperationError(
+          "unsupported_message",
+          "ocgcore ended without emitting a duel result",
+        );
       }
       if (!answeredOpponent) {
-        throw new Error(
+        throw duelOperationError(
+          "unsupported_message",
           "ocgcore is waiting but emitted no supported player prompt",
         );
       }
     }
 
-    throw new Error(
+    throw duelOperationError(
+      "process_timeout",
       `Opponent exceeded ${this.#maximumAutomaticResponses} automatic responses without reaching the human`,
     );
   }
@@ -140,11 +176,20 @@ export class HeadlessDuelController {
   respond(promptId: PromptId, choiceIds: readonly ChoiceId[]): DuelAdvance {
     this.#assertActive();
     const prompt = this.#prompts.current;
-    if (prompt?.player !== 0)
-      throw new Error("No human prompt is awaiting a response");
+    if (prompt?.player !== 0) {
+      throw duelOperationError(
+        "invalid_response",
+        "No human prompt is awaiting a response",
+      );
+    }
     const response = this.#prompts.respond(promptId, choiceIds);
     this.#trace.record({ kind: "response", promptId, choiceIds, player: 0 });
-    this.#session.respond(response);
+    try {
+      this.#session.respond(response);
+    } catch (error) {
+      this.#fail(error);
+      throw error;
+    }
     return this.advance();
   }
 
@@ -155,8 +200,7 @@ export class HeadlessDuelController {
       kind: "result",
       detail: JSON.stringify(this.#result),
     });
-    this.#session.dispose();
-    this.#prompts.clear();
+    this.#closeSession("surrendered");
     return {
       state: this.#projector.snapshot(),
       events: [],
@@ -165,16 +209,57 @@ export class HeadlessDuelController {
   }
 
   dispose(): void {
-    this.#prompts.clear();
-    this.#session.dispose();
+    this.#closeSession("disposed");
+  }
+
+  get disposed(): boolean {
+    return this.#session.disposed;
   }
 
   trace(): DuelTrace {
     return this.#trace.snapshot();
   }
 
+  #fail(error: unknown): void {
+    const message = error instanceof Error ? error.message : String(error);
+    this.#trace.record({ kind: "error", detail: message });
+    try {
+      this.#closeSession("failed");
+    } catch (cleanupError) {
+      const cleanupMessage =
+        cleanupError instanceof Error
+          ? cleanupError.message
+          : String(cleanupError);
+      this.#trace.record({
+        kind: "error",
+        detail: `Session cleanup failed: ${cleanupMessage}`,
+      });
+      throw new AggregateError(
+        [error, cleanupError],
+        `${message}; session cleanup failed: ${cleanupMessage}`,
+        { cause: error },
+      );
+    }
+  }
+
+  #closeSession(
+    reason: "completed" | "surrendered" | "failed" | "disposed",
+  ): void {
+    this.#prompts.clear();
+    if (this.#session.disposed) return;
+    this.#session.dispose();
+    this.#trace.record({
+      kind: "lifecycle",
+      detail: `session_closed:${reason}`,
+    });
+  }
+
   #assertActive(): void {
-    if (this.#result !== null) throw new Error("Duel has already completed");
-    if (this.#session.disposed) throw new Error("Duel has been disposed");
+    if (this.#result !== null) {
+      throw duelOperationError("duel_not_active", "Duel has already completed");
+    }
+    if (this.#session.disposed) {
+      throw duelOperationError("duel_not_active", "Duel has been disposed");
+    }
   }
 }

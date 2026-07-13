@@ -1,0 +1,550 @@
+{
+  "schemaVersion": 1,
+  "scenarioId": "battle-and-chain",
+  "responseCount": 182,
+  "runCount": 52,
+  "expectedTraceSha256": "144ca9ee5975062e1a8e01fce41c6c52dd0eed79e4a8afbc34adf1350f963d45",
+  "runs": [
+    {
+      "prompt": "idleCommand",
+      "selections": [
+        {
+          "action": "summon",
+          "card": {
+            "code": 97590747,
+            "controller": 0,
+            "location": "hand",
+            "sequence": 0
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "selectPlace",
+      "selections": [
+        {
+          "action": "select",
+          "place": {
+            "player": 0,
+            "location": "monster",
+            "sequence": 0
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "chain",
+      "selections": [
+        {
+          "action": "pass"
+        }
+      ],
+      "repeat": 2
+    },
+    {
+      "prompt": "idleCommand",
+      "selections": [
+        {
+          "action": "endPhase"
+        }
+      ]
+    },
+    {
+      "prompt": "chain",
+      "selections": [
+        {
+          "action": "pass"
+        }
+      ],
+      "repeat": 14
+    },
+    {
+      "prompt": "idleCommand",
+      "selections": [
+        {
+          "action": "summon",
+          "card": {
+            "code": 97590747,
+            "controller": 0,
+            "location": "hand",
+            "sequence": 0
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "selectPlace",
+      "selections": [
+        {
+          "action": "select",
+          "place": {
+            "player": 0,
+            "location": "monster",
+            "sequence": 0
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "chain",
+      "selections": [
+        {
+          "action": "pass"
+        }
+      ],
+      "repeat": 2
+    },
+    {
+      "prompt": "idleCommand",
+      "selections": [
+        {
+          "action": "battlePhase"
+        }
+      ]
+    },
+    {
+      "prompt": "battleCommand",
+      "selections": [
+        {
+          "action": "attack",
+          "card": {
+            "code": 97590747,
+            "controller": 0,
+            "location": "monster",
+            "sequence": 0
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "chain",
+      "selections": [
+        {
+          "action": "pass"
+        }
+      ],
+      "repeat": 7
+    },
+    {
+      "prompt": "battleCommand",
+      "selections": [
+        {
+          "action": "mainPhase2"
+        }
+      ]
+    },
+    {
+      "prompt": "idleCommand",
+      "selections": [
+        {
+          "action": "endPhase"
+        }
+      ]
+    },
+    {
+      "prompt": "chain",
+      "selections": [
+        {
+          "action": "pass"
+        }
+      ],
+      "repeat": 14
+    },
+    {
+      "prompt": "idleCommand",
+      "selections": [
+        {
+          "action": "summon",
+          "card": {
+            "code": 97590747,
+            "controller": 0,
+            "location": "hand",
+            "sequence": 0
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "selectPlace",
+      "selections": [
+        {
+          "action": "select",
+          "place": {
+            "player": 0,
+            "location": "monster",
+            "sequence": 0
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "chain",
+      "selections": [
+        {
+          "action": "pass"
+        }
+      ],
+      "repeat": 2
+    },
+    {
+      "prompt": "idleCommand",
+      "selections": [
+        {
+          "action": "battlePhase"
+        }
+      ]
+    },
+    {
+      "prompt": "battleCommand",
+      "selections": [
+        {
+          "action": "attack",
+          "card": {
+            "code": 97590747,
+            "controller": 0,
+            "location": "monster",
+            "sequence": 0
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "chain",
+      "selections": [
+        {
+          "action": "pass"
+        }
+      ],
+      "repeat": 7
+    },
+    {
+      "prompt": "battleCommand",
+      "selections": [
+        {
+          "action": "mainPhase2"
+        }
+      ]
+    },
+    {
+      "prompt": "idleCommand",
+      "selections": [
+        {
+          "action": "endPhase"
+        }
+      ]
+    },
+    {
+      "prompt": "chain",
+      "selections": [
+        {
+          "action": "pass"
+        }
+      ],
+      "repeat": 14
+    },
+    {
+      "prompt": "idleCommand",
+      "selections": [
+        {
+          "action": "summon",
+          "card": {
+            "code": 91152256,
+            "controller": 0,
+            "location": "hand",
+            "sequence": 0
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "selectPlace",
+      "selections": [
+        {
+          "action": "select",
+          "place": {
+            "player": 0,
+            "location": "monster",
+            "sequence": 0
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "chain",
+      "selections": [
+        {
+          "action": "pass"
+        }
+      ],
+      "repeat": 2
+    },
+    {
+      "prompt": "idleCommand",
+      "selections": [
+        {
+          "action": "battlePhase"
+        }
+      ]
+    },
+    {
+      "prompt": "battleCommand",
+      "selections": [
+        {
+          "action": "attack",
+          "card": {
+            "code": 91152256,
+            "controller": 0,
+            "location": "monster",
+            "sequence": 0
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "chain",
+      "selections": [
+        {
+          "action": "pass"
+        }
+      ],
+      "repeat": 7
+    },
+    {
+      "prompt": "battleCommand",
+      "selections": [
+        {
+          "action": "mainPhase2"
+        }
+      ]
+    },
+    {
+      "prompt": "idleCommand",
+      "selections": [
+        {
+          "action": "endPhase"
+        }
+      ]
+    },
+    {
+      "prompt": "chain",
+      "selections": [
+        {
+          "action": "pass"
+        }
+      ],
+      "repeat": 14
+    },
+    {
+      "prompt": "idleCommand",
+      "selections": [
+        {
+          "action": "summon",
+          "card": {
+            "code": 91152256,
+            "controller": 0,
+            "location": "hand",
+            "sequence": 0
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "selectPlace",
+      "selections": [
+        {
+          "action": "select",
+          "place": {
+            "player": 0,
+            "location": "monster",
+            "sequence": 0
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "chain",
+      "selections": [
+        {
+          "action": "pass"
+        }
+      ],
+      "repeat": 2
+    },
+    {
+      "prompt": "idleCommand",
+      "selections": [
+        {
+          "action": "battlePhase"
+        }
+      ]
+    },
+    {
+      "prompt": "battleCommand",
+      "selections": [
+        {
+          "action": "attack",
+          "card": {
+            "code": 91152256,
+            "controller": 0,
+            "location": "monster",
+            "sequence": 0
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "selectCard",
+      "selections": [
+        {
+          "action": "select",
+          "card": {
+            "code": 5053103,
+            "controller": 1,
+            "location": "monster",
+            "sequence": 0
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "chain",
+      "selections": [
+        {
+          "action": "pass"
+        }
+      ],
+      "repeat": 7
+    },
+    {
+      "prompt": "battleCommand",
+      "selections": [
+        {
+          "action": "mainPhase2"
+        }
+      ]
+    },
+    {
+      "prompt": "idleCommand",
+      "selections": [
+        {
+          "action": "endPhase"
+        }
+      ]
+    },
+    {
+      "prompt": "chain",
+      "selections": [
+        {
+          "action": "pass"
+        }
+      ],
+      "repeat": 21
+    },
+    {
+      "prompt": "idleCommand",
+      "selections": [
+        {
+          "action": "summon",
+          "card": {
+            "code": 91152256,
+            "controller": 0,
+            "location": "hand",
+            "sequence": 0
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "selectPlace",
+      "selections": [
+        {
+          "action": "select",
+          "place": {
+            "player": 0,
+            "location": "monster",
+            "sequence": 0
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "chain",
+      "selections": [
+        {
+          "action": "pass"
+        }
+      ],
+      "repeat": 2
+    },
+    {
+      "prompt": "idleCommand",
+      "selections": [
+        {
+          "action": "battlePhase"
+        }
+      ]
+    },
+    {
+      "prompt": "battleCommand",
+      "selections": [
+        {
+          "action": "attack",
+          "card": {
+            "code": 91152256,
+            "controller": 0,
+            "location": "monster",
+            "sequence": 0
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "selectCard",
+      "selections": [
+        {
+          "action": "select",
+          "card": {
+            "code": 5053103,
+            "controller": 1,
+            "location": "monster",
+            "sequence": 0
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "chain",
+      "selections": [
+        {
+          "action": "pass"
+        }
+      ],
+      "repeat": 7
+    },
+    {
+      "prompt": "battleCommand",
+      "selections": [
+        {
+          "action": "mainPhase2"
+        }
+      ]
+    },
+    {
+      "prompt": "idleCommand",
+      "selections": [
+        {
+          "action": "endPhase"
+        }
+      ]
+    },
+    {
+      "prompt": "chain",
+      "selections": [
+        {
+          "action": "pass"
+        }
+      ],
+      "repeat": 23
+    }
+  ]
+}

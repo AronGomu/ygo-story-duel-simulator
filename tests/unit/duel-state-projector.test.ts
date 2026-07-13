@@ -62,6 +62,61 @@ describe("DuelStateProjector", () => {
     expect(snapshot.players[0].monsters[0]?.code).toBe(97590747);
   });
 
+  it("projects shuffles and reconciles the visible human hand order", () => {
+    const value = projector();
+    value.apply({
+      type: EngineMessageType.DRAW,
+      player: 0,
+      drawn: [
+        { code: 97590747, position: EnginePosition.FACE_DOWN_DEFENSE },
+        { code: 5053103, position: EnginePosition.FACE_DOWN_DEFENSE },
+      ],
+    });
+
+    expect(
+      value.apply({ type: EngineMessageType.SHUFFLE_DECK, player: 0 }).events,
+    ).toEqual([{ type: "cardsShuffled", player: 0, location: "deck" }]);
+    expect(
+      value.apply({
+        type: EngineMessageType.SHUFFLE_HAND,
+        player: 0,
+        cards: [5053103, 97590747],
+      }).events,
+    ).toEqual([{ type: "cardsShuffled", player: 0, location: "hand" }]);
+    expect(
+      value
+        .snapshot()
+        .players[0].hand.map((card) => [card.code, card.sequence]),
+    ).toEqual([
+      [5053103, 0],
+      [97590747, 1],
+    ]);
+  });
+
+  it("accepts hidden code-zero deck moves emitted while sorting", () => {
+    const value = projector();
+
+    expect(() =>
+      value.apply({
+        type: EngineMessageType.MOVE,
+        card: 0,
+        from: {
+          controller: 0,
+          location: EngineLocation.DECK,
+          sequence: 39,
+          position: EnginePosition.FACE_DOWN_DEFENSE,
+        },
+        to: {
+          controller: 0,
+          location: EngineLocation.DECK,
+          sequence: 39,
+          position: EnginePosition.FACE_DOWN_DEFENSE,
+        },
+      }),
+    ).not.toThrow();
+    expect(value.snapshot().players[0].deckCount).toBe(40);
+  });
+
   it("tracks life points, turns, phases, and core-provided results", () => {
     const value = projector();
     value.apply({ type: EngineMessageType.NEW_TURN, player: 0 });

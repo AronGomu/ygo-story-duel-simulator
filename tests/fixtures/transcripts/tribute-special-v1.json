@@ -1,0 +1,580 @@
+{
+  "schemaVersion": 1,
+  "scenarioId": "tribute-special-and-target",
+  "responseCount": 110,
+  "runCount": 51,
+  "expectedTraceSha256": "01707174bcbcf4940d33c77eee98db359c5cdaec4d95c6646e8f1226a14626af",
+  "runs": [
+    {
+      "prompt": "idleCommand",
+      "selections": [
+        {
+          "action": "setMonster",
+          "card": {
+            "code": 15025844,
+            "controller": 0,
+            "location": "hand",
+            "sequence": 0
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "selectPlace",
+      "selections": [
+        {
+          "action": "select",
+          "place": {
+            "player": 0,
+            "location": "monster",
+            "sequence": 0
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "chain",
+      "selections": [
+        {
+          "action": "pass"
+        }
+      ]
+    },
+    {
+      "prompt": "idleCommand",
+      "selections": [
+        {
+          "action": "setSpellTrap",
+          "card": {
+            "code": 83764718,
+            "controller": 0,
+            "location": "hand",
+            "sequence": 1
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "selectPlace",
+      "selections": [
+        {
+          "action": "select",
+          "place": {
+            "player": 0,
+            "location": "spellTrap",
+            "sequence": 0
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "chain",
+      "selections": [
+        {
+          "action": "pass"
+        }
+      ]
+    },
+    {
+      "prompt": "idleCommand",
+      "selections": [
+        {
+          "action": "setSpellTrap",
+          "card": {
+            "code": 5758500,
+            "controller": 0,
+            "location": "hand",
+            "sequence": 1
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "selectPlace",
+      "selections": [
+        {
+          "action": "select",
+          "place": {
+            "player": 0,
+            "location": "spellTrap",
+            "sequence": 1
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "chain",
+      "selections": [
+        {
+          "action": "pass"
+        }
+      ]
+    },
+    {
+      "prompt": "idleCommand",
+      "selections": [
+        {
+          "action": "setSpellTrap",
+          "card": {
+            "code": 4031928,
+            "controller": 0,
+            "location": "hand",
+            "sequence": 1
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "selectPlace",
+      "selections": [
+        {
+          "action": "select",
+          "place": {
+            "player": 0,
+            "location": "spellTrap",
+            "sequence": 2
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "chain",
+      "selections": [
+        {
+          "action": "pass"
+        }
+      ]
+    },
+    {
+      "prompt": "idleCommand",
+      "selections": [
+        {
+          "action": "endPhase"
+        }
+      ]
+    },
+    {
+      "prompt": "chain",
+      "selections": [
+        {
+          "action": "pass"
+        }
+      ],
+      "repeat": 14
+    },
+    {
+      "prompt": "idleCommand",
+      "selections": [
+        {
+          "action": "activate",
+          "card": {
+            "code": 4031928,
+            "controller": 0,
+            "location": "spellTrap",
+            "sequence": 2
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "selectCard",
+      "selections": [
+        {
+          "action": "select",
+          "card": {
+            "code": 97590747,
+            "controller": 1,
+            "location": "monster",
+            "sequence": 0
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "chain",
+      "selections": [
+        {
+          "action": "pass"
+        }
+      ]
+    },
+    {
+      "prompt": "selectPlace",
+      "selections": [
+        {
+          "action": "select",
+          "place": {
+            "player": 0,
+            "location": "monster",
+            "sequence": 1
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "chain",
+      "selections": [
+        {
+          "action": "pass"
+        }
+      ]
+    },
+    {
+      "prompt": "idleCommand",
+      "selections": [
+        {
+          "action": "activate",
+          "card": {
+            "code": 5758500,
+            "controller": 0,
+            "location": "spellTrap",
+            "sequence": 1
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "selectCard",
+      "selections": [
+        {
+          "action": "select",
+          "card": {
+            "code": 4031928,
+            "controller": 0,
+            "location": "graveyard",
+            "sequence": 0
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "chain",
+      "selections": [
+        {
+          "action": "pass"
+        }
+      ],
+      "repeat": 2
+    },
+    {
+      "prompt": "idleCommand",
+      "selections": [
+        {
+          "action": "summon",
+          "card": {
+            "code": 70781052,
+            "controller": 0,
+            "location": "hand",
+            "sequence": 0
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "selectTribute",
+      "selections": [
+        {
+          "action": "select",
+          "card": {
+            "code": 15025844,
+            "controller": 0,
+            "location": "monster",
+            "sequence": 0
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "selectPlace",
+      "selections": [
+        {
+          "action": "select",
+          "place": {
+            "player": 0,
+            "location": "monster",
+            "sequence": 0
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "chain",
+      "selections": [
+        {
+          "action": "pass"
+        }
+      ],
+      "repeat": 2
+    },
+    {
+      "prompt": "idleCommand",
+      "selections": [
+        {
+          "action": "activate",
+          "card": {
+            "code": 83764718,
+            "controller": 0,
+            "location": "spellTrap",
+            "sequence": 0
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "selectCard",
+      "selections": [
+        {
+          "action": "select",
+          "card": {
+            "code": 15025844,
+            "controller": 0,
+            "location": "graveyard",
+            "sequence": 1
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "chain",
+      "selections": [
+        {
+          "action": "pass"
+        }
+      ]
+    },
+    {
+      "prompt": "selectPlace",
+      "selections": [
+        {
+          "action": "select",
+          "place": {
+            "player": 0,
+            "location": "monster",
+            "sequence": 2
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "selectPosition",
+      "selections": [
+        {
+          "action": "select",
+          "value": 1
+        }
+      ]
+    },
+    {
+      "prompt": "chain",
+      "selections": [
+        {
+          "action": "pass"
+        }
+      ]
+    },
+    {
+      "prompt": "idleCommand",
+      "selections": [
+        {
+          "action": "setSpellTrap",
+          "card": {
+            "code": 12580477,
+            "controller": 0,
+            "location": "hand",
+            "sequence": 0
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "selectPlace",
+      "selections": [
+        {
+          "action": "select",
+          "place": {
+            "player": 0,
+            "location": "spellTrap",
+            "sequence": 0
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "chain",
+      "selections": [
+        {
+          "action": "pass"
+        }
+      ]
+    },
+    {
+      "prompt": "idleCommand",
+      "selections": [
+        {
+          "action": "battlePhase"
+        }
+      ]
+    },
+    {
+      "prompt": "battleCommand",
+      "selections": [
+        {
+          "action": "attack",
+          "card": {
+            "code": 70781052,
+            "controller": 0,
+            "location": "monster",
+            "sequence": 0
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "chain",
+      "selections": [
+        {
+          "action": "pass"
+        }
+      ],
+      "repeat": 7
+    },
+    {
+      "prompt": "battleCommand",
+      "selections": [
+        {
+          "action": "attack",
+          "card": {
+            "code": 97590747,
+            "controller": 0,
+            "location": "monster",
+            "sequence": 1
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "chain",
+      "selections": [
+        {
+          "action": "pass"
+        }
+      ],
+      "repeat": 7
+    },
+    {
+      "prompt": "battleCommand",
+      "selections": [
+        {
+          "action": "attack",
+          "card": {
+            "code": 15025844,
+            "controller": 0,
+            "location": "monster",
+            "sequence": 2
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "chain",
+      "selections": [
+        {
+          "action": "pass"
+        }
+      ],
+      "repeat": 7
+    },
+    {
+      "prompt": "battleCommand",
+      "selections": [
+        {
+          "action": "mainPhase2"
+        }
+      ]
+    },
+    {
+      "prompt": "idleCommand",
+      "selections": [
+        {
+          "action": "endPhase"
+        }
+      ]
+    },
+    {
+      "prompt": "chain",
+      "selections": [
+        {
+          "action": "pass"
+        }
+      ],
+      "repeat": 22
+    },
+    {
+      "prompt": "idleCommand",
+      "selections": [
+        {
+          "action": "activate",
+          "card": {
+            "code": 84257639,
+            "controller": 0,
+            "location": "hand",
+            "sequence": 0
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "selectPlace",
+      "selections": [
+        {
+          "action": "select",
+          "place": {
+            "player": 0,
+            "location": "spellTrap",
+            "sequence": 1
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "chain",
+      "selections": [
+        {
+          "action": "pass"
+        }
+      ],
+      "repeat": 2
+    },
+    {
+      "prompt": "idleCommand",
+      "selections": [
+        {
+          "action": "battlePhase"
+        }
+      ]
+    },
+    {
+      "prompt": "battleCommand",
+      "selections": [
+        {
+          "action": "attack",
+          "card": {
+            "code": 70781052,
+            "controller": 0,
+            "location": "monster",
+            "sequence": 0
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "chain",
+      "selections": [
+        {
+          "action": "pass"
+        }
+      ],
+      "repeat": 5
+    }
+  ]
+}

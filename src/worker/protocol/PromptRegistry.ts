@@ -1,3 +1,4 @@
+import { duelOperationError } from "../../duel/contracts/duel-error.ts";
 import {
   cardCode,
   cardInstanceId,
@@ -36,6 +37,11 @@ import {
   type EngineRace,
   type EngineResponse,
 } from "../engine/OcgCoreAdapter.ts";
+import {
+  contributionOptions,
+  decodeSumContribution,
+  isValidContributionTotal,
+} from "./sum-selection.ts";
 
 interface ChoiceBinding {
   readonly choice: PromptChoice;
@@ -49,11 +55,13 @@ export interface EnginePromptBinding {
 
 export class PromptRegistry {
   readonly #dependencies: ActiveDuelDependencies;
+  readonly #idNamespace: string;
   #sequence = 0;
   #current: EnginePromptBinding | null = null;
 
-  constructor(dependencies: ActiveDuelDependencies) {
+  constructor(dependencies: ActiveDuelDependencies, idNamespace = "") {
     this.#dependencies = dependencies;
+    this.#idNamespace = idNamespace;
   }
 
   publish(message: EngineMessage): PlayerPrompt | null {
@@ -61,6 +69,7 @@ export class PromptRegistry {
       message,
       ++this.#sequence,
       this.#dependencies,
+      this.#idNamespace,
     );
     if (binding === null) return null;
     this.#current = binding;
@@ -69,12 +78,26 @@ export class PromptRegistry {
 
   respond(id: PromptId, choiceIds: readonly ChoiceId[]): EngineResponse {
     const current = this.#current;
-    if (current === null) throw new Error("No prompt is awaiting a response");
-    if (current.prompt.id !== id)
-      throw new Error(`Stale or unknown prompt ID: ${id}`);
-    const response = current.resolve(choiceIds);
-    this.#current = null;
-    return response;
+    if (current === null) {
+      throw duelOperationError(
+        "invalid_response",
+        "No prompt is awaiting a response",
+      );
+    }
+    if (current.prompt.id !== id) {
+      throw duelOperationError(
+        "stale_prompt",
+        `Stale or unknown prompt ID: ${id}`,
+      );
+    }
+    try {
+      const response = current.resolve(choiceIds);
+      this.#current = null;
+      return response;
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      throw duelOperationError("invalid_response", message, error);
+    }
   }
 
   clear(): void {
@@ -90,8 +113,13 @@ export function buildEnginePrompt(
   message: EngineMessage,
   sequence: number,
   dependencies: ActiveDuelDependencies,
+  idNamespace = "",
 ): EnginePromptBinding | null {
-  const id = promptId(`prompt-${sequence}`);
+  const id = promptId(
+    idNamespace.length === 0
+      ? `prompt-${sequence}`
+      : `${idNamespace}-prompt-${sequence}`,
+  );
   const text = (code: number): string =>
     dependencies.texts.get(code)?.name ?? `Card ${code}`;
 
@@ -307,9 +335,13 @@ export function buildEnginePrompt(
       const bindings = message.selects.map((card, index) =>
         makeCardBinding(id, index, "select", text(card.code), card),
       );
-      const requiredFromMandatory = message.selects_must.reduce(
-        (total, card) => total + card.amount,
-        0,
+      const sumMode = message.select_max === 0 ? "exact" : "atLeast";
+      const minimum = sumMode === "exact" ? message.min : 0;
+      const maximum = sumMode === "exact" ? message.max : bindings.length;
+      const mandatoryContributions = Object.freeze(
+        message.selects_must.map((card) =>
+          Object.freeze(decodeSumContribution(card.amount)),
+        ),
       );
       return binding(
         prompt(
@@ -319,24 +351,30 @@ export function buildEnginePrompt(
           "Select a valid total",
           bindings,
           {
-            minimum: message.min,
-            maximum: message.max,
+            minimum,
+            maximum,
             requiredTotal: message.amount,
+            sumMode,
+            mandatoryContributions,
           },
         ),
         (ids) => {
           const selected = selectedBindings(ids, bindings);
-          requireSelectionCount(selected, message.min, message.max, false);
-          const total =
-            requiredFromMandatory +
-            selected.reduce(
-              (sum, choice) =>
-                sum + (message.selects[choice.rawIndex]?.amount ?? 0),
-              0,
-            );
-          if (total !== message.amount) {
+          requireSelectionCount(selected, minimum, maximum, false);
+          const selectedCards = selected.map((choice) => {
+            const card = message.selects[choice.rawIndex];
+            if (card === undefined)
+              throw new Error("Unknown sum-selection card");
+            return card;
+          });
+          const contributions = [...message.selects_must, ...selectedCards].map(
+            (card) => contributionOptions(decodeSumContribution(card.amount)),
+          );
+          if (
+            !isValidContributionTotal(contributions, message.amount, sumMode)
+          ) {
             throw new Error(
-              `Selected contribution ${total} does not equal ${message.amount}`,
+              `Selected cards do not satisfy the ${sumMode === "exact" ? "exact" : "minimum"} total ${message.amount}`,
             );
           }
           return {
@@ -477,7 +515,7 @@ export function buildEnginePrompt(
         (ids) => {
           if (ids.length === 0)
             return { type: EngineResponseType.SORT_CARD, order: null };
-          const selected = selectedBindings(ids, bindings, true);
+          const selected = selectedBindings(ids, bindings);
           requireSelectionCount(
             selected,
             bindings.length,
@@ -662,7 +700,13 @@ function prompt(
   overrides: Partial<
     Pick<
       PlayerPrompt,
-      "minimum" | "maximum" | "cancelable" | "ordered" | "requiredTotal"
+      | "minimum"
+      | "maximum"
+      | "cancelable"
+      | "ordered"
+      | "requiredTotal"
+      | "sumMode"
+      | "mandatoryContributions"
     >
   > = {},
 ): PlayerPrompt {
@@ -679,6 +723,10 @@ function prompt(
     ...(overrides.requiredTotal === undefined
       ? {}
       : { requiredTotal: overrides.requiredTotal }),
+    ...(overrides.sumMode === undefined ? {} : { sumMode: overrides.sumMode }),
+    ...(overrides.mandatoryContributions === undefined
+      ? {}
+      : { mandatoryContributions: overrides.mandatoryContributions }),
   });
 }
 
@@ -929,9 +977,11 @@ function toPromptCard(card: {
     ...(card.position === undefined
       ? {}
       : { position: engineToPublicPosition(card.position) }),
-    ...((card.amount ?? card.release_param) === undefined
-      ? {}
-      : { contribution: card.amount ?? card.release_param }),
+    ...(card.amount === undefined
+      ? card.release_param === undefined
+        ? {}
+        : { contribution: card.release_param }
+      : decodeSumContribution(card.amount)),
   };
 }
 

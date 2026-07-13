@@ -77,6 +77,136 @@ describe("PromptRegistry", () => {
     );
   });
 
+  it("validates exact and at-least sum modes with packed contributions", () => {
+    const exact = buildEnginePrompt(
+      {
+        type: EngineMessageType.SELECT_SUM,
+        player: 0,
+        select_max: 0,
+        amount: 3,
+        min: 1,
+        max: 1,
+        selects_must: [],
+        selects: [
+          {
+            code: 97590747,
+            controller: 0,
+            location: EngineLocation.HAND,
+            sequence: 0,
+            position: EnginePosition.FACE_DOWN_DEFENSE,
+            amount: (3 << 16) | 2,
+          },
+        ],
+      },
+      2,
+      dependencies,
+    );
+    const exactChoice = exact?.prompt.choices[0];
+    if (exactChoice === undefined)
+      throw new Error("Exact sum choice is missing");
+    expect(exactChoice.card).toMatchObject({
+      contribution: 2,
+      alternativeContribution: 3,
+    });
+    expect(exact?.resolve([exactChoice.id])).toEqual({
+      type: EngineResponseType.SELECT_SUM,
+      indicies: [0],
+    });
+
+    const atLeast = buildEnginePrompt(
+      {
+        type: EngineMessageType.SELECT_SUM,
+        player: 0,
+        select_max: 1,
+        amount: 5,
+        min: 0,
+        max: 0,
+        selects_must: [],
+        selects: [0, 1].map((sequence) => ({
+          code: 97590747,
+          controller: 0 as const,
+          location: EngineLocation.HAND,
+          sequence,
+          position: EnginePosition.FACE_DOWN_DEFENSE,
+          amount: 3,
+        })),
+      },
+      3,
+      dependencies,
+    );
+    const atLeastChoices = atLeast?.prompt.choices ?? [];
+    expect(atLeast?.prompt).toMatchObject({
+      minimum: 0,
+      maximum: 2,
+      sumMode: "atLeast",
+      requiredTotal: 5,
+    });
+    expect(() => atLeast?.resolve([atLeastChoices[0]!.id])).toThrow(
+      /minimum total 5/,
+    );
+    expect(atLeast?.resolve(atLeastChoices.map((choice) => choice.id))).toEqual(
+      { type: EngineResponseType.SELECT_SUM, indicies: [0, 1] },
+    );
+
+    const mandatoryOnly = buildEnginePrompt(
+      {
+        type: EngineMessageType.SELECT_SUM,
+        player: 0,
+        select_max: 1,
+        amount: 5,
+        min: 0,
+        max: 0,
+        selects_must: [2, 3].map((amount, sequence) => ({
+          code: 97590747,
+          controller: 0 as const,
+          location: EngineLocation.HAND,
+          sequence,
+          position: EnginePosition.FACE_DOWN_DEFENSE,
+          amount,
+        })),
+        selects: [
+          {
+            code: 97590747,
+            controller: 0,
+            location: EngineLocation.HAND,
+            sequence: 2,
+            position: EnginePosition.FACE_DOWN_DEFENSE,
+            amount: 1,
+          },
+        ],
+      },
+      4,
+      dependencies,
+    );
+    expect(mandatoryOnly?.prompt.minimum).toBe(0);
+    expect(mandatoryOnly?.resolve([])).toEqual({
+      type: EngineResponseType.SELECT_SUM,
+      indicies: [],
+    });
+  });
+
+  it("rejects duplicate cards in a sort order", () => {
+    const binding = buildEnginePrompt(
+      {
+        type: EngineMessageType.SORT_CARD,
+        player: 0,
+        cards: [0, 1].map((sequence) => ({
+          code: 97590747,
+          controller: 0 as const,
+          location: EngineLocation.DECK,
+          sequence,
+        })),
+      },
+      4,
+      dependencies,
+    );
+    const choice = binding?.prompt.choices[0];
+    if (choice === undefined) throw new Error("Sort choice is missing");
+    expect(() => binding?.resolve([choice.id, choice.id])).toThrow(
+      /Duplicate choice IDs/,
+    );
+  });
+
   it("validates multi-card minimum and maximum bounds before encoding", () => {
     const message: EngineMessage = {
       type: EngineMessageType.SELECT_CARD,

@@ -56,6 +56,12 @@ export interface PromptCard {
   readonly sequence: number;
   readonly position?: CardPosition;
   readonly contribution?: number;
+  readonly alternativeContribution?: number;
+}
+
+export interface PromptContribution {
+  readonly contribution: number;
+  readonly alternativeContribution?: number;
 }
 
 export interface PromptPlace {
@@ -86,4 +92,6 @@ export interface PlayerPrompt {
   readonly cancelable: boolean;
   readonly ordered: boolean;
   readonly requiredTotal?: number;
+  readonly sumMode?: "exact" | "atLeast";
+  readonly mandatoryContributions?: readonly PromptContribution[];
 }

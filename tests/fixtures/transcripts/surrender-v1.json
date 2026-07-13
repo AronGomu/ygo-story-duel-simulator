@@ -1,0 +1,8 @@
+{
+  "schemaVersion": 1,
+  "scenarioId": "surrender-at-opening",
+  "responseCount": 0,
+  "runCount": 0,
+  "runs": [],
+  "expectedTraceSha256": "2f625e4dc8bdb9394fccbe2569e12b929701074d0715a286de6b0e9267da95d0"
+}

@@ -1,16 +1,36 @@
 import { assertNever } from "../duel/contracts/assert-never.ts";
-import type { DuelCommand } from "../duel/contracts/duel-command.ts";
-import type { DuelError } from "../duel/contracts/duel-error.ts";
+import {
+  DuelCommandValidationError,
+  type DuelCommand,
+} from "../duel/contracts/duel-command.ts";
+import {
+  duelOperationError,
+  type DuelError,
+} from "../duel/contracts/duel-error.ts";
 import type { DuelWorkerEvent } from "../duel/contracts/duel-worker-event.ts";
 import type { SnapshotId } from "../duel/contracts/ids.ts";
 import type { MvpPreset } from "../duel/presets/mvp-preset.ts";
 import type { ActiveDuelDependencies } from "./assets/active-duel-dependencies.ts";
+import type { DuelTrace, DuelTraceEntry } from "./diagnostics/duel-trace.ts";
 import { DuelSession } from "./engine/DuelSession.ts";
 import type { OcgCoreAdapter } from "./engine/OcgCoreAdapter.ts";
 import {
   HeadlessDuelController,
   type DuelAdvance,
 } from "./HeadlessDuelController.ts";
+import { toDuelError } from "./duel-errors.ts";
+import {
+  safeWorkerLogger,
+  workerLog,
+  type WorkerLogger,
+} from "./diagnostics/worker-log.ts";
+
+const DEFAULT_MAXIMUM_QUEUED_COMMANDS = 128;
+const MAXIMUM_RUNTIME_ID_LENGTH = 128;
+
+type QueuedDuelCommand = Exclude<DuelCommand, { readonly type: "dispose" }>;
+
+export { toDuelError };
 
 export interface DuelRuntimeResources {
   readonly adapter: OcgCoreAdapter;
@@ -21,111 +41,392 @@ export interface DuelRuntimeResources {
 
 export type DuelRuntimeInitializer = (
   progress: (stage: string, value?: number) => void,
+  signal: AbortSignal,
 ) => Promise<DuelRuntimeResources>;
+
+export type DuelRuntimeProgressSink = (
+  event: Extract<DuelWorkerEvent, { readonly type: "loading" }>,
+) => void;
+
+export interface DuelRuntimeFailureContext {
+  readonly commandType: DuelCommand["type"];
+  readonly code: DuelError["code"];
+  readonly runtimeId: string;
+  readonly traceMetadata?: Pick<DuelTrace, "presetId" | "snapshotId" | "seed">;
+  readonly traceTail?: readonly DuelTraceEntry[];
+}
+
+export type DuelRuntimeFailureSink = (
+  error: unknown,
+  context: DuelRuntimeFailureContext,
+) => void;
+
+export interface DuelWorkerRuntimeOptions {
+  readonly maximumQueuedCommands?: number;
+  readonly runtimeId?: string;
+  readonly logger?: WorkerLogger;
+}
 
 export class DuelWorkerRuntime {
   readonly #initializeResources: DuelRuntimeInitializer;
   #resources: DuelRuntimeResources | null = null;
+  #initializationFailure: { readonly error: unknown } | null = null;
+  #initializationAbortController: AbortController | null = null;
   #controller: HeadlessDuelController | null = null;
+  #commandQueue: Promise<void> = Promise.resolve();
+  readonly #maximumQueuedCommands: number;
+  readonly #runtimeId: string;
+  readonly #logger: WorkerLogger;
+  #pendingCommands = 0;
+  #nextDuelSequence = 0;
+  #activeCommandDepth = 0;
+  #deferredControllerDisposal: HeadlessDuelController | null = null;
+  #disposed = false;
 
-  constructor(initializeResources: DuelRuntimeInitializer) {
+  constructor(
+    initializeResources: DuelRuntimeInitializer,
+    options: DuelWorkerRuntimeOptions = {},
+  ) {
     this.#initializeResources = initializeResources;
+    this.#maximumQueuedCommands =
+      options.maximumQueuedCommands ?? DEFAULT_MAXIMUM_QUEUED_COMMANDS;
+    this.#runtimeId = options.runtimeId ?? globalThis.crypto.randomUUID();
+    this.#logger = safeWorkerLogger(options.logger ?? workerLog);
+    if (
+      !Number.isSafeInteger(this.#maximumQueuedCommands) ||
+      this.#maximumQueuedCommands <= 0
+    ) {
+      throw new Error(
+        `Invalid Worker command queue limit: ${this.#maximumQueuedCommands}`,
+      );
+    }
+    if (
+      this.#runtimeId.trim().length === 0 ||
+      this.#runtimeId.length > MAXIMUM_RUNTIME_ID_LENGTH
+    ) {
+      throw new Error("Invalid Worker runtime ID");
+    }
   }
 
-  async handle(command: DuelCommand): Promise<readonly DuelWorkerEvent[]> {
+  handle(
+    command: DuelCommand,
+    progressSink?: DuelRuntimeProgressSink,
+    failureSink?: DuelRuntimeFailureSink,
+  ): Promise<readonly DuelWorkerEvent[]> {
+    if (command.type === "dispose") {
+      this.dispose();
+      return Promise.resolve([]);
+    }
+    if (this.#disposed) return Promise.resolve([]);
+    if (this.#pendingCommands >= this.#maximumQueuedCommands) {
+      const error = new DuelCommandValidationError(
+        `Worker command queue limit of ${this.#maximumQueuedCommands} was reached`,
+      );
+      const duelError = toDuelError(error);
+      this.#reportFailure(
+        error,
+        {
+          commandType: command.type,
+          code: duelError.code,
+          runtimeId: this.#runtimeId,
+        },
+        failureSink,
+      );
+      if (this.#disposed) return Promise.resolve([]);
+      return Promise.resolve([{ type: "error", error: duelError }]);
+    }
+
+    this.#pendingCommands += 1;
+    const operation = this.#commandQueue.then(async () => {
+      if (this.#disposed) return [];
+      this.#activeCommandDepth += 1;
+      try {
+        return await this.#handleCommand(command, progressSink, failureSink);
+      } finally {
+        this.#activeCommandDepth -= 1;
+        if (this.#activeCommandDepth === 0) this.#flushDeferredDisposal();
+      }
+    });
+    const trackedOperation = operation.finally(() => {
+      this.#pendingCommands -= 1;
+    });
+    this.#commandQueue = trackedOperation.then(
+      () => undefined,
+      () => undefined,
+    );
+    return trackedOperation;
+  }
+
+  dispose(): void {
+    if (this.#disposed) return;
+    this.#disposed = true;
+    this.#initializationAbortController?.abort();
+    this.#initializationAbortController = null;
+    const controller = this.#controller;
+    this.#controller = null;
+    this.#resources = null;
+    this.#initializationFailure = null;
+    if (controller === null) return;
+    if (this.#activeCommandDepth > 0) {
+      this.#deferredControllerDisposal = controller;
+      return;
+    }
+    this.#disposeController(controller, "runtime_disposed");
+  }
+
+  async #handleCommand(
+    command: QueuedDuelCommand,
+    progressSink?: DuelRuntimeProgressSink,
+    failureSink?: DuelRuntimeFailureSink,
+  ): Promise<readonly DuelWorkerEvent[]> {
     const events: DuelWorkerEvent[] = [];
     try {
       switch (command.type) {
         case "initialize": {
-          if (this.#resources === null) {
-            this.#resources = await this.#initializeResources(
-              (stage, progress) => {
-                events.push({
-                  type: "loading",
-                  stage,
-                  ...(progress === undefined ? {} : { progress }),
-                });
-              },
-            );
-          }
+          await this.#initialize(events, progressSink);
+          if (this.#disposed) return [];
+          const resources = this.#requireResources();
           events.push({
             type: "ready",
-            coreVersion: this.#resources.adapter.getVersion(),
+            coreVersion: resources.adapter.getVersion(),
           });
           break;
         }
-        case "startDuel": {
-          const resources = this.#requireResources();
-          if (this.#controller !== null)
-            throw new Error("A duel session is already active");
-          if (command.duelId !== resources.preset.id) {
-            throw new Error(`Unknown preset duel: ${command.duelId}`);
-          }
-          const session = DuelSession.create({
-            adapter: resources.adapter,
-            dependencies: resources.dependencies,
-            playerDeck: resources.preset.player,
-            opponentDeck: resources.preset.opponent,
-            configuration: { mode: "production" },
-          });
-          this.#controller = new HeadlessDuelController({
-            session,
-            dependencies: resources.dependencies,
-            snapshotId: resources.snapshotId,
-            presetId: resources.preset.id,
-            deckCounts: [
-              resources.preset.player.main.length,
-              resources.preset.opponent.main.length,
-            ],
-            extraDeckCounts: [
-              resources.preset.player.extra.length,
-              resources.preset.opponent.extra.length,
-            ],
-          });
-          events.push(...advanceEvents(this.#controller.advance()));
+        case "startDuel":
+          this.#startDuel(command.duelId, events);
           break;
-        }
         case "respond": {
           const controller = this.#requireController();
-          events.push(
-            ...advanceEvents(
-              controller.respond(command.promptId, command.choiceIds),
-            ),
+          this.#recordAdvance(
+            controller,
+            controller.respond(command.promptId, command.choiceIds),
+            events,
           );
           break;
         }
         case "surrender": {
           const controller = this.#requireController();
-          events.push(...advanceEvents(controller.surrender()));
-          this.#controller = null;
+          this.#recordAdvance(controller, controller.surrender(), events);
           break;
         }
-        case "dispose":
-          this.#controller?.dispose();
-          this.#controller = null;
-          break;
         default:
           assertNever(command);
       }
     } catch (error) {
-      events.push({ type: "error", error: toDuelError(error) });
+      if (this.#disposed) return [];
+      const controller = this.#controller;
+      const trace = controller?.trace();
+      const traceTail = trace?.entries.slice(-20);
+      const terminal = controller?.disposed === true;
+      if (terminal) this.#controller = null;
+      const duelError = toDuelError(error, { terminal });
+      this.#reportFailure(
+        error,
+        {
+          commandType: command.type,
+          code: duelError.code,
+          runtimeId: this.#runtimeId,
+          ...(trace === undefined
+            ? {}
+            : {
+                traceMetadata: {
+                  presetId: trace.presetId,
+                  snapshotId: trace.snapshotId,
+                  seed: trace.seed,
+                },
+              }),
+          ...(traceTail === undefined || traceTail.length === 0
+            ? {}
+            : { traceTail }),
+        },
+        failureSink,
+      );
+      events.push({ type: "error", error: duelError });
     }
-    return events;
+    return this.#disposed ? [] : events;
   }
 
-  dispose(): void {
-    this.#controller?.dispose();
-    this.#controller = null;
+  async #initialize(
+    events: DuelWorkerEvent[],
+    progressSink?: DuelRuntimeProgressSink,
+  ): Promise<void> {
+    if (this.#resources !== null) return;
+    if (this.#initializationFailure !== null) {
+      throw this.#initializationFailure.error;
+    }
+
+    const abortController = new AbortController();
+    this.#initializationAbortController = abortController;
+    try {
+      const resources = await this.#initializeResources((stage, progress) => {
+        if (this.#disposed) return;
+        const event = {
+          type: "loading" as const,
+          stage,
+          ...(progress === undefined ? {} : { progress }),
+        };
+        if (progressSink === undefined) events.push(event);
+        else progressSink(event);
+      }, abortController.signal);
+      if (!this.#disposed) this.#resources = resources;
+    } catch (error) {
+      if (!this.#disposed) this.#initializationFailure = { error };
+      throw error;
+    } finally {
+      if (this.#initializationAbortController === abortController) {
+        this.#initializationAbortController = null;
+      }
+    }
+  }
+
+  #startDuel(duelId: string, events: DuelWorkerEvent[]): void {
+    const resources = this.#requireResources();
+    if (this.#controller !== null) {
+      throw duelOperationError(
+        "duel_already_active",
+        "A duel session is already active",
+      );
+    }
+    if (duelId !== resources.preset.id) {
+      throw duelOperationError(
+        "invalid_command",
+        `Unknown preset duel: ${duelId}`,
+      );
+    }
+    const session = DuelSession.create({
+      adapter: resources.adapter,
+      dependencies: resources.dependencies,
+      playerDeck: resources.preset.player,
+      opponentDeck: resources.preset.opponent,
+      configuration: { mode: "production" },
+      onEngineDiagnostic: ({ type, message, error }) =>
+        this.#logger.warn({
+          event: "duel.worker.engine.session.diagnostic",
+          runtimeId: this.#runtimeId,
+          duelId,
+          diagnosticType: type,
+          message,
+          ...(error === undefined ? {} : { err: error }),
+        }),
+    });
+    if (this.#disposed) {
+      try {
+        session.dispose();
+      } catch (error) {
+        this.#logger.error({
+          event: "duel.worker.session.cleanup.failed",
+          runtimeId: this.#runtimeId,
+          duelId,
+          reason: "runtime_disposed_during_creation",
+          err: error,
+        });
+      }
+      return;
+    }
+    let controller: HeadlessDuelController | null = null;
+    try {
+      controller = new HeadlessDuelController({
+        session,
+        dependencies: resources.dependencies,
+        snapshotId: resources.snapshotId,
+        presetId: resources.preset.id,
+        deckCounts: [
+          resources.preset.player.main.length,
+          resources.preset.opponent.main.length,
+        ],
+        extraDeckCounts: [
+          resources.preset.player.extra.length,
+          resources.preset.opponent.extra.length,
+        ],
+        promptIdNamespace: `${this.#runtimeId}-duel-${++this.#nextDuelSequence}`,
+      });
+      this.#controller = controller;
+      this.#recordAdvance(controller, controller.advance(), events);
+    } catch (error) {
+      try {
+        if (controller === null) session.dispose();
+        else controller.dispose();
+      } catch (cleanupError) {
+        throw new AggregateError(
+          [error, cleanupError],
+          "Duel start failed and session cleanup also failed",
+          { cause: error },
+        );
+      }
+      throw error;
+    }
+  }
+
+  #recordAdvance(
+    controller: HeadlessDuelController,
+    advance: DuelAdvance,
+    events: DuelWorkerEvent[],
+  ): void {
+    events.push(...advanceEvents(advance));
+    if (advance.result !== undefined || controller.disposed) {
+      this.#controller = null;
+    }
+  }
+
+  #flushDeferredDisposal(): void {
+    const controller = this.#deferredControllerDisposal;
+    this.#deferredControllerDisposal = null;
+    if (controller !== null)
+      this.#disposeController(controller, "deferred_runtime_disposal");
+  }
+
+  #disposeController(controller: HeadlessDuelController, reason: string): void {
+    try {
+      controller.dispose();
+    } catch (error) {
+      this.#logger.error({
+        event: "duel.worker.session.cleanup.failed",
+        runtimeId: this.#runtimeId,
+        reason,
+        err: error,
+      });
+      throw error;
+    }
+  }
+
+  #reportFailure(
+    error: unknown,
+    context: DuelRuntimeFailureContext,
+    failureSink?: DuelRuntimeFailureSink,
+  ): void {
+    if (failureSink !== undefined) {
+      failureSink(error, context);
+      return;
+    }
+    this.#logger.error({
+      event: "duel.worker.command.failed",
+      commandType: context.commandType,
+      code: context.code,
+      runtimeId: context.runtimeId,
+      ...(context.traceMetadata === undefined
+        ? {}
+        : { traceMetadata: context.traceMetadata }),
+      ...(context.traceTail === undefined
+        ? {}
+        : { traceTail: context.traceTail }),
+      err: error,
+    });
   }
 
   #requireResources(): DuelRuntimeResources {
-    if (this.#resources === null)
-      throw new Error("Worker must be initialized before starting a duel");
+    if (this.#resources === null) {
+      throw duelOperationError(
+        "engine_initialization_failed",
+        "Worker must be initialized before starting a duel",
+      );
+    }
     return this.#resources;
   }
 
   #requireController(): HeadlessDuelController {
-    if (this.#controller === null) throw new Error("No active duel session");
+    if (this.#controller === null) {
+      throw duelOperationError("duel_not_active", "No active duel session");
+    }
     return this.#controller;
   }
 }
@@ -141,21 +442,4 @@ function advanceEvents(advance: DuelAdvance): DuelWorkerEvent[] {
   if (advance.result !== undefined)
     events.push({ type: "result", result: advance.result });
   return events;
-}
-
-function toDuelError(error: unknown): DuelError {
-  const message = error instanceof Error ? error.message : String(error);
-  const code: DuelError["code"] = message.includes("already active")
-    ? "duel_already_active"
-    : message.includes("initialized")
-      ? "engine_initialization_failed"
-      : message.includes("prompt") || message.includes("choice")
-        ? "invalid_response"
-        : "engine_error";
-  return {
-    code,
-    message,
-    detail: { cause: message },
-    recoverable: code === "invalid_response" || code === "duel_already_active",
-  };
 }

@@ -1,0 +1,77 @@
+{
+  "schemaVersion": 1,
+  "scenarioId": "shuffle-and-sort-chain",
+  "responseCount": 5,
+  "runCount": 5,
+  "runs": [
+    {
+      "prompt": "selectPlace",
+      "selections": [
+        {
+          "action": "select",
+          "place": {
+            "player": 0,
+            "location": "monster",
+            "sequence": 0
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "idleCommand",
+      "selections": [
+        {
+          "action": "shuffle"
+        }
+      ]
+    },
+    {
+      "prompt": "idleCommand",
+      "selections": [
+        {
+          "action": "battlePhase"
+        }
+      ]
+    },
+    {
+      "prompt": "battleCommand",
+      "selections": [
+        {
+          "action": "attack",
+          "card": {
+            "code": 44095762,
+            "controller": 0,
+            "location": "monster",
+            "sequence": 0
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "sortChain",
+      "selections": [
+        {
+          "action": "select",
+          "card": {
+            "code": 44095762,
+            "controller": 0,
+            "location": "monster",
+            "sequence": 0
+          },
+          "occurrence": 0
+        },
+        {
+          "action": "select",
+          "card": {
+            "code": 44095762,
+            "controller": 0,
+            "location": "monster",
+            "sequence": 0
+          },
+          "occurrence": 1
+        }
+      ]
+    }
+  ],
+  "expectedTraceSha256": "e9d16e421c2ae9016f93b5bdd3ebe6c927db676dd7dee9360af5fafd8cbccde5"
+}

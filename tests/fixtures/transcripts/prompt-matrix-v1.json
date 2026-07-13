@@ -1,0 +1,219 @@
+{
+  "schemaVersion": 1,
+  "scenarioId": "real-wasm-prompt-matrix",
+  "responseCount": 16,
+  "runCount": 16,
+  "runs": [
+    {
+      "prompt": "selectPlace",
+      "selections": [
+        {
+          "action": "select",
+          "place": {
+            "player": 0,
+            "location": "monster",
+            "sequence": 0
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "selectPlace",
+      "selections": [
+        {
+          "action": "select",
+          "place": {
+            "player": 0,
+            "location": "monster",
+            "sequence": 1
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "selectCounter",
+      "selections": [
+        {
+          "action": "select",
+          "card": {
+            "code": 44095762,
+            "controller": 0,
+            "location": "monster",
+            "sequence": 0
+          }
+        },
+        {
+          "action": "select",
+          "card": {
+            "code": 4206964,
+            "controller": 0,
+            "location": "monster",
+            "sequence": 1
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "yesNo",
+      "selections": [
+        {
+          "action": "no"
+        }
+      ]
+    },
+    {
+      "prompt": "effectYesNo",
+      "selections": [
+        {
+          "action": "no"
+        }
+      ]
+    },
+    {
+      "prompt": "option",
+      "selections": [
+        {
+          "action": "select",
+          "value": "70"
+        }
+      ]
+    },
+    {
+      "prompt": "selectSum",
+      "selections": [
+        {
+          "action": "select",
+          "card": {
+            "code": 97590747,
+            "controller": 0,
+            "location": "deck",
+            "sequence": 37
+          }
+        },
+        {
+          "action": "select",
+          "card": {
+            "code": 5758500,
+            "controller": 0,
+            "location": "deck",
+            "sequence": 5
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "selectUnselectCard",
+      "selections": [
+        {
+          "action": "select",
+          "card": {
+            "code": 97590747,
+            "controller": 0,
+            "location": "deck",
+            "sequence": 37
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "selectDisabledField",
+      "selections": [
+        {
+          "action": "select",
+          "place": {
+            "player": 0,
+            "location": "monster",
+            "sequence": 2
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "selectPosition",
+      "selections": [
+        {
+          "action": "select",
+          "value": 1
+        }
+      ]
+    },
+    {
+      "prompt": "sortCard",
+      "selections": [
+        {
+          "action": "select",
+          "card": {
+            "code": 97590747,
+            "controller": 0,
+            "location": "deck",
+            "sequence": 37
+          }
+        },
+        {
+          "action": "select",
+          "card": {
+            "code": 97590747,
+            "controller": 0,
+            "location": "deck",
+            "sequence": 36
+          }
+        },
+        {
+          "action": "select",
+          "card": {
+            "code": 97590747,
+            "controller": 0,
+            "location": "deck",
+            "sequence": 35
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "announceNumber",
+      "selections": [
+        {
+          "action": "select",
+          "value": 1
+        }
+      ]
+    },
+    {
+      "prompt": "announceAttribute",
+      "selections": [
+        {
+          "action": "select",
+          "value": "16"
+        }
+      ]
+    },
+    {
+      "prompt": "announceRace",
+      "selections": [
+        {
+          "action": "select",
+          "value": "1"
+        }
+      ]
+    },
+    {
+      "prompt": "announceCard",
+      "selections": [
+        {
+          "action": "select",
+          "value": 97590747
+        }
+      ]
+    },
+    {
+      "prompt": "rockPaperScissors",
+      "selections": [
+        {
+          "action": "select",
+          "value": 1
+        }
+      ]
+    }
+  ],
+  "expectedTraceSha256": "74162a9df16179b7488097cb993c9526a39d610698e57f28582e42887ae6cd23"
+}

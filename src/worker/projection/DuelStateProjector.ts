@@ -104,6 +104,19 @@ export class DuelStateProjector {
           count: message.drawn.length,
         });
         break;
+      case EngineMessageType.SHUFFLE_DECK:
+      case EngineMessageType.SHUFFLE_HAND: {
+        const player = asPlayer(message.player);
+        if (message.type === EngineMessageType.SHUFFLE_HAND)
+          this.#shuffleHand(player, message.cards);
+        events.push({
+          type: "cardsShuffled",
+          player,
+          location:
+            message.type === EngineMessageType.SHUFFLE_DECK ? "deck" : "hand",
+        });
+        break;
+      }
       case EngineMessageType.MOVE: {
         const moved = this.#move(message.card, message.from, message.to);
         events.push({
@@ -284,6 +297,29 @@ export class DuelStateProjector {
     state.handCount = state.hand.length;
   }
 
+  #shuffleHand(player: PlayerIndex, codes: readonly number[]): void {
+    if (player !== 0) return;
+    const hand = this.#players[player].hand;
+    if (codes.length !== hand.length) return;
+
+    const remaining = [...hand];
+    const reordered: MutableCard[] = [];
+    for (const code of codes) {
+      let index = remaining.findIndex((card) => card.code === code);
+      if (index < 0)
+        index = remaining.findIndex((card) => card.code === undefined);
+      const [card] = index < 0 ? [] : remaining.splice(index, 1);
+      if (card === undefined) return;
+      reordered.push(card);
+    }
+    reordered.forEach((card, index) => {
+      const code = codes[index];
+      if (code !== undefined && code > 0) card.code = cardCode(code);
+    });
+    hand.splice(0, hand.length, ...reordered);
+    resequence(hand);
+  }
+
   #move(
     rawCode: number,
     from: {
@@ -325,7 +361,7 @@ export class DuelStateProjector {
     card.sequence = to.sequence;
     card.position = enginePosition(to.position);
     card.faceUp = isFaceUp(to.position);
-    if (isPublicCard(to.controller, toLocation, to.position)) {
+    if (rawCode > 0 && isPublicCard(to.controller, toLocation, to.position)) {
       card.code = cardCode(rawCode);
     } else {
       delete card.code;

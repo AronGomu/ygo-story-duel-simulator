@@ -8,6 +8,7 @@ import {
   type MvpPreset,
 } from "../../src/duel/presets/mvp-preset.ts";
 import { DuelSession } from "../../src/worker/engine/DuelSession.ts";
+import { EngineMessageType } from "../../src/worker/engine/engine-constants.ts";
 import type { OcgCoreAdapter } from "../../src/worker/engine/OcgCoreAdapter.ts";
 import { loadVendoredCoreNode } from "../../src/worker/engine/load-vendored-core-node.ts";
 
@@ -56,12 +57,44 @@ describe("real ocgcore duel session", () => {
     expect(session.disposed).toBe(true);
   });
 
-  it("generates fresh non-zero seeds for production duels", () => {
-    const first = createProductionSession();
-    const second = createProductionSession();
-    sessions.push(first, second);
-    expect(first.seed.some((word) => word !== 0n)).toBe(true);
-    expect(second.seed).not.toEqual(first.seed);
+  it("generates fresh seeds and lets the core shuffle varied production hands", () => {
+    const productionSessions = Array.from({ length: 4 }, () =>
+      createProductionSession(),
+    );
+    sessions.push(...productionSessions);
+
+    expect(productionSessions[0]?.seed.some((word) => word !== 0n)).toBe(true);
+    expect(productionSessions[1]?.seed).not.toEqual(
+      productionSessions[0]?.seed,
+    );
+
+    const openingHands = productionSessions.map((session) => {
+      const messages = session.processUntilBoundary().messages;
+      expect(
+        messages
+          .filter((message) => message.type === EngineMessageType.SHUFFLE_DECK)
+          .map((message) => message.player),
+        `production seed=${session.seed.map(String).join(",")}`,
+      ).toEqual([0, 1]);
+      const openingDraw = messages.find(
+        (message) =>
+          message.type === EngineMessageType.DRAW && message.player === 0,
+      );
+      if (openingDraw?.type !== EngineMessageType.DRAW) {
+        throw new Error(
+          `Production opening draw is missing for seed ${session.seed.map(String).join(",")}`,
+        );
+      }
+      return openingDraw.drawn.map((card) => card.code);
+    });
+
+    expect(
+      new Set(openingHands.map((hand) => JSON.stringify(hand))).size,
+      JSON.stringify({
+        seeds: productionSessions.map((session) => session.seed.map(String)),
+        openingHands,
+      }),
+    ).toBeGreaterThan(1);
   });
 });
 

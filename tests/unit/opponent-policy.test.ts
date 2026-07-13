@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
+  cardCode,
+  cardInstanceId,
   choiceId,
   promptId,
   snapshotId,
@@ -84,6 +86,35 @@ describe("BasicOpponentPolicy", () => {
     expect(decision).toEqual({
       choiceIds: [summon],
       reason: "summon_first_legal",
+    });
+  });
+
+  it("selects a minimal valid at-least sum", () => {
+    const choices = [0, 1].map((sequence) => ({
+      id: choiceId(`sum-${sequence}`),
+      label: "Three",
+      action: "select" as const,
+      card: {
+        instanceId: cardInstanceId(`sum-card-${sequence}`),
+        code: cardCode(97590747),
+        controller: 1 as const,
+        location: "hand" as const,
+        sequence,
+        contribution: 3,
+      },
+    }));
+    const decision = policy.choose(
+      {
+        ...prompt("selectSum", choices),
+        maximum: 2,
+        requiredTotal: 5,
+        sumMode: "atLeast",
+      },
+      state,
+    );
+    expect(decision).toEqual({
+      choiceIds: choices.map((choice) => choice.id),
+      reason: "select_valid_sum",
     });
   });
 

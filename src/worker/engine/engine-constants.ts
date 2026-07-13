@@ -25,6 +25,7 @@ export const EnginePosition = {
 } as const;
 
 export const EngineDuelFlag = {
+  ATTACK_FIRST_TURN: 0x02n,
   PSEUDO_SHUFFLE: 0x10n,
   MODE_MR5: 0x2e800n,
 } as const;

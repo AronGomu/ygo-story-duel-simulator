@@ -1,3 +1,4 @@
+import { duelOperationError } from "../../duel/contracts/duel-error.ts";
 import type { CardCode } from "../../duel/contracts/ids.ts";
 import type { ParsedDeck } from "../../duel/presets/deck-parser.ts";
 import {
@@ -23,11 +24,18 @@ import {
   type DuelSeed,
 } from "./duel-seed.ts";
 
+export interface CoreStartupScript {
+  readonly name: string;
+  readonly source: string;
+}
+
 export interface ProgrammedDuelConfiguration {
   readonly mode: "programmed";
   readonly seed: DuelSeed;
   readonly playerDeckOrder: readonly CardCode[];
   readonly opponentDeckOrder: readonly CardCode[];
+  readonly startupScripts?: readonly CoreStartupScript[];
+  readonly allowFirstTurnAttack?: boolean;
 }
 
 export interface ProductionDuelConfiguration {
@@ -53,6 +61,7 @@ export interface DuelSessionOptions {
   readonly onEngineDiagnostic?: (entry: {
     readonly type: number;
     readonly message: string;
+    readonly error?: unknown;
   }) => void;
 }
 
@@ -94,7 +103,10 @@ export class DuelSession {
       flags:
         EngineDuelFlag.MODE_MR5 |
         (options.configuration.mode === "programmed"
-          ? EngineDuelFlag.PSEUDO_SHUFFLE
+          ? EngineDuelFlag.PSEUDO_SHUFFLE |
+            (options.configuration.allowFirstTurnAttack === true
+              ? EngineDuelFlag.ATTACK_FIRST_TURN
+              : 0n)
           : 0n),
       seed: [...seed],
       team1: { startingLP: 8000, startingDrawCount: 5, drawCountPerTurn: 1 },
@@ -125,7 +137,8 @@ export class DuelSession {
           missingInputs.push(`script:${requestedName}`);
           options.onEngineDiagnostic?.({
             type: 0,
-            message: (error as Error).message,
+            message: error instanceof Error ? error.message : String(error),
+            error,
           });
           return null;
         }
@@ -138,6 +151,13 @@ export class DuelSession {
 
     try {
       loadGlobalScripts(options.adapter, handle, options.dependencies.scripts);
+      loadStartupScripts(
+        options.adapter,
+        handle,
+        options.configuration.mode === "production"
+          ? [PRODUCTION_SHUFFLE_SCRIPT]
+          : (options.configuration.startupScripts ?? []),
+      );
       const playerOrder =
         options.configuration.mode === "programmed"
           ? options.configuration.playerDeckOrder
@@ -177,7 +197,15 @@ export class DuelSession {
         maximumProcessIterations,
       );
     } catch (error) {
-      options.adapter.destroyDuel(handle);
+      try {
+        options.adapter.destroyDuel(handle);
+      } catch (cleanupError) {
+        throw new AggregateError(
+          [error, cleanupError],
+          "Duel creation failed and core-handle cleanup also failed",
+          { cause: error },
+        );
+      }
       throw error;
     }
   }
@@ -199,7 +227,8 @@ export class DuelSession {
       if (status !== EngineProcess.CONTINUE)
         throw new Error(`Unknown core process status: ${status}`);
     }
-    throw new Error(
+    throw duelOperationError(
+      "process_timeout",
       `Core exceeded ${this.#maximumProcessIterations} process iterations`,
     );
   }
@@ -221,6 +250,37 @@ export class DuelSession {
 
   #assertActive(): void {
     if (this.#disposed) throw new Error("Duel session has been disposed");
+  }
+}
+
+const PRODUCTION_SHUFFLE_SCRIPT: CoreStartupScript = Object.freeze({
+  name: "mvp_production_shuffle.lua",
+  source: `local mvp_production_shuffle = Effect.GlobalEffect()
+mvp_production_shuffle:SetType(EFFECT_TYPE_FIELD + EFFECT_TYPE_CONTINUOUS)
+mvp_production_shuffle:SetCode(EVENT_STARTUP)
+mvp_production_shuffle:SetOperation(function()
+  Duel.ShuffleDeck(0)
+  Duel.ShuffleDeck(1)
+end)
+Duel.RegisterEffect(mvp_production_shuffle, 0)`,
+});
+
+function loadStartupScripts(
+  adapter: OcgCoreAdapter,
+  handle: EngineDuelHandle,
+  scripts: readonly CoreStartupScript[],
+): void {
+  const names = new Set<string>();
+  for (const script of scripts) {
+    if (!/^[A-Za-z0-9][A-Za-z0-9._-]*\.lua$/.test(script.name))
+      throw new Error(`Invalid startup script name: ${script.name}`);
+    if (names.has(script.name))
+      throw new Error(`Duplicate startup script name: ${script.name}`);
+    if (script.source.trim().length === 0)
+      throw new Error(`Startup script is empty: ${script.name}`);
+    names.add(script.name);
+    if (!adapter.loadScript(handle, script.name, script.source))
+      throw new Error(`Core rejected startup script: ${script.name}`);
   }
 }
 
