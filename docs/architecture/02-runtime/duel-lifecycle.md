@@ -25,5 +25,5 @@
 - One live duel per Worker.
 - `dispose` is idempotent and cleans partial initialization too.
 - Restart disposes the current session before replacement.
-- If graceful disposal exceeds its timeout, terminate and replace the Worker.
+- If graceful disposal exceeds its timeout, terminate and replace the Worker; the real Node Worker harness pins both graceful active-session exit and bounded forced termination.
 - Processing has iteration/time guards and reports the last message/prompt on failure.

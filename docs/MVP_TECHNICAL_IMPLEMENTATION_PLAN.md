@@ -1,6 +1,6 @@
 # YGO Story Duel Simulator: Technical MVP Implementation Plan
 
-> Status: headless Checkpoint C complete locally; visual implementation not started
+> Status: Checkpoints A–G complete locally; the private MVP release candidate passed the full and isolated clean-checkout gates
 > Scope: browser-based offline duel client only
 > Planning source: canonical [`architecture/architecture.md`](architecture/architecture.md) and its granular decision files.
 
@@ -21,7 +21,7 @@ The MVP is complete when a production browser build can initialize the vendored 
 
 ### Included
 
-- [ ] Direct-to-duel browser application.
+- [x] Direct-to-duel browser application.
 - [x] One bundled player deck and one deliberately simple opponent deck.
 - [x] Normal randomized deck shuffling and starting hands in production duels.
 - [x] Programmed integration scenarios that inject exact deck order, starting hands and responses for the same two preset decks.
@@ -33,7 +33,7 @@ The MVP is complete when a production browser build can initialize the vendored 
 - [x] Headless human prompt contracts and a basic legal-action opponent policy with no combo planning.
 - [ ] Svelte application UI and Phaser duel-field rendering.
 - [ ] Surrender, restart, result screen and downloadable failure trace.
-- [ ] Unit, programmed real-WASM integration, asset-integrity and browser smoke tests (all except browser smoke tests exist).
+- [x] Unit, programmed real-WASM integration, asset-integrity and browser smoke tests.
 - [x] A mandatory green headless integration gate covering every supported game-action family before any visual duel simulator is implemented.
 
 ### Excluded
@@ -193,7 +193,7 @@ All upstream revisions must be recorded in one generated `manifest.json` with ha
 
 ## 6. Non-negotiable architecture rules
 
-- [ ] `ocgcore` is the only authority for legal actions and duel results.
+- [x] `ocgcore` is the only authority for legal actions and duel results.
 - [x] Production games use normal randomized deck order and starting hands; only tests and diagnostic replay may inject deterministic orders or seeds.
 - [x] `ocgcore-wasm@0.1.2` is checked into `vendor/` with provenance and hashes; npm or live Git resolution is forbidden at runtime and build time.
 - [x] The main thread never imports or calls `ocgcore-wasm`.
@@ -218,7 +218,7 @@ Every step below is accepted only when:
 - [ ] New behavior has an automated test at the lowest practical layer, written before its implementation.
 - [x] `npm run typecheck` passes.
 - [x] `npm test` passes.
-- [ ] `npm run build` passes after the application skeleton exists.
+- [x] `npm run build` passes after the application skeleton exists.
 - [ ] The documented manual validation for that step succeeds.
 - [ ] No temporary logging, skipped test or untracked generated artifact remains.
 - [ ] The commit uses the proposed commit message or an equivalent conventional commit.
@@ -320,15 +320,15 @@ Every step below is accepted only when:
 
 **Working software after commit:** the headless integration harness loads the vendored `ocgcore.sync.wasm`, reports the real core version and performs no network or `node_modules` engine resolution.
 
-- [ ] Add a headless `src/worker/duel.worker.ts` entry point used directly by the integration harness, without a main-thread visual client.
+- [x] Add a headless `node:worker_threads` entry that composes `src/worker/duel.worker.ts` with the real Node runtime, without a main-thread visual client.
 - [x] Add a Worker-owned `OcgCoreAdapter` module as the only engine import location.
 - [x] Resolve the synchronous module and WASM binary only from `vendor/ocgcore-wasm/0.1.2/`.
 - [x] Record the vendored package and embedded core revisions in the project manifest.
 - [x] Load only the synchronous build.
 - [x] Read and validate the exposed core version.
-- [ ] Fail with `engine_initialization_failed` when a vendored module or binary cannot load.
+- [x] Fail with `engine_initialization_failed` when a vendored module or binary cannot load, while retaining detailed causes only in Worker diagnostics.
 - [ ] Terminate the headless Worker after a configurable initialization timeout.
-- [x] Add adapter tests with a fake WASM module and one real vendored-WASM smoke test.
+- [x] Add adapter tests with a fake WASM module plus a real vendored-WASM Worker-thread lifecycle test.
 - [ ] Assert the test succeeds with npm/network access disabled.
 
 **Manual validation:** temporarily remove the vendored WASM asset and confirm the headless test reports a bounded, readable initialization error.
@@ -587,250 +587,251 @@ Every step below is accepted only when:
 
 Before Step 19, all of the following must be true:
 
+- [x] The real vendored synchronous WASM initializes, starts a production duel, and disposes inside an actual Worker thread over structured-clone IPC.
 - [x] Every Step 01 programmed integration scenario reaches its expected result with real vendored WASM and verified preset assets; test-only startup scripts invoke rare compatibility prompts inside the real core.
 - [x] The supported game-action coverage matrix has no uncovered row.
 - [x] Both preset decks and all test-only starting-hand/deck-order fixtures pass dependency validation.
 - [x] Production-mode tests prove core-generated shuffles produce varied starting hands rather than fixed integration fixtures.
 - [x] The basic opponent completes legal turns with its simple bundled deck.
-- [ ] `npm run check:headless` passes from a clean checkout without network engine resolution. It is green in the current working tree; a clean-checkout/CI run remains pending.
+- [x] `npm run check:headless` passes in an isolated copied checkout using `npm ci --offline`, without network engine resolution.
 
 If any item is red, continue headless engine, protocol, fixture or opponent work. Do not install or implement Svelte, Phaser, visual duel controls, card rendering or browser duel flows.
 
-## [ ] Step 19: Add the browser shell, Worker client and duel store
+## [x] Step 19: Add the browser shell, Worker client and duel store
 
 **Commit:** `feat: add browser duel application shell`
 
 **Working software after commit:** after the mandatory headless gate is green, a minimal Svelte application connects to the real Worker and displays textual state, prompt, event log and result without Phaser.
 
-- [ ] Install Svelte, Vite and `@sveltejs/vite-plugin-svelte` only now.
-- [ ] Add `index.html`, Vite configuration, `src/main.ts` and a minimal semantic `App.svelte`.
-- [ ] Add a typed main-thread `DuelWorkerClient` with send, event subscription and disposal.
-- [ ] Give every Worker instance a session identifier and ignore disposed/previous-session events.
-- [ ] Convert Worker errors and message errors into typed `DuelError` events.
-- [ ] Add a main-thread store that owns the latest immutable Worker snapshot.
-- [ ] Track initialization, loading, active, awaiting-input, completed and failed states.
-- [ ] Keep only one current prompt and clear it when a new session starts.
-- [ ] Add a bounded presentation-event log.
-- [ ] Expose command methods for start, respond, surrender, restart and dispose.
-- [ ] Add a future presentation bridge interface while keeping the Worker client out of Phaser modules.
-- [ ] Add Worker-client and store tests using ordered fake events.
-- [ ] Configure Vite to package the vendored WASM and verified runtime assets without copying from `node_modules`.
-- [ ] Verify a production build initializes the same vendored engine used by the headless suite.
+- [x] Install Svelte, Vite and `@sveltejs/vite-plugin-svelte` only now.
+- [x] Add `index.html`, Vite configuration, `src/main.ts` and a minimal semantic `App.svelte`.
+- [x] Add a typed main-thread `DuelWorkerClient` with send, event subscription and disposal.
+- [x] Give every Worker instance a session identifier and ignore disposed/previous-session events.
+- [x] Convert Worker errors and message errors into typed `DuelError` events.
+- [x] Add a main-thread store that owns the latest immutable Worker snapshot.
+- [x] Track initialization, loading, active, awaiting-input, completed and failed states.
+- [x] Keep only one current prompt and clear it when a new session starts.
+- [x] Add a bounded presentation-event log.
+- [x] Expose command methods for start, respond, surrender, restart and dispose.
+- [x] Add a future presentation bridge interface while keeping the Worker client out of Phaser modules.
+- [x] Add Worker-client and store tests using ordered fake events.
+- [x] Configure Vite to package the vendored WASM and verified runtime assets without copying from `node_modules`.
+- [x] Verify a production build initializes the same vendored engine used by the headless suite.
 
 **Long-term test:** out-of-order and previous-session events cannot mutate the current session store, and browser packaging cannot resolve a different engine copy.
 
-## [ ] Step 20: Implement the Svelte duel controls
+## [x] Step 20: Implement the Svelte duel controls
 
 **Commit:** `feat: add human duel controls`
 
 **Working software after commit:** the human can complete the preset duel through accessible Svelte controls without debug response entry.
 
-- [ ] Add startup and asset-loading progress states.
-- [ ] Add LP, turn, phase and deck-count display.
-- [ ] Add typed controls for every prompt family.
-- [ ] Add card detail and effect-text inspection.
-- [ ] Add chain and event log display.
-- [ ] Add explicit confirmation where a destructive or irreversible choice needs it.
-- [ ] Disable controls immediately after a response is sent.
-- [ ] Restore focus predictably when a new prompt appears.
-- [ ] Add keyboard access and visible focus for every action.
-- [ ] Add empty, unsupported and engine-error states.
-- [ ] Add component tests for representative prompt families.
-- [ ] Extend Playwright to make one real human choice.
+- [x] Add startup and asset-loading progress states.
+- [x] Add LP, turn, phase and deck-count display.
+- [x] Add typed controls for every prompt family.
+- [x] Add card detail and effect-text inspection.
+- [x] Add chain and event log display.
+- [x] Add explicit confirmation where a destructive or irreversible choice needs it.
+- [x] Disable controls immediately after a response is sent.
+- [x] Restore focus predictably when a new prompt appears.
+- [x] Add keyboard access and visible focus for every action.
+- [x] Add empty, unsupported and engine-error states.
+- [x] Add component tests for representative prompt families.
+- [x] Extend Playwright to make one real human choice.
 
 **Manual validation:** complete one duel using keyboard-only controls.
 
-## [ ] Step 21: Add the Phaser field and zone layout
+## [x] Step 21: Add the Phaser field and zone layout
 
 **Commit:** `feat: render duel field with phaser`
 
 **Working software after commit:** Phaser renders both players' zones and card placeholders from public snapshots while Svelte remains responsible for controls.
 
-- [ ] Install and initialize Phaser only after the containing element mounts.
-- [ ] Add a `DuelScene` with a deterministic desktop coordinate system.
-- [ ] Render monster, spell/trap, field, deck, Extra Deck, GY and banished zones.
-- [ ] Render human hand and hidden opponent hand placeholders.
-- [ ] Map public card-instance IDs to presentation objects.
-- [ ] Apply snapshots idempotently.
-- [ ] Highlight selectable cards and zones from the current domain prompt.
-- [ ] Forward selection intent to Svelte/store rather than directly to the Worker.
-- [ ] Dispose the Phaser game and scene listeners on application teardown.
-- [ ] Add pure layout tests for zone coordinates and card mapping.
+- [x] Install and initialize Phaser only after the containing element mounts.
+- [x] Add a `DuelScene` with a deterministic desktop coordinate system.
+- [x] Render monster, spell/trap, field, deck, Extra Deck, GY and banished zones.
+- [x] Render human hand and hidden opponent hand placeholders.
+- [x] Map public card-instance IDs to presentation objects.
+- [x] Apply snapshots idempotently.
+- [x] Highlight selectable cards and zones from the current domain prompt.
+- [x] Forward selection intent to Svelte/store rather than directly to the Worker.
+- [x] Dispose the Phaser game and scene listeners on application teardown.
+- [x] Add pure layout tests for zone coordinates and card mapping.
 
 **Long-term test:** applying the same snapshot twice does not duplicate sprites or listeners.
 
-## [ ] Step 22: Add card images, card backs and persistent image caching
+## [x] Step 22: Add card images, card backs and persistent image caching
 
 **Commit:** `feat: render and cache active duel card images`
 
 **Working software after commit:** all active-duel cards preload before input is enabled and render the correct face or card back in every public location.
 
-- [ ] Install `idb`.
-- [ ] Resolve active-deck image records from the versioned image manifest.
-- [ ] Preload unique active-deck images before enabling duel input.
-- [ ] Use snapshot-aware Cache Storage keys.
-- [ ] Deduplicate concurrent requests for the same image.
-- [ ] Add deterministic missing-image placeholders.
-- [ ] Use card backs for face-down and hidden cards.
-- [ ] Revoke temporary object URLs when no longer needed.
-- [ ] Surface provider, snapshot and missing-code diagnostics.
-- [ ] Render images in Phaser, Svelte prompts and the card inspector.
-- [ ] Add cache hit, miss, provider failure and stale-snapshot tests.
-- [ ] Extend Playwright to assert a face-up card image and hidden card back.
+- [x] Install `idb`.
+- [x] Resolve active-deck image records from the versioned image manifest.
+- [x] Preload unique active-deck images before enabling duel input.
+- [x] Use snapshot-aware Cache Storage keys.
+- [x] Deduplicate concurrent requests for the same image.
+- [x] Add deterministic missing-image placeholders.
+- [x] Use card backs for face-down and hidden cards.
+- [x] Revoke temporary object URLs when no longer needed.
+- [x] Surface provider, snapshot and missing-code diagnostics.
+- [x] Render images in Phaser, Svelte prompts and the card inspector.
+- [x] Add cache hit, miss, provider failure and stale-snapshot tests.
+- [x] Extend Playwright to assert a face-up card image and hidden card back.
 
 **Long-term test:** image-provider outages do not prevent a duel when cached images or placeholders are available.
 
-## [ ] Step 23: Add minimal non-blocking duel presentation feedback
+## [x] Step 23: Add minimal non-blocking duel presentation feedback
 
 **Commit:** `feat: add duel presentation feedback`
 
 **Working software after commit:** summons, moves, attacks and LP changes have clear visual feedback without changing engine timing or response order.
 
-- [ ] Translate typed duel events into presentation commands.
-- [ ] Add short card-move feedback.
-- [ ] Add summon, set and position-change feedback.
-- [ ] Add attack indication.
-- [ ] Add damage, recovery and LP-change feedback.
-- [ ] Add chain-state emphasis.
-- [ ] Make all feedback cancellable on restart or disposal.
-- [ ] Respect `prefers-reduced-motion`.
-- [ ] Never delay Worker processing while an animation runs.
-- [ ] Add presentation-command tests independent of Phaser rendering.
+- [x] Translate typed duel events into presentation commands.
+- [x] Add short card-move feedback.
+- [x] Add summon, set and position-change feedback.
+- [x] Add attack indication.
+- [x] Add damage, recovery and LP-change feedback.
+- [x] Add chain-state emphasis.
+- [x] Make all feedback cancellable on restart or disposal.
+- [x] Respect `prefers-reduced-motion`.
+- [x] Never delay Worker processing while an animation runs.
+- [x] Add presentation-command tests independent of Phaser rendering.
 
 **Long-term test:** disabling all animation produces the same Worker response trace and final result.
 
-## [ ] Step 24: Add surrender, result, restart and clean session replacement
+## [x] Step 24: Add surrender, result, restart and clean session replacement
 
 **Commit:** `feat: complete duel lifecycle controls`
 
 **Working software after commit:** users can surrender, see a structured result and start a clean replacement duel without reloading the page.
 
-- [ ] Implement Worker-side surrender handling through the appropriate core path.
+- [x] Implement Worker-side surrender handling through the appropriate core path.
 - [x] Emit winner, loser and finish reason from core messages.
 - [x] Add completed, surrendered, unsupported and engine-error result variants.
-- [ ] Add a Svelte result screen.
-- [ ] Add restart that first disposes the current session.
-- [ ] Replace the Worker if graceful disposal exceeds the timeout.
-- [ ] Clear presentation sprites, prompts, event log and transient image references.
-- [ ] Add lifecycle tests for finish, surrender, restart during loading and restart after error.
-- [ ] Add a repeated restart browser test.
+- [x] Add a Svelte result screen.
+- [x] Add restart that first disposes the current session.
+- [x] Replace the Worker if graceful disposal exceeds the timeout.
+- [x] Clear presentation sprites, prompts, event log and transient image references.
+- [x] Add lifecycle tests for finish, surrender, restart during loading and restart after error.
+- [x] Add a repeated restart browser test.
 
 **Long-term test:** repeated restart does not increase active handles, Worker listeners or Phaser objects.
 
-## [ ] Step 25: Add structured diagnostics and trace download
+## [x] Step 25: Add structured diagnostics and trace download
 
 **Commit:** `feat: add reproducible duel diagnostics`
 
 **Working software after commit:** any unsupported message, engine error or timeout produces a downloadable JSON trace sufficient to reproduce the run.
 
-- [ ] Record application build and browser metadata.
-- [ ] Record core, database, script, string and image-manifest revisions.
+- [x] Record application build and browser metadata.
+- [x] Record core, database, script, string and image-manifest revisions.
 - [x] Record preset duel ID and the generated production seed, or the explicit programmed-test/replay seed.
-- [ ] Record ordered process statuses and parsed message types.
-- [ ] Record projected events and both players' responses.
+- [x] Record ordered process statuses and parsed message types.
+- [x] Record projected events and both players' responses.
 - [x] Record opponent decision reasons.
-- [ ] Record the last successful message and pending prompt on failure.
-- [ ] Exclude hidden card identities not needed for an authorized local debug trace, or clearly mark debug traces as sensitive.
+- [x] Record the last successful message and pending prompt on failure.
+- [x] Exclude hidden card identities not needed for an authorized local debug trace, or clearly mark debug traces as sensitive.
 - [x] Bound in-memory trace size.
-- [ ] Add “Download diagnostics” to error and result surfaces.
-- [ ] Add trace-schema and redaction tests.
+- [x] Add “Download diagnostics” to error and result surfaces.
+- [x] Add trace-schema and redaction tests.
 
 **Long-term test:** every production error variant has a fixture proving its trace remains serializable and schema-compatible.
 
-## [ ] Step 26: Add versioned snapshot storage and atomic activation
+## [x] Step 26: Add versioned snapshot storage and atomic activation
 
 **Commit:** `feat: cache and activate asset snapshots atomically`
 
 **Working software after commit:** the application caches a verified snapshot, activates it only after full validation and can continue with the previous known-good snapshot after a failed update.
 
-- [ ] Define IndexedDB stores for snapshot metadata, preferences and debug-run metadata.
-- [ ] Stage a new snapshot under its immutable snapshot ID.
-- [ ] Verify every required staged artifact.
-- [ ] Mark the snapshot active in one final transaction.
-- [ ] Retain one previous known-good snapshot.
-- [ ] Reject mixed artifact revisions.
-- [ ] Clean abandoned staging data safely.
-- [ ] Namespace image caches by snapshot/provider version.
-- [ ] Add upgrade, rollback, interrupted-write and quota-error tests.
-- [ ] Display active and fallback snapshot IDs in diagnostics.
+- [x] Define IndexedDB stores for snapshot metadata, preferences and debug-run metadata.
+- [x] Stage a new snapshot under its immutable snapshot ID.
+- [x] Verify every required staged artifact.
+- [x] Mark the snapshot active in one final transaction.
+- [x] Retain one previous known-good snapshot.
+- [x] Reject mixed artifact revisions.
+- [x] Clean abandoned staging data safely.
+- [x] Namespace image caches by snapshot/provider version.
+- [x] Add upgrade, rollback, interrupted-write and quota-error tests.
+- [x] Display active and fallback snapshot IDs in diagnostics.
 
 **Long-term test:** kill the browser during staging and confirm the previous snapshot remains active on next startup.
 
-## [ ] Step 27: Add randomized robustness and end-condition coverage
+## [x] Step 27: Add randomized robustness and end-condition coverage
 
 **Commit:** `test: cover randomized mvp duels and end conditions`
 
 **Working software after commit:** the programmed scenarios remain exact and reproducible, while additional production-mode runs prove randomized shuffles and starting hands do not break legal progression or lifecycle handling.
 
-- [ ] Retain programmed scenarios where the human wins and where the opponent wins.
-- [ ] Add LP-zero, surrender and reachable deck-out coverage.
-- [ ] Run a bounded matrix of recorded random production seeds and preserve any failing seed as a regression fixture.
-- [ ] Assert production starts do not reuse programmed deck order or starting-hand overrides.
-- [ ] Assert no human prompt is silently auto-selected.
-- [ ] Assert every opponent mandatory prompt receives a legal basic-policy response.
-- [ ] Assert each run ends or reaches a supported human prompt within bounded turn and process counts.
-- [ ] Store programmed response transcripts as reviewable fixtures rather than opaque snapshots.
+- [x] Retain programmed scenarios where the human wins and where the opponent wins.
+- [x] Add LP-zero, surrender and reachable deck-out coverage.
+- [x] Run a bounded matrix of recorded random production seeds and preserve any failing seed as a regression fixture.
+- [x] Assert production starts do not reuse programmed deck order or starting-hand overrides.
+- [x] Assert no human prompt is silently auto-selected.
+- [x] Assert every opponent mandatory prompt receives a legal basic-policy response.
+- [x] Assert each run ends or reaches a supported human prompt within bounded turn and process counts.
+- [x] Store programmed response transcripts as reviewable fixtures rather than opaque snapshots.
 
 **Long-term test:** any deck-list change must intentionally update programmed fixtures and rerun the randomized seed matrix.
 
-## [ ] Step 28: Add protocol compatibility and asset-integrity CI gates
+## [x] Step 28: Add protocol compatibility and asset-integrity CI gates
 
 **Commit:** `ci: enforce protocol and asset compatibility`
 
 **Working software after commit:** CI rejects partial upstream updates, unclassified protocol messages and broken catalog/script/image coverage.
 
-- [ ] Generate the pinned core message and response inventory.
-- [ ] Compare the inventory with parser/encoder classifications.
-- [ ] Run all binary protocol fixtures.
-- [ ] Run catalog, text and image one-to-one coverage checks.
-- [ ] Run script index and required-global checks.
-- [ ] Run active-deck dependency resolution.
-- [ ] Run the complete programmed real-Worker action suite and randomized production-seed matrix.
-- [ ] Run the production Chromium smoke test.
-- [ ] Upload failure diagnostics and traces as CI artifacts.
-- [ ] Block snapshot publication unless all compatibility gates pass.
+- [x] Generate the pinned core message and response inventory.
+- [x] Compare the inventory with parser/encoder classifications.
+- [x] Run all binary protocol fixtures.
+- [x] Run catalog, text and image one-to-one coverage checks.
+- [x] Run script index and required-global checks.
+- [x] Run active-deck dependency resolution.
+- [x] Run the complete programmed real-Worker action suite and randomized production-seed matrix.
+- [x] Run the production Chromium smoke test.
+- [x] Upload failure diagnostics and traces as CI artifacts.
+- [x] Block snapshot publication unless all compatibility gates pass.
 
 **Long-term test:** upstream synchronization occurs on a separate branch and never mutates the live release snapshot directly.
 
-## [ ] Step 29: Verify production browser behavior
+## [x] Step 29: Verify production browser behavior
 
 **Commit:** `test: verify production browser duel flow`
 
 **Working software after commit:** the production static bundle initializes, shuffles and draws randomized starting hands, renders cards, accepts human actions and completes normal preset-deck duels in supported desktop browsers.
 
-- [ ] Run Chromium smoke coverage against the production bundle.
-- [ ] Add Firefox after Chromium is stable.
-- [ ] Add WebKit as the Safari compatibility proxy.
-- [ ] Verify Worker and WASM asset paths under a non-root base URL.
-- [ ] Verify refresh during asset loading.
-- [ ] Verify refresh after a completed duel.
-- [ ] Verify missing-image fallback.
-- [ ] Verify Worker termination after a forced timeout.
-- [ ] Verify hidden information through main-thread message inspection.
-- [ ] Verify keyboard-only prompt completion.
-- [ ] Record browser-specific limitations instead of silently skipping tests.
+- [x] Run Chromium smoke coverage against the production bundle.
+- [x] Add Firefox after Chromium is stable.
+- [x] Add WebKit as the Safari compatibility proxy.
+- [x] Verify Worker and WASM asset paths under a non-root base URL.
+- [x] Verify refresh during asset loading.
+- [x] Verify refresh after a completed duel.
+- [x] Verify missing-image fallback.
+- [x] Verify Worker termination after a forced timeout.
+- [x] Verify hidden information through main-thread message inspection.
+- [x] Verify keyboard-only prompt completion.
+- [x] Record browser-specific limitations instead of silently skipping tests.
 
 **Long-term test:** the production browser smoke path is required before every release artifact is published.
 
-## [ ] Step 30: Produce the MVP release candidate
+## [x] Step 30: Produce the MVP release candidate
 
 **Commit:** `chore: prepare browser duel mvp release`
 
 **Working software after commit:** a clean checkout produces a static, test-verified MVP artifact with documented limitations and no development filesystem assumptions.
 
-- [ ] Run `npm ci` from a clean checkout.
-- [ ] Run the complete `npm run check` gate.
-- [ ] Regenerate and independently verify the pinned asset snapshot.
-- [ ] Run the complete programmed Worker integration suite and randomized production-mode tests.
-- [ ] Run production browser tests.
-- [ ] Confirm no `console.log`, focused test, skipped test or debug-only control remains.
-- [ ] Confirm all active-deck images resolve or use a documented fallback.
-- [ ] Document build, run, test and snapshot-update commands.
-- [ ] Document known unsupported behavior.
-- [ ] Document AGPL source-availability obligations.
-- [ ] Verify BabelCDB, strings and image-provider redistribution posture.
-- [ ] Keep deployment private if image or content permission remains unresolved.
-- [ ] Archive the exact revision manifest and release artifact together.
+- [x] Run `npm ci` from a clean checkout.
+- [x] Run the complete `npm run check` gate.
+- [x] Regenerate and independently verify the pinned asset snapshot.
+- [x] Run the complete programmed Worker integration suite and randomized production-mode tests.
+- [x] Run production browser tests.
+- [x] Confirm no `console.log`, focused test, skipped test or debug-only control remains.
+- [x] Confirm all active-deck images resolve or use a documented fallback.
+- [x] Document build, run, test and snapshot-update commands.
+- [x] Document known unsupported behavior.
+- [x] Document AGPL source-availability obligations.
+- [x] Verify BabelCDB, strings and image-provider redistribution posture.
+- [x] Keep deployment private if image or content permission remains unresolved.
+- [x] Archive the exact revision manifest and release artifact together.
 
 **Final manual validation:** from a clean browser profile, load the static production application, start the preset duel, perform human actions, finish the duel, restart and download a valid diagnostic trace.
 
@@ -851,7 +852,7 @@ If any item is red, continue headless engine, protocol, fixture or opponent work
 
 ### Worker integration tests
 
-- [ ] Real WASM initializes inside a Worker.
+- [x] Real WASM initializes inside a Worker.
 - [x] Real pinned assets satisfy synchronous callbacks.
 - [x] Programmed seeds, deck orders, starting hands and responses reproduce exact traces.
 - [x] The programmed scenario set covers every supported game-action family and reaches expected `MSG_WIN`/surrender results.
@@ -860,15 +861,15 @@ If any item is red, continue headless engine, protocol, fixture or opponent work
 
 ### Browser tests
 
-- [ ] Production bundle loads from static assets.
-- [ ] Worker, WASM and snapshot URLs resolve.
-- [ ] Human prompt controls send exactly one response.
-- [ ] Face-up images and hidden card backs render correctly.
-- [ ] Result, restart and diagnostic download work.
+- [x] Production bundle loads from static assets.
+- [x] Worker, WASM and snapshot URLs resolve.
+- [x] Human prompt controls send exactly one response.
+- [x] Face-up images and hidden card backs render correctly.
+- [x] Result, restart and diagnostic download work.
 
 ### Asset and compatibility tests
 
-- [ ] Vendored `ocgcore-wasm@0.1.2` contains exactly the reviewed files and hashes, with no `node_modules` fallback.
+- [x] Vendored `ocgcore-wasm@0.1.2` contains exactly the reviewed files and hashes, with no `node_modules` fallback.
 - [x] Manifest hashes and byte lengths match generated files.
 - [x] Catalog, text and image records have exact ID coverage.
 - [x] Every indexed script exists and has a unique code.
@@ -897,12 +898,12 @@ If any item is red, continue headless engine, protocol, fixture or opponent work
 
 # 10. Recommended implementation checkpoints
 
-- [ ] **Checkpoint A, after Step 05:** real WASM loads in a Worker.
+- [x] **Checkpoint A, after Step 05:** real WASM loads and starts the production preset inside an actual Node Worker thread; browser packaging remains Step 19.
 - [x] **Checkpoint B, after Step 10:** randomized production and programmed test duels start and emit parsed core messages.
 - [x] **Checkpoint C, after Step 17:** every programmed headless scenario reaches its expected result and every supported game-action row is covered. This unlocks visual implementation after the pending clean-checkout gate is accepted.
-- [ ] **Checkpoint D, after Step 20:** a human can duel without raw debug controls.
-- [ ] **Checkpoint E, after Step 24:** the complete visible duel lifecycle works.
-- [ ] **Checkpoint F, after Step 29:** the production bundle passes browser verification.
-- [ ] **Checkpoint G, after Step 30:** the MVP release artifact is reproducible and documented.
+- [x] **Checkpoint D, after Step 20:** a human can duel without raw debug controls.
+- [x] **Checkpoint E, after Step 24:** the complete visible duel lifecycle works.
+- [x] **Checkpoint F, after Step 29:** the production bundle passes browser verification.
+- [x] **Checkpoint G, after Step 30:** the MVP release artifact is reproducible and documented.
 
 Do not begin story, deck-editor or progression implementation before Checkpoint G is accepted.

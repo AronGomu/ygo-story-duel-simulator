@@ -8,7 +8,7 @@ Ship a static browser application. The production bundle must resolve Worker, WA
 
 ## Browser support
 
-Target current desktop Chrome, Firefox, and Safari. Chromium is the primary development/smoke-test browser; add Firefox and WebKit coverage after Chromium is stable. Mobile-first polish is outside the MVP.
+Target current desktop Chrome, Firefox, and Safari. Chromium runs the complete browser flow; Firefox and WebKit run the production startup/privacy/image smoke path. Mobile-first redesign is outside the MVP, but a 375px viewport must keep semantic controls usable, touch targets at least 44px, and wide field scrolling contained.
 
 ## WASM constraints
 

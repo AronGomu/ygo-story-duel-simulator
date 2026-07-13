@@ -7,7 +7,7 @@
 - Maintain a versioned card-code-to-image manifest for every supported catalog ID.
 - Keep the multi-gigabyte image archive outside the JavaScript bundle and source Git.
 - Serve approved images from project-controlled static hosting rather than continual provider hotlinking.
-- Preload all unique active-deck images before enabling the first action; load other catalog images lazily.
+- Begin preloading all unique active-deck images at startup, but never block a legal prompt on image or storage I/O; use placeholders until preload finishes.
 
 ## Rendering and privacy
 
@@ -15,6 +15,6 @@ Render face-up images in field/hand/inspector/GY/banished/Extra Deck/prompt surf
 
 ## Cache behavior
 
-Use snapshot/provider-aware Cache Storage keys, deduplicate concurrent requests, tolerate provider outages when cached images/placeholders exist, and revoke temporary object URLs. Missing/provider failures must appear in diagnostics without blocking a duel unnecessarily.
+Use snapshot/provider-aware Cache Storage keys, deduplicate concurrent requests, validate manifest digest/length/content/dimensions/decode before persistence, evict invalid cache entries, tolerate provider outages with placeholders, and revoke temporary object URLs. Network and decode work is bounded by byte, concurrency, cancellation, and timeout limits.
 
 Technical availability is not permission to redistribute; see [`../07-governance/licensing-and-distribution.md`](../07-governance/licensing-and-distribution.md).

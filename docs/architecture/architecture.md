@@ -62,10 +62,10 @@ Dedicated Duel Worker
 - The main thread receives clone-safe domain messages and privacy-filtered immutable state.
 - Svelte owns application UI; Phaser owns presentation only and never determines legality.
 - Core callbacks are synchronous and read only preloaded memory.
-- Core, catalog, scripts, strings, and image metadata form one pinned, verified snapshot.
+- Core, catalog, scripts, strings, and image metadata form one pinned, verified snapshot; browser activation occurs only after runtime and active-image receipts match.
 - Production duels shuffle normally; deterministic inputs are restricted to tests and diagnostics.
 - Every duel can be reproduced from revision metadata, seed, and ordered responses.
-- Headless real-WASM coverage must be green before visual duel implementation proceeds.
+- Headless real-WASM coverage must remain green; production packaging and Chromium/Firefox/WebKit browser gates are required for the release candidate.
 
 ## Decision maintenance
 
