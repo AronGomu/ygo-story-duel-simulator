@@ -1,7 +1,11 @@
 .agentsystem/
 .cache/
 .pi/
+coverage/
+dist*/
 generated/
 node_modules/
+playwright-report/
+test-results/
 vendor/
 package-lock.json

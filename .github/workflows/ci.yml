@@ -1,0 +1,71 @@
+name: compatibility-and-browser-gates
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  full-gate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Restore immutable source and generated-asset caches
+        uses: actions/cache@v4
+        with:
+          path: |
+            .cache/upstream
+            generated
+          key: mvp-assets-${{ runner.os }}-${{ hashFiles('package-lock.json', 'scripts/sync-*.ts', 'scripts/download-images.ts', 'src/duel/presets/decks/*.ydk') }}
+          restore-keys: |
+            mvp-assets-${{ runner.os }}-
+
+      - run: npm ci
+      - name: Regenerate and verify the pinned snapshot
+        run: npm run assets:mvp -- --concurrency 8 --requests-per-second 8
+      - name: Install supported browser engines
+        run: npx playwright install --with-deps chromium firefox webkit
+      - name: Run protocol, asset, Worker, build, and browser gates
+        run: npm run check
+
+      - name: Archive verified private release candidate and revision manifests
+        if: success() && (github.event_name == 'workflow_dispatch' || github.ref == 'refs/heads/main')
+        uses: actions/upload-artifact@v4
+        with:
+          name: private-mvp-release-candidate-${{ github.sha }}
+          retention-days: 30
+          if-no-files-found: error
+          path: |
+            dist/
+            generated/runtime/current/manifest.json
+            vendor/ocgcore-wasm/0.1.2/vendor-manifest.json
+            vendor/ocgcore-wasm/0.1.2/VENDORING.md
+
+      - name: Upload failure diagnostics
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: failure-diagnostics-${{ github.run_id }}
+          if-no-files-found: ignore
+          retention-days: 14
+          path: |
+            test-results/
+            playwright-report/
+            generated/**/*report*.json
+            generated/mvp-assets-status.json
+            generated/runtime/current/manifest.json

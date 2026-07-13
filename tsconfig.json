@@ -10,12 +10,16 @@
     "exactOptionalPropertyTypes": true,
     "forceConsistentCasingInFileNames": true,
     "skipLibCheck": true,
-    "types": ["node", "vitest/globals"]
+    "types": ["node", "vite/client", "vitest/globals"]
   },
   "include": [
     "scripts/**/*.ts",
     "src/**/*.ts",
+    "src/**/*.svelte",
     "tests/**/*.ts",
+    "e2e/**/*.ts",
+    "playwright.config.ts",
+    "vite.config.ts",
     "vitest.config.ts"
   ]
 }
