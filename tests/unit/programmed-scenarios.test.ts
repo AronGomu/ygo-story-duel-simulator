@@ -46,7 +46,7 @@ describe("programmed integration specification", () => {
       expect(scenario.startingHands[1]).toEqual(
         scenario.deckOrder[1].slice(0, 5),
       );
-      if (scenario.expectedFinishReason === "surrender") {
+      if (scenario.expectedFinishReason !== "lp_zero") {
         expect(scenario.choices).toEqual([]);
       } else {
         expect(scenario.choices.length).toBeGreaterThan(0);
@@ -83,6 +83,11 @@ describe("programmed integration specification", () => {
         id: "shuffle-and-sort-chain",
         transcript: "sort-chain-v1",
         expectedWinner: 0,
+      }),
+      expect.objectContaining({
+        id: "deck-out-at-opening",
+        transcript: "deck-out-v1",
+        expectedWinner: 1,
       }),
       expect.objectContaining({
         id: "surrender-at-opening",

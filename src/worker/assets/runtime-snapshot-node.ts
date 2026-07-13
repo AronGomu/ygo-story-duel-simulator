@@ -2,6 +2,7 @@ import { createHash } from "node:crypto";
 import { readFile, stat } from "node:fs/promises";
 import path from "node:path";
 import {
+  isSafeManifestPath,
   parseRuntimeSnapshotManifest,
   type RuntimeSnapshotManifest,
 } from "./runtime-manifest.ts";
@@ -111,8 +112,10 @@ export async function verifyRuntimeSnapshotFiles(
 }
 
 export function safeArtifactPath(root: string, relativePath: string): string {
-  if (path.isAbsolute(relativePath))
-    throw new Error(`Artifact path must be relative: ${relativePath}`);
+  if (relativePath.split(/[\\/]/).includes(".."))
+    throw new Error(`Artifact path escapes snapshot root: ${relativePath}`);
+  if (path.isAbsolute(relativePath) || !isSafeManifestPath(relativePath))
+    throw new Error(`Artifact path must be safe and relative: ${relativePath}`);
   const resolvedRoot = path.resolve(root);
   const resolved = path.resolve(root, ...relativePath.split("/"));
   const relative = path.relative(resolvedRoot, resolved);

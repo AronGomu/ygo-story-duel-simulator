@@ -3,6 +3,7 @@ import {
   DuelCommandValidationError,
   type DuelCommand,
 } from "../duel/contracts/duel-command.ts";
+import type { DuelDiagnosticTrace } from "../duel/contracts/duel-diagnostics.ts";
 import {
   duelOperationError,
   type DuelError,
@@ -11,8 +12,13 @@ import type { DuelWorkerEvent } from "../duel/contracts/duel-worker-event.ts";
 import type { SnapshotId } from "../duel/contracts/ids.ts";
 import type { MvpPreset } from "../duel/presets/mvp-preset.ts";
 import type { ActiveDuelDependencies } from "./assets/active-duel-dependencies.ts";
-import type { DuelTrace, DuelTraceEntry } from "./diagnostics/duel-trace.ts";
+import {
+  BoundedDuelTrace,
+  type DuelTrace,
+  type DuelTraceEntry,
+} from "./diagnostics/duel-trace.ts";
 import { DuelSession } from "./engine/DuelSession.ts";
+import { createProductionSeed } from "./engine/duel-seed.ts";
 import type { OcgCoreAdapter } from "./engine/OcgCoreAdapter.ts";
 import {
   HeadlessDuelController,
@@ -32,11 +38,19 @@ type QueuedDuelCommand = Exclude<DuelCommand, { readonly type: "dispose" }>;
 
 export { toDuelError };
 
+export interface DuelRuntimeRevisionMetadata {
+  readonly babelCdb: string;
+  readonly cardScripts: string;
+  readonly distribution: string;
+  readonly activeImageManifestSha256: string;
+}
+
 export interface DuelRuntimeResources {
   readonly adapter: OcgCoreAdapter;
   readonly dependencies: ActiveDuelDependencies;
   readonly preset: MvpPreset;
   readonly snapshotId: SnapshotId;
+  readonly revisions?: DuelRuntimeRevisionMetadata;
 }
 
 export type DuelRuntimeInitializer = (
@@ -52,7 +66,7 @@ export interface DuelRuntimeFailureContext {
   readonly commandType: DuelCommand["type"];
   readonly code: DuelError["code"];
   readonly runtimeId: string;
-  readonly traceMetadata?: Pick<DuelTrace, "presetId" | "snapshotId" | "seed">;
+  readonly traceMetadata?: Pick<DuelTrace, "presetId" | "snapshotId">;
   readonly traceTail?: readonly DuelTraceEntry[];
 }
 
@@ -73,6 +87,7 @@ export class DuelWorkerRuntime {
   #initializationFailure: { readonly error: unknown } | null = null;
   #initializationAbortController: AbortController | null = null;
   #controller: HeadlessDuelController | null = null;
+  #lastTrace: DuelTrace | null = null;
   #commandQueue: Promise<void> = Promise.resolve();
   readonly #maximumQueuedCommands: number;
   readonly #runtimeId: string;
@@ -189,6 +204,13 @@ export class DuelWorkerRuntime {
           events.push({
             type: "ready",
             coreVersion: resources.adapter.getVersion(),
+            snapshotId: resources.snapshotId,
+            ...(resources.revisions?.activeImageManifestSha256 === undefined
+              ? {}
+              : {
+                  activeImageManifestSha256:
+                    resources.revisions.activeImageManifestSha256,
+                }),
           });
           break;
         }
@@ -209,6 +231,9 @@ export class DuelWorkerRuntime {
           this.#recordAdvance(controller, controller.surrender(), events);
           break;
         }
+        case "requestDiagnostics":
+          events.push({ type: "diagnostics", trace: this.#diagnosticTrace() });
+          break;
         default:
           assertNever(command);
       }
@@ -216,6 +241,7 @@ export class DuelWorkerRuntime {
       if (this.#disposed) return [];
       const controller = this.#controller;
       const trace = controller?.trace();
+      if (trace !== undefined) this.#lastTrace = trace;
       const traceTail = trace?.entries.slice(-20);
       const terminal = controller?.disposed === true;
       if (terminal) this.#controller = null;
@@ -232,7 +258,6 @@ export class DuelWorkerRuntime {
                 traceMetadata: {
                   presetId: trace.presetId,
                   snapshotId: trace.snapshotId,
-                  seed: trace.seed,
                 },
               }),
           ...(traceTail === undefined || traceTail.length === 0
@@ -293,22 +318,41 @@ export class DuelWorkerRuntime {
         `Unknown preset duel: ${duelId}`,
       );
     }
-    const session = DuelSession.create({
-      adapter: resources.adapter,
-      dependencies: resources.dependencies,
-      playerDeck: resources.preset.player,
-      opponentDeck: resources.preset.opponent,
-      configuration: { mode: "production" },
-      onEngineDiagnostic: ({ type, message, error }) =>
-        this.#logger.warn({
-          event: "duel.worker.engine.session.diagnostic",
-          runtimeId: this.#runtimeId,
-          duelId,
-          diagnosticType: type,
-          message,
-          ...(error === undefined ? {} : { err: error }),
-        }),
-    });
+    const seed = createProductionSeed();
+    const trace = new BoundedDuelTrace(
+      resources.preset.id,
+      resources.snapshotId,
+      seed,
+    );
+    trace.record({ kind: "lifecycle", detail: "session creation started" });
+    this.#lastTrace = trace.snapshot();
+    let session: DuelSession;
+    try {
+      session = DuelSession.create({
+        adapter: resources.adapter,
+        dependencies: resources.dependencies,
+        playerDeck: resources.preset.player,
+        opponentDeck: resources.preset.opponent,
+        configuration: { mode: "production", seed },
+        onEngineDiagnostic: ({ type, message, error }) =>
+          this.#logger.warn({
+            event: "duel.worker.engine.session.diagnostic",
+            runtimeId: this.#runtimeId,
+            duelId,
+            diagnosticType: type,
+            message,
+            ...(error === undefined ? {} : { err: error }),
+          }),
+      });
+    } catch (error) {
+      trace.record({
+        kind: "error",
+        detail:
+          error instanceof Error ? error.message : "Session creation failed",
+      });
+      this.#lastTrace = trace.snapshot();
+      throw error;
+    }
     if (this.#disposed) {
       try {
         session.dispose();
@@ -339,6 +383,7 @@ export class DuelWorkerRuntime {
           resources.preset.opponent.extra.length,
         ],
         promptIdNamespace: `${this.#runtimeId}-duel-${++this.#nextDuelSequence}`,
+        trace,
       });
       this.#controller = controller;
       this.#recordAdvance(controller, controller.advance(), events);
@@ -364,6 +409,7 @@ export class DuelWorkerRuntime {
   ): void {
     events.push(...advanceEvents(advance));
     if (advance.result !== undefined || controller.disposed) {
+      this.#lastTrace = controller.trace();
       this.#controller = null;
     }
   }
@@ -410,6 +456,61 @@ export class DuelWorkerRuntime {
         ? {}
         : { traceTail: context.traceTail }),
       err: error,
+    });
+  }
+
+  #diagnosticTrace(): DuelDiagnosticTrace {
+    const resources = this.#requireResources();
+    const trace = this.#controller?.trace() ?? this.#lastTrace;
+    if (trace === null)
+      throw duelOperationError(
+        "duel_not_active",
+        "No duel diagnostics are available yet",
+      );
+    const lastMessageType = [...trace.entries]
+      .reverse()
+      .find(
+        ({ kind, messageType }) =>
+          kind === "message" && messageType !== undefined,
+      )?.messageType;
+    const lastPrompt = [...trace.entries]
+      .reverse()
+      .find(
+        ({ kind, promptId }) => kind === "prompt" && promptId !== undefined,
+      );
+    const promptAnswered =
+      lastPrompt?.promptId === undefined
+        ? true
+        : trace.entries.some(
+            ({ sequence, kind, promptId }) =>
+              sequence > lastPrompt.sequence &&
+              kind === "response" &&
+              promptId === lastPrompt.promptId,
+          );
+    return Object.freeze({
+      schemaVersion: 1,
+      sensitivity: "contains-production-seed",
+      presetId: trace.presetId,
+      snapshotId: trace.snapshotId,
+      seed: trace.seed,
+      coreVersion: resources.adapter.getVersion(),
+      revisions: Object.freeze({
+        enginePackage: "ocgcore-wasm",
+        engineVersion: "0.1.2",
+        babelCdb: resources.revisions?.babelCdb ?? "identified-by-snapshot",
+        cardScripts:
+          resources.revisions?.cardScripts ?? "identified-by-snapshot",
+        distribution:
+          resources.revisions?.distribution ?? "identified-by-snapshot",
+        activeImageManifestSha256:
+          resources.revisions?.activeImageManifestSha256 ??
+          "identified-by-snapshot",
+      }),
+      entries: trace.entries,
+      ...(lastMessageType === undefined ? {} : { lastMessageType }),
+      ...(lastPrompt?.promptId === undefined || promptAnswered
+        ? {}
+        : { pendingPromptId: lastPrompt.promptId }),
     });
   }
 

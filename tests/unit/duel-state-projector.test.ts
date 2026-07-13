@@ -32,6 +32,111 @@ describe("DuelStateProjector", () => {
     expect(JSON.stringify(snapshot)).not.toContain("5053103");
   });
 
+  it("redacts opponent face-down identities from presentation events", () => {
+    const value = projector();
+    const set = value.apply({
+      type: EngineMessageType.SET,
+      code: 5053103,
+      controller: 1,
+      location: EngineLocation.SPELL_TRAP,
+      sequence: 0,
+      position: EnginePosition.FACE_DOWN_DEFENSE,
+    });
+    const position = value.apply({
+      type: EngineMessageType.POSITION_CHANGE,
+      code: 5053103,
+      controller: 1,
+      location: EngineLocation.MONSTER,
+      sequence: 0,
+      prev_position: EnginePosition.FACE_DOWN_DEFENSE,
+      position: EnginePosition.FACE_DOWN_DEFENSE,
+    });
+
+    expect(JSON.stringify([set.events, position.events])).not.toContain(
+      "5053103",
+    );
+  });
+
+  it("rotates public identity when an opponent card crosses a concealed zone", () => {
+    const value = projector();
+    value.apply({
+      type: EngineMessageType.MOVE,
+      card: 5053103,
+      from: {
+        controller: 1,
+        location: EngineLocation.DECK,
+        sequence: 0,
+        position: EnginePosition.FACE_DOWN_DEFENSE,
+      },
+      to: {
+        controller: 1,
+        location: EngineLocation.GRAVEYARD,
+        sequence: 0,
+        position: EnginePosition.FACE_UP_ATTACK,
+      },
+    });
+    const knownId = value.snapshot().players[1].graveyard[0]?.instanceId;
+    expect(knownId).toBeDefined();
+    value.apply({
+      type: EngineMessageType.MOVE,
+      card: 5053103,
+      from: {
+        controller: 1,
+        location: EngineLocation.GRAVEYARD,
+        sequence: 0,
+        position: EnginePosition.FACE_UP_ATTACK,
+      },
+      to: {
+        controller: 1,
+        location: EngineLocation.HAND,
+        sequence: 0,
+        position: EnginePosition.FACE_DOWN_DEFENSE,
+      },
+    });
+    const concealedMove = value.apply({
+      type: EngineMessageType.MOVE,
+      card: 5053103,
+      from: {
+        controller: 1,
+        location: EngineLocation.HAND,
+        sequence: 0,
+        position: EnginePosition.FACE_DOWN_DEFENSE,
+      },
+      to: {
+        controller: 1,
+        location: EngineLocation.SPELL_TRAP,
+        sequence: 0,
+        position: EnginePosition.FACE_DOWN_DEFENSE,
+      },
+    });
+    const setCard = value.snapshot().players[1].spellsAndTraps[0];
+
+    expect(concealedMove.events[0]).not.toHaveProperty("instanceId");
+    expect(setCard?.instanceId).not.toBe(knownId);
+    expect(setCard).not.toHaveProperty("code");
+  });
+
+  it("redacts face-down opponent banished cards", () => {
+    const value = projector();
+    value.apply({
+      type: EngineMessageType.MOVE,
+      card: 5053103,
+      from: {
+        controller: 1,
+        location: EngineLocation.DECK,
+        sequence: 0,
+        position: EnginePosition.FACE_DOWN_DEFENSE,
+      },
+      to: {
+        controller: 1,
+        location: EngineLocation.BANISHED,
+        sequence: 0,
+        position: EnginePosition.FACE_DOWN_DEFENSE,
+      },
+    });
+    expect(value.snapshot().players[1].banished[0]).not.toHaveProperty("code");
+  });
+
   it("moves one physical instance between zones without duplication", () => {
     const value = projector();
     value.apply({

@@ -12,11 +12,16 @@ export interface DuelWorkerScope {
   postMessage(message: DuelWorkerEvent): void;
 }
 
+export type DuelWorkerDetachObserver = (failure: unknown | null) => void;
+export type DuelWorkerBoundaryFailureObserver = (failure: unknown) => void;
+
 export function attachDuelWorker(
   scope: DuelWorkerScope,
   runtime: DuelWorkerRuntime,
   logger: WorkerLogger = workerLog,
-): () => void {
+  onDetach?: DuelWorkerDetachObserver,
+  onBoundaryFailure?: DuelWorkerBoundaryFailureObserver,
+): () => unknown | null {
   if (scope.onmessage !== null) {
     throw new Error("Duel Worker scope already has a message handler");
   }
@@ -117,6 +122,17 @@ export function attachDuelWorker(
         eventType: message.type,
         err: error,
       });
+      try {
+        onBoundaryFailure?.(error);
+      } catch (observerError) {
+        logger.error({
+          event: "duel.worker.boundary.observer.failed",
+          err: new AggregateError(
+            [error, observerError],
+            "Worker event dispatch and failure observation both failed",
+          ),
+        });
+      }
     }
   }
   function detach(): unknown | null {
@@ -135,11 +151,21 @@ export function attachDuelWorker(
       event: "duel.worker.detached",
       ownedHandler,
     });
+    try {
+      onDetach?.(failure);
+    } catch (error) {
+      logger.error({ event: "duel.worker.detach.observer.failed", err: error });
+      failure =
+        failure === null
+          ? error
+          : new AggregateError(
+              [failure, error],
+              "Runtime cleanup and detach observation both failed",
+            );
+    }
     return failure;
   }
   scope.onmessage = handler;
 
-  return () => {
-    detach();
-  };
+  return detach;
 }

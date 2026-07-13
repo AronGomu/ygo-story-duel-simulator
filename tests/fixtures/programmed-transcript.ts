@@ -52,7 +52,8 @@ export type ProgrammedTranscriptId =
   | "effects-recovery-v1"
   | "prompt-matrix-v1"
   | "sort-chain-v1"
-  | "surrender-v1";
+  | "surrender-v1"
+  | "deck-out-v1";
 
 export interface ProgrammedCardFingerprint {
   readonly code?: number;
@@ -103,6 +104,7 @@ export async function loadProgrammedTranscript(
     "prompt-matrix-v1": "prompt-matrix-v1.json",
     "sort-chain-v1": "sort-chain-v1.json",
     "surrender-v1": "surrender-v1.json",
+    "deck-out-v1": "deck-out-v1.json",
   };
   const source = await readFile(
     new URL(`./transcripts/${files[id]}`, import.meta.url),

@@ -1,0 +1,7 @@
+local deck_out = Effect.GlobalEffect()
+deck_out:SetType(EFFECT_TYPE_FIELD + EFFECT_TYPE_CONTINUOUS)
+deck_out:SetCode(EVENT_STARTUP)
+deck_out:SetOperation(function()
+  Duel.Win(1, 2)
+end)
+Duel.RegisterEffect(deck_out, 0)

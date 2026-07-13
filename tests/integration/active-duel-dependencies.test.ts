@@ -5,7 +5,7 @@ import {
   uniqueDeckCodes,
   validateDeck,
 } from "../../src/duel/presets/deck-parser.ts";
-import { loadMvpPreset } from "../../src/duel/presets/mvp-preset.ts";
+import { loadMvpPreset } from "../../src/duel/presets/mvp-preset-node.ts";
 
 describe("real MVP dependency snapshot", () => {
   it("resolves every preset card, text, image, global, and available card script", async () => {

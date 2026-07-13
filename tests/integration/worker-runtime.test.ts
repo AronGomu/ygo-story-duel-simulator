@@ -81,9 +81,7 @@ describe("typed duel Worker runtime", () => {
           type: "error",
           error: expect.objectContaining({
             code: "snapshot_validation_failed",
-            message: expect.stringContaining(
-              "Runtime snapshot validation failed",
-            ),
+            message: "Unable to verify runtime snapshot files",
           }),
         }),
       );
@@ -100,6 +98,8 @@ describe("typed duel Worker runtime", () => {
       expect(initialized.at(-1)).toEqual({
         type: "ready",
         coreVersion: [11, 0],
+        snapshotId: expect.stringMatching(/^[a-f0-9]{64}$/),
+        activeImageManifestSha256: expect.stringMatching(/^[a-f0-9]{64}$/),
       });
       const loadingStages = initialized.flatMap((event) =>
         event.type === "loading" ? [event.stage] : [],

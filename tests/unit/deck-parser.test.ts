@@ -4,7 +4,7 @@ import {
   uniqueDeckCodes,
   validateDeck,
 } from "../../src/duel/presets/deck-parser.ts";
-import { loadMvpPreset } from "../../src/duel/presets/mvp-preset.ts";
+import { loadMvpPreset } from "../../src/duel/presets/mvp-preset-node.ts";
 
 describe("YDK parsing", () => {
   it("loads the locked MVP matchup", async () => {

@@ -109,16 +109,24 @@ describe("duel Worker attachment", () => {
 
   it("logs a posting failure without claiming the event was dispatched", () => {
     const logs: LoggedEntry[] = [];
+    const postingError = new Error("fake post failure");
     const scope: DuelWorkerScope = {
       onmessage: null,
       postMessage: () => {
-        throw new Error("fake post failure");
+        throw postingError;
       },
     };
     const runtime = new DuelWorkerRuntime(async () => {
       throw new Error("initializer should not run");
     });
-    const detach = attachDuelWorker(scope, runtime, memoryLogger(logs));
+    const boundaryFailures: unknown[] = [];
+    const detach = attachDuelWorker(
+      scope,
+      runtime,
+      memoryLogger(logs),
+      undefined,
+      (failure) => boundaryFailures.push(failure),
+    );
 
     scope.onmessage?.({ data: { type: "unknown" } } as MessageEvent<unknown>);
 
@@ -135,6 +143,7 @@ describe("duel Worker attachment", () => {
         eventType: "error",
       }),
     );
+    expect(boundaryFailures).toEqual([postingError]);
     detach();
   });
 
@@ -151,6 +160,26 @@ describe("duel Worker attachment", () => {
 
     expect(scope.onmessage).toBe(replacement);
     await expect(runtime.handle({ type: "initialize" })).resolves.toEqual([]);
+  });
+
+  it("reports runtime cleanup failures to the attachment owner", () => {
+    const cleanupError = new Error("fake cleanup failure");
+    const scope = createScope([]);
+    const runtime = new DuelWorkerRuntime(async () => {
+      throw new Error("initializer should not run");
+    });
+    vi.spyOn(runtime, "dispose").mockImplementation(() => {
+      throw cleanupError;
+    });
+    const detachFailures: unknown[] = [];
+    attachDuelWorker(scope, runtime, memoryLogger([]), (failure) => {
+      detachFailures.push(failure);
+    });
+
+    scope.onmessage?.({ data: { type: "dispose" } } as MessageEvent<unknown>);
+
+    expect(detachFailures).toEqual([cleanupError]);
+    expect(scope.onmessage).toBeNull();
   });
 
   it("prevents multiple owners from attaching to the same Worker scope", () => {

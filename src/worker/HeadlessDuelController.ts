@@ -31,6 +31,7 @@ export interface HeadlessDuelControllerOptions {
   readonly opponentPolicy?: OpponentPolicy;
   readonly maximumAutomaticResponses?: number;
   readonly promptIdNamespace?: string;
+  readonly trace?: BoundedDuelTrace;
 }
 
 export class HeadlessDuelController {
@@ -55,11 +56,13 @@ export class HeadlessDuelController {
     );
     this.#opponent =
       options.opponentPolicy ?? new BasicOpponentPolicy(options.dependencies);
-    this.#trace = new BoundedDuelTrace(
-      options.presetId,
-      options.snapshotId,
-      options.session.seed,
-    );
+    this.#trace =
+      options.trace ??
+      new BoundedDuelTrace(
+        options.presetId,
+        options.snapshotId,
+        options.session.seed,
+      );
     this.#maximumAutomaticResponses =
       options.maximumAutomaticResponses ?? 1_000;
   }
@@ -95,6 +98,8 @@ export class HeadlessDuelController {
         this.#trace.record({ kind: "message", messageType: message.type });
         const update = this.#projector.apply(message);
         events.push(...update.events);
+        for (const event of update.events)
+          this.#trace.record({ kind: "presentation", detail: event.type });
         if (update.result !== undefined) {
           this.#result = update.result;
           this.#trace.record({
@@ -126,6 +131,7 @@ export class HeadlessDuelController {
           this.#projector.snapshot(),
         );
         const response = this.#prompts.respond(prompt.id, decision.choiceIds);
+        this.#session.respond(response);
         this.#trace.record({
           kind: "response",
           promptId: prompt.id,
@@ -133,7 +139,6 @@ export class HeadlessDuelController {
           player: 1,
           opponentReason: decision.reason,
         });
-        this.#session.respond(response);
         answeredOpponent = true;
       }
 
@@ -183,9 +188,9 @@ export class HeadlessDuelController {
       );
     }
     const response = this.#prompts.respond(promptId, choiceIds);
-    this.#trace.record({ kind: "response", promptId, choiceIds, player: 0 });
     try {
       this.#session.respond(response);
+      this.#trace.record({ kind: "response", promptId, choiceIds, player: 0 });
     } catch (error) {
       this.#fail(error);
       throw error;

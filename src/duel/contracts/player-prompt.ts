@@ -51,6 +51,8 @@ export type ChoiceAction =
 export interface PromptCard {
   readonly instanceId: CardInstanceId;
   readonly code?: CardCode;
+  readonly name?: string;
+  readonly description?: string;
   readonly controller: PlayerIndex;
   readonly location: PublicLocation;
   readonly sequence: number;
@@ -78,6 +80,7 @@ export interface PromptChoice {
   readonly place?: PromptPlace;
   readonly value?: number | string;
   readonly selected?: boolean;
+  readonly allocationMaximum?: number;
 }
 
 export interface PlayerPrompt {
@@ -86,6 +89,7 @@ export interface PlayerPrompt {
   readonly player: PlayerIndex;
   readonly title: string;
   readonly message?: string;
+  readonly contextCard?: PromptCard;
   readonly choices: readonly PromptChoice[];
   readonly minimum: number;
   readonly maximum: number;

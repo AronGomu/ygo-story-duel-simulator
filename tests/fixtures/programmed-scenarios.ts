@@ -6,7 +6,7 @@ import type {
   PromptKind,
 } from "../../src/duel/contracts/player-prompt.ts";
 import type { PlayerIndex } from "../../src/duel/contracts/public-duel-state.ts";
-import { loadMvpPreset } from "../../src/duel/presets/mvp-preset.ts";
+import { loadMvpPreset } from "../../src/duel/presets/mvp-preset-node.ts";
 import type { ProgrammedTranscriptId } from "./programmed-transcript.ts";
 
 export interface ProgrammedChoice {
@@ -33,11 +33,13 @@ export interface ProgrammedScenario {
 export async function loadProgrammedScenarios(): Promise<
   readonly ProgrammedScenario[]
 > {
-  const [preset, promptMatrixSource, sortChainSource] = await Promise.all([
-    loadMvpPreset(),
-    readFixtureScript("prompt-matrix.lua"),
-    readFixtureScript("sort-chain.lua"),
-  ]);
+  const [preset, promptMatrixSource, sortChainSource, deckOutSource] =
+    await Promise.all([
+      loadMvpPreset(),
+      readFixtureScript("prompt-matrix.lua"),
+      readFixtureScript("sort-chain.lua"),
+      readFixtureScript("deck-out.lua"),
+    ]);
   const battlePlayerOrder = preset.player.main;
   const tributePlayerOrder = rotateToFront(
     preset.player.main,
@@ -163,6 +165,20 @@ export async function loadProgrammedScenarios(): Promise<
       allowFirstTurnAttack: true,
       expectedWinner: 0,
       expectedFinishReason: "lp_zero",
+    },
+    {
+      id: "deck-out-at-opening",
+      seed: [25n, 26n, 27n, 28n],
+      deckOrder: [preset.player.main, preset.opponent.main],
+      startingHands: [
+        preset.player.main.slice(0, 5),
+        preset.opponent.main.slice(0, 5),
+      ],
+      choices: [],
+      transcript: "deck-out-v1",
+      startupScripts: [{ name: "mvp_deck_out.lua", source: deckOutSource }],
+      expectedWinner: 1,
+      expectedFinishReason: "deck_out",
     },
     {
       id: "surrender-at-opening",

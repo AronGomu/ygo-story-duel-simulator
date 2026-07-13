@@ -1,10 +1,11 @@
 import path from "node:path";
 import {
-  DuelOperationError,
-  type DuelError,
-} from "../duel/contracts/duel-error.ts";
+  activeImageManifestSha256,
+  buildActiveImageManifest,
+} from "../../scripts/lib/active-image-manifest.ts";
+import { DuelOperationError } from "../duel/contracts/duel-error.ts";
 import { uniqueDeckCodes, validateDeck } from "../duel/presets/deck-parser.ts";
-import { loadMvpPreset } from "../duel/presets/mvp-preset.ts";
+import { loadMvpPreset } from "../duel/presets/mvp-preset-node.ts";
 import { loadActiveDuelDependenciesNode } from "./assets/active-duel-dependencies-node.ts";
 import {
   buildRuntimeSnapshotManifest,
@@ -17,6 +18,7 @@ import {
   type WorkerLogger,
 } from "./diagnostics/worker-log.ts";
 import { loadVendoredCoreNode } from "./engine/load-vendored-core-node.ts";
+import { runDuelRuntimeInitializationStage as runInitializationStage } from "./runtime-initialization.ts";
 
 export function createNodeDuelWorkerRuntime(
   projectRoot = process.cwd(),
@@ -54,15 +56,20 @@ export function createNodeDuelWorkerRuntime(
       );
       signal.throwIfAborted();
       progress("engine", 0.25);
-      const adapter = await loadVendoredCoreNode({
-        onDiagnostic: ({ stream, message }) =>
-          safeLogger[stream === "stderr" ? "warn" : "debug"]({
-            event: "duel.worker.engine.initialization.diagnostic",
-            runtimeId,
-            stream,
-            message,
+      const adapter = await runInitializationStage(
+        "engine_initialization_failed",
+        "Unable to initialize the vendored engine",
+        () =>
+          loadVendoredCoreNode({
+            onDiagnostic: ({ stream, message }) =>
+              safeLogger[stream === "stderr" ? "warn" : "debug"]({
+                event: "duel.worker.engine.initialization.diagnostic",
+                runtimeId,
+                stream,
+                message,
+              }),
           }),
-      });
+      );
       signal.throwIfAborted();
       if (adapter.getVersion()[0] !== manifest.engine.coreVersion[0]) {
         throw new DuelOperationError({
@@ -99,29 +106,21 @@ export function createNodeDuelWorkerRuntime(
         },
       );
       progress("ready", 1);
-      return { adapter, dependencies, preset, snapshotId: manifest.snapshotId };
+      return {
+        adapter,
+        dependencies,
+        preset,
+        snapshotId: manifest.snapshotId,
+        revisions: {
+          babelCdb: manifest.assets.babelCdbRevision,
+          cardScripts: manifest.assets.cardScriptsRevision,
+          distribution: manifest.assets.distributionRevision,
+          activeImageManifestSha256: activeImageManifestSha256(
+            buildActiveImageManifest(projectRoot, manifest.snapshotId),
+          ),
+        },
+      };
     },
     { runtimeId, logger: safeLogger },
   );
-}
-
-async function runInitializationStage<T>(
-  code: DuelError["code"],
-  message: string,
-  operation: () => Promise<T>,
-): Promise<T> {
-  try {
-    return await operation();
-  } catch (error) {
-    const cause = error instanceof Error ? error.message : String(error);
-    throw new DuelOperationError(
-      {
-        code,
-        message: `${message}: ${cause}`,
-        detail: { cause },
-        recoverable: false,
-      },
-      error,
-    );
-  }
 }

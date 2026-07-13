@@ -78,6 +78,10 @@ export const EXECUTED_PROGRAMMED_COVERAGE: Readonly<
     "prompt:selectCard",
     "prompt:selectPlace",
   ] satisfies readonly MvpCoverageKey[]),
+  "deck-out-at-opening": Object.freeze([
+    "action:draw",
+    "action:phase_change",
+  ] satisfies readonly MvpCoverageKey[]),
   "surrender-at-opening": Object.freeze([
     "action:draw",
     "action:phase_change",

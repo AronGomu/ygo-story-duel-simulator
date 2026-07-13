@@ -18,7 +18,12 @@ const dependencies: ActiveDuelDependencies = {
   texts: new Map([
     [
       97590747,
-      { code: 97590747, name: "La Jinn", description: "", strings: [] },
+      {
+        code: 97590747,
+        name: "La Jinn",
+        description: "A mystical genie.",
+        strings: [],
+      },
     ],
   ]),
   scripts: new Map(),
@@ -56,6 +61,10 @@ describe("PromptRegistry", () => {
       (choice) => choice.action === "summon",
     );
     expect(summon?.label).toContain("La Jinn");
+    expect(summon?.card).toMatchObject({
+      name: "La Jinn",
+      description: "A mystical genie.",
+    });
     expect(binding?.prompt).not.toHaveProperty("index");
     expect(binding?.resolve(summon === undefined ? [] : [summon.id])).toEqual({
       type: EngineResponseType.SELECT_IDLE_COMMAND,
@@ -205,6 +214,80 @@ describe("PromptRegistry", () => {
     expect(() => binding?.resolve([choice.id, choice.id])).toThrow(
       /Duplicate choice IDs/,
     );
+  });
+
+  it("adds effect-card details and explicit counter capacities to public prompts", () => {
+    const effect = buildEnginePrompt(
+      {
+        type: EngineMessageType.SELECT_EFFECT_YES_NO,
+        player: 0,
+        code: 97590747,
+        controller: 0,
+        location: EngineLocation.MONSTER,
+        sequence: 0,
+        position: EnginePosition.FACE_UP_ATTACK,
+        description: 0n,
+      },
+      5,
+      dependencies,
+    );
+    expect(effect?.prompt.contextCard).toMatchObject({
+      code: 97590747,
+      name: "La Jinn",
+      description: "A mystical genie.",
+    });
+
+    const counters = buildEnginePrompt(
+      {
+        type: EngineMessageType.SELECT_COUNTER,
+        player: 0,
+        counter_type: 1,
+        count: 2,
+        cards: [
+          {
+            code: 97590747,
+            controller: 0,
+            location: EngineLocation.MONSTER,
+            sequence: 0,
+            count: 2,
+          },
+        ],
+      },
+      6,
+      dependencies,
+    );
+    expect(counters?.prompt.choices[0]).toMatchObject({
+      allocationMaximum: 2,
+    });
+  });
+
+  it("redacts opponent hidden identities from public prompt cards and labels", () => {
+    const binding = buildEnginePrompt(
+      {
+        type: EngineMessageType.SELECT_CARD,
+        player: 0,
+        can_cancel: false,
+        min: 1,
+        max: 1,
+        selects: [
+          {
+            code: 97590747,
+            controller: 1,
+            location: EngineLocation.BANISHED,
+            sequence: 0,
+            position: EnginePosition.FACE_DOWN_DEFENSE,
+          },
+        ],
+      },
+      7,
+      dependencies,
+    );
+    expect(binding?.prompt.choices[0]).toMatchObject({
+      label: "Hidden card",
+      card: { controller: 1, location: "banished" },
+    });
+    expect(binding?.prompt.choices[0]?.card).not.toHaveProperty("code");
+    expect(JSON.stringify(binding?.prompt)).not.toContain("97590747");
   });
 
   it("validates multi-card minimum and maximum bounds before encoding", () => {

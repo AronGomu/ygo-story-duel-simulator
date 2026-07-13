@@ -1,3 +1,4 @@
+import { isCardIdentityVisible } from "../../duel/card-visibility.ts";
 import {
   cardCode,
   cardInstanceId,
@@ -34,6 +35,11 @@ interface MutableCard {
   position: CardPosition;
   faceUp: boolean;
   overlayMaterials: CardInstanceId[];
+}
+
+interface MovedCard {
+  readonly card?: CardCode;
+  readonly instanceId?: CardInstanceId;
 }
 
 interface MutablePlayer {
@@ -121,8 +127,10 @@ export class DuelStateProjector {
         const moved = this.#move(message.card, message.from, message.to);
         events.push({
           type: "cardMoved",
-          ...(moved.code === undefined ? {} : { card: moved.code }),
-          instanceId: moved.instanceId,
+          ...(moved.card === undefined ? {} : { card: moved.card }),
+          ...(moved.instanceId === undefined
+            ? {}
+            : { instanceId: moved.instanceId }),
           from: engineLocation(message.from.location),
           to: engineLocation(message.to.location),
         });
@@ -149,15 +157,19 @@ export class DuelStateProjector {
           card: cardCode(message.code),
         });
         break;
-      case EngineMessageType.SET:
+      case EngineMessageType.SET: {
+        const player = asPlayer(message.controller);
         events.push({
           type: "set",
-          player: asPlayer(message.controller),
-          card: cardCode(message.code),
+          player,
+          ...(player === 0 ? { card: cardCode(message.code) } : {}),
         });
         break;
-      case EngineMessageType.POSITION_CHANGE:
+      }
+      case EngineMessageType.POSITION_CHANGE: {
+        const position = enginePosition(message.position);
         this.#changePosition(
+          message.code,
           message.controller,
           message.location,
           message.sequence,
@@ -165,10 +177,13 @@ export class DuelStateProjector {
         );
         events.push({
           type: "positionChanged",
-          card: cardCode(message.code),
-          position: enginePosition(message.position),
+          ...(message.controller === 0 || isFaceUp(message.position)
+            ? { card: cardCode(message.code) }
+            : {}),
+          position,
         });
         break;
+      }
       case EngineMessageType.ATTACK:
         events.push({
           type: "attack",
@@ -334,9 +349,14 @@ export class DuelStateProjector {
       sequence: number;
       position: number;
     },
-  ): MutableCard {
+  ): MovedCard {
     const fromPlayer = this.#players[from.controller];
     const fromLocation = engineLocation(from.location);
+    const fromVisible = isPublicCard(
+      from.controller,
+      fromLocation,
+      from.position,
+    );
     const source = publicZone(fromPlayer, fromLocation);
     let card = source?.splice(from.sequence, 1)[0];
     if (card === undefined) {
@@ -345,27 +365,27 @@ export class DuelStateProjector {
         fromLocation,
         from.sequence,
         from.position,
-        isPublicCard(from.controller, fromLocation, from.position)
-          ? rawCode
-          : undefined,
+        fromVisible ? rawCode : undefined,
       );
       if (fromLocation === "deck")
         fromPlayer.deckCount = Math.max(0, fromPlayer.deckCount - 1);
     }
+    const priorInstanceId = card.instanceId;
+    const priorCode = card.code;
     resequence(source);
 
     const toPlayer = this.#players[to.controller];
     const toLocation = engineLocation(to.location);
+    const toVisible = isPublicCard(to.controller, toLocation, to.position);
+    if (fromVisible && !toVisible) this.#rotatePublicIdentity(card);
     card.controller = to.controller;
     card.location = toLocation;
     card.sequence = to.sequence;
     card.position = enginePosition(to.position);
     card.faceUp = isFaceUp(to.position);
-    if (rawCode > 0 && isPublicCard(to.controller, toLocation, to.position)) {
-      card.code = cardCode(rawCode);
-    } else {
-      delete card.code;
-    }
+    if (rawCode > 0 && toVisible) card.code = cardCode(rawCode);
+    else delete card.code;
+
     const destination = publicZone(toPlayer, toLocation);
     if (destination !== null) {
       destination.splice(Math.min(to.sequence, destination.length), 0, card);
@@ -375,21 +395,57 @@ export class DuelStateProjector {
     }
     fromPlayer.handCount = fromPlayer.hand.length;
     toPlayer.handCount = toPlayer.hand.length;
-    return card;
+    return {
+      ...(toVisible
+        ? card.code === undefined
+          ? {}
+          : { card: card.code }
+        : fromVisible && priorCode !== undefined
+          ? { card: priorCode }
+          : {}),
+      ...(fromVisible
+        ? { instanceId: priorInstanceId }
+        : toVisible
+          ? { instanceId: card.instanceId }
+          : {}),
+    };
   }
 
   #changePosition(
+    rawCode: number,
     controller: number,
     location: number,
     sequence: number,
     position: number,
   ): void {
-    const player = this.#players[asPlayer(controller)];
-    const card = publicZone(player, engineLocation(location))?.[sequence];
+    const playerIndex = asPlayer(controller);
+    const publicLocation = engineLocation(location);
+    const player = this.#players[playerIndex];
+    const card = publicZone(player, publicLocation)?.[sequence];
     if (card === undefined) return;
-    card.position = enginePosition(position);
+    const wasVisible = isCardIdentityVisible(
+      0,
+      playerIndex,
+      publicLocation,
+      card.position,
+    );
+    const nextPosition = enginePosition(position);
+    const visible = isCardIdentityVisible(
+      0,
+      playerIndex,
+      publicLocation,
+      nextPosition,
+    );
+    if (wasVisible && !visible) this.#rotatePublicIdentity(card);
+    card.position = nextPosition;
     card.faceUp = isFaceUp(position);
-    if (!card.faceUp && controller === 1) delete card.code;
+    if (visible && rawCode > 0) card.code = cardCode(rawCode);
+    else if (!visible) delete card.code;
+  }
+
+  #rotatePublicIdentity(card: MutableCard): void {
+    this.#cardSequence += 1;
+    card.instanceId = cardInstanceId(`card-${this.#cardSequence}`);
   }
 
   #createCard(
@@ -524,11 +580,11 @@ function isPublicCard(
   location: PublicLocation,
   position: number,
 ): boolean {
-  return (
-    controller === 0 ||
-    location === "graveyard" ||
-    location === "banished" ||
-    isFaceUp(position)
+  return isCardIdentityVisible(
+    0,
+    asPlayer(controller),
+    location,
+    enginePosition(position),
   );
 }
 

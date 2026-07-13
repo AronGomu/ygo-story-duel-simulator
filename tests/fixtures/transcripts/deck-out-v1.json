@@ -1,0 +1,8 @@
+{
+  "schemaVersion": 1,
+  "scenarioId": "deck-out-at-opening",
+  "responseCount": 0,
+  "runCount": 0,
+  "runs": [],
+  "expectedTraceSha256": "e7c0afe5d87f44c2beb1fa20a61b88a4b4b9226a80a94390ce329d48ec3d0c5d"
+}

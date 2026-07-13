@@ -40,6 +40,8 @@ export interface ProgrammedDuelConfiguration {
 
 export interface ProductionDuelConfiguration {
   readonly mode: "production";
+  /** Worker-internal seam used to create diagnostics before core startup. */
+  readonly seed?: DuelSeed;
 }
 
 export type DuelConfiguration =
@@ -96,7 +98,9 @@ export class DuelSession {
     }
     const seed =
       options.configuration.mode === "production"
-        ? createProductionSeed()
+        ? options.configuration.seed === undefined
+          ? createProductionSeed()
+          : validateProgrammedSeed(options.configuration.seed)
         : validateProgrammedSeed(options.configuration.seed);
     const missingInputs: string[] = [];
     const handle = options.adapter.createDuel({

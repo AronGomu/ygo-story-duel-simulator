@@ -10,7 +10,12 @@ export type DuelErrorCode =
   | "stale_prompt"
   | "unsupported_message"
   | "process_timeout"
-  | "engine_error";
+  | "engine_error"
+  | "worker_error"
+  | "worker_message_error"
+  | "worker_disposal_timeout"
+  | "worker_unexpected_exit"
+  | "invalid_worker_event";
 
 export interface DuelError {
   readonly code: DuelErrorCode;
@@ -19,6 +24,26 @@ export interface DuelError {
   readonly recoverable: boolean;
 }
 
+const DUEL_ERROR_CODES: ReadonlySet<DuelErrorCode> = new Set([
+  "engine_initialization_failed",
+  "snapshot_validation_failed",
+  "deck_validation_failed",
+  "dependency_resolution_failed",
+  "duel_already_active",
+  "duel_not_active",
+  "invalid_command",
+  "invalid_response",
+  "stale_prompt",
+  "unsupported_message",
+  "process_timeout",
+  "engine_error",
+  "worker_error",
+  "worker_message_error",
+  "worker_disposal_timeout",
+  "worker_unexpected_exit",
+  "invalid_worker_event",
+]);
+
 const RECOVERABLE_DUEL_ERROR_CODES: ReadonlySet<DuelErrorCode> = new Set([
   "duel_already_active",
   "duel_not_active",
@@ -26,6 +51,12 @@ const RECOVERABLE_DUEL_ERROR_CODES: ReadonlySet<DuelErrorCode> = new Set([
   "invalid_response",
   "stale_prompt",
 ]);
+
+export function isDuelErrorCode(value: unknown): value is DuelErrorCode {
+  return (
+    typeof value === "string" && DUEL_ERROR_CODES.has(value as DuelErrorCode)
+  );
+}
 
 export function isRecoverableDuelErrorCode(code: DuelErrorCode): boolean {
   return RECOVERABLE_DUEL_ERROR_CODES.has(code);

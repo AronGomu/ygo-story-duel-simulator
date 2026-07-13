@@ -12,6 +12,7 @@ export interface DuelTraceEntry {
   readonly kind:
     | "process"
     | "message"
+    | "presentation"
     | "prompt"
     | "response"
     | "result"
@@ -39,26 +40,48 @@ export class BoundedDuelTrace {
   readonly #snapshotId: SnapshotId;
   readonly #seed: DuelSeed;
   readonly #maximumEntries: number;
+  readonly #maximumTextUnits: number;
   readonly #entries: DuelTraceEntry[] = [];
   #nextSequence = 1;
+  #textUnits = 0;
 
   constructor(
     presetId: string,
     snapshotId: SnapshotId,
     seed: DuelSeed,
     maximumEntries = 10_000,
+    maximumTextUnits = 900_000,
   ) {
     this.#presetId = presetId;
     this.#snapshotId = snapshotId;
     this.#seed = seed;
     this.#maximumEntries = maximumEntries;
+    this.#maximumTextUnits = maximumTextUnits;
   }
 
   record(entry: Omit<DuelTraceEntry, "sequence">): void {
-    if (this.#entries.length >= this.#maximumEntries) this.#entries.shift();
-    this.#entries.push(
-      Object.freeze({ sequence: this.#nextSequence++, ...entry }),
-    );
+    const value = Object.freeze({
+      sequence: this.#nextSequence++,
+      ...entry,
+      ...(entry.detail === undefined
+        ? {}
+        : { detail: entry.detail.slice(0, 4_096) }),
+      ...(entry.choiceIds === undefined
+        ? {}
+        : { choiceIds: Object.freeze([...entry.choiceIds]) }),
+    });
+    const units = traceEntryTextUnits(value);
+    while (
+      this.#entries.length > 0 &&
+      (this.#entries.length >= this.#maximumEntries ||
+        this.#textUnits + units > this.#maximumTextUnits)
+    ) {
+      const removed = this.#entries.shift();
+      if (removed !== undefined)
+        this.#textUnits -= traceEntryTextUnits(removed);
+    }
+    this.#entries.push(value);
+    this.#textUnits += units;
   }
 
   snapshot(): DuelTrace {
@@ -70,4 +93,13 @@ export class BoundedDuelTrace {
       entries: Object.freeze([...this.#entries]),
     });
   }
+}
+
+function traceEntryTextUnits(entry: DuelTraceEntry): number {
+  return (
+    (entry.promptId?.length ?? 0) +
+    (entry.opponentReason?.length ?? 0) +
+    (entry.detail?.length ?? 0) +
+    (entry.choiceIds?.reduce((total, id) => total + id.length, 0) ?? 0)
+  );
 }

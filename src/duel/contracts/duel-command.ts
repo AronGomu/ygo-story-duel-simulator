@@ -20,6 +20,7 @@ export type DuelCommand =
       readonly choiceIds: readonly ChoiceId[];
     }
   | { readonly type: "surrender" }
+  | { readonly type: "requestDiagnostics" }
   | { readonly type: "dispose" };
 
 export class DuelCommandValidationError extends DuelOperationError {
@@ -38,6 +39,7 @@ export function parseDuelCommand(value: unknown): DuelCommand {
   switch (commandType) {
     case "initialize":
     case "surrender":
+    case "requestDiagnostics":
     case "dispose":
       requireOnlyKeys(command, ["type"]);
       return { type: commandType };

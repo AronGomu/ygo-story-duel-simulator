@@ -76,10 +76,18 @@ describe("DuelWorkerRuntime command lifecycle", () => {
     initialization.resolve(resources);
 
     await expect(firstInitialize).resolves.toEqual([
-      { type: "ready", coreVersion: [11, 0] },
+      {
+        type: "ready",
+        coreVersion: [11, 0],
+        snapshotId: FAKE_SNAPSHOT_ID,
+      },
     ]);
     await expect(secondInitialize).resolves.toEqual([
-      { type: "ready", coreVersion: [11, 0] },
+      {
+        type: "ready",
+        coreVersion: [11, 0],
+        snapshotId: FAKE_SNAPSHOT_ID,
+      },
     ]);
     expect((await firstStart).at(-1)).toEqual({
       type: "result",
@@ -118,7 +126,11 @@ describe("DuelWorkerRuntime command lifecycle", () => {
     ]);
     initialization.resolve(createResources(harness.adapter));
     await expect(pending).resolves.toEqual([
-      { type: "ready", coreVersion: [11, 0] },
+      {
+        type: "ready",
+        coreVersion: [11, 0],
+        snapshotId: FAKE_SNAPSHOT_ID,
+      },
     ]);
     runtime.dispose();
   });
@@ -320,6 +332,49 @@ describe("DuelWorkerRuntime command lifecycle", () => {
         }),
       }),
     ]);
+    runtime.dispose();
+  });
+
+  it("returns a bounded sensitive diagnostic trace after completion", async () => {
+    const harness = await createFakeOcgCoreAdapter(() => ({
+      steps: [
+        {
+          status: EngineProcess.END,
+          messages: [WIN_MESSAGE],
+        },
+      ],
+    }));
+    const runtime = new DuelWorkerRuntime(async () => ({
+      ...createResources(harness.adapter),
+      revisions: {
+        babelCdb: "babel-revision",
+        cardScripts: "script-revision",
+        distribution: "string-revision",
+        activeImageManifestSha256: "f".repeat(64),
+      },
+    }));
+    await runtime.handle({ type: "initialize" });
+    await runtime.handle({ type: "startDuel", duelId: FAKE_PRESET.id });
+
+    const [diagnostics] = await runtime.handle({ type: "requestDiagnostics" });
+    expect(diagnostics).toMatchObject({
+      type: "diagnostics",
+      trace: {
+        schemaVersion: 1,
+        sensitivity: "contains-production-seed",
+        snapshotId: FAKE_SNAPSHOT_ID,
+        coreVersion: [11, 0],
+        revisions: {
+          babelCdb: "babel-revision",
+          activeImageManifestSha256: "f".repeat(64),
+        },
+      },
+    });
+    if (diagnostics?.type !== "diagnostics")
+      throw new Error("Expected diagnostics event");
+    expect(diagnostics.trace.seed).toHaveLength(4);
+    expect(diagnostics.trace.entries.length).toBeGreaterThan(0);
+    expect(JSON.stringify(diagnostics.trace)).not.toContain("wasmBinary");
     runtime.dispose();
   });
 

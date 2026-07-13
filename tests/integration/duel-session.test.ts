@@ -3,10 +3,8 @@ import { afterEach, beforeAll, describe, expect, it } from "vitest";
 import type { ActiveDuelDependencies } from "../../src/worker/assets/active-duel-dependencies.ts";
 import { loadActiveDuelDependenciesNode } from "../../src/worker/assets/active-duel-dependencies-node.ts";
 import { uniqueDeckCodes } from "../../src/duel/presets/deck-parser.ts";
-import {
-  loadMvpPreset,
-  type MvpPreset,
-} from "../../src/duel/presets/mvp-preset.ts";
+import type { MvpPreset } from "../../src/duel/presets/mvp-preset.ts";
+import { loadMvpPreset } from "../../src/duel/presets/mvp-preset-node.ts";
 import { DuelSession } from "../../src/worker/engine/DuelSession.ts";
 import { EngineMessageType } from "../../src/worker/engine/engine-constants.ts";
 import type { OcgCoreAdapter } from "../../src/worker/engine/OcgCoreAdapter.ts";
@@ -58,7 +56,7 @@ describe("real ocgcore duel session", () => {
   });
 
   it("generates fresh seeds and lets the core shuffle varied production hands", () => {
-    const productionSessions = Array.from({ length: 4 }, () =>
+    const productionSessions = Array.from({ length: 8 }, () =>
       createProductionSession(),
     );
     sessions.push(...productionSessions);
@@ -69,7 +67,9 @@ describe("real ocgcore duel session", () => {
     );
 
     const openingHands = productionSessions.map((session) => {
-      const messages = session.processUntilBoundary().messages;
+      const boundary = session.processUntilBoundary();
+      expect(boundary.status).toBe("waiting");
+      const messages = boundary.messages;
       expect(
         messages
           .filter((message) => message.type === EngineMessageType.SHUFFLE_DECK)

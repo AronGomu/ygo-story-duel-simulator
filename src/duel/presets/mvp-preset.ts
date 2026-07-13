@@ -1,5 +1,3 @@
-import { readFile } from "node:fs/promises";
-import { fileURLToPath } from "node:url";
 import { duelId } from "../contracts/ids.ts";
 import { parseYdk, type ParsedDeck } from "./deck-parser.ts";
 
@@ -11,17 +9,10 @@ export interface MvpPreset {
   readonly opponent: ParsedDeck;
 }
 
-export async function loadMvpPreset(): Promise<MvpPreset> {
-  const [playerSource, opponentSource] = await Promise.all([
-    readFile(
-      fileURLToPath(new URL("./decks/player.ydk", import.meta.url)),
-      "utf8",
-    ),
-    readFile(
-      fileURLToPath(new URL("./decks/opponent.ydk", import.meta.url)),
-      "utf8",
-    ),
-  ]);
+export function createMvpPreset(
+  playerSource: string,
+  opponentSource: string,
+): MvpPreset {
   return Object.freeze({
     id: MVP_PRESET_ID,
     player: parseYdk(playerSource),

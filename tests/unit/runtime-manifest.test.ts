@@ -41,9 +41,9 @@ describe("runtime snapshot manifest", () => {
 
   it("rejects malformed, unsupported, and unsafe manifests", () => {
     expect(() => parseRuntimeSnapshotManifest(null)).toThrow(/object/);
-    expect(() => parseRuntimeSnapshotManifest({ schemaVersion: 2 })).toThrow(
-      /Unsupported/,
-    );
+    expect(() =>
+      parseRuntimeSnapshotManifest({ ...validManifest(), schemaVersion: 2 }),
+    ).toThrow(/Unsupported/);
     expect(() =>
       parseRuntimeSnapshotManifest({
         ...validManifest(),
@@ -53,6 +53,21 @@ describe("runtime snapshot manifest", () => {
         },
       }),
     ).toThrow(/invalid file/);
+    expect(() =>
+      parseRuntimeSnapshotManifest({ ...validManifest(), privateField: true }),
+    ).toThrow(/unknown or missing/);
+    expect(() =>
+      parseRuntimeSnapshotManifest({
+        ...validManifest(),
+        assets: {
+          ...validManifest().assets,
+          files: [
+            { path: "same.json", bytes: 0, sha256: digest },
+            { path: "same.json", bytes: 0, sha256: digest },
+          ],
+        },
+      }),
+    ).toThrow(/duplicate path/);
     expect(() => safeArtifactPath("/tmp/snapshot", "../escape")).toThrow(
       /escapes/,
     );

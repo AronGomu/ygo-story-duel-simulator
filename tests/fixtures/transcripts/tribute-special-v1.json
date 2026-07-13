@@ -3,7 +3,7 @@
   "scenarioId": "tribute-special-and-target",
   "responseCount": 110,
   "runCount": 51,
-  "expectedTraceSha256": "01707174bcbcf4940d33c77eee98db359c5cdaec4d95c6646e8f1226a14626af",
+  "expectedTraceSha256": "78851f3ecd94f182a6b15ecdab2997144527b2c8312c9f49cef71b61130c0c8e",
   "runs": [
     {
       "prompt": "idleCommand",

@@ -3,10 +3,8 @@ import path from "node:path";
 import { beforeAll, describe, expect, it } from "vitest";
 import { snapshotId } from "../../src/duel/contracts/ids.ts";
 import { uniqueDeckCodes } from "../../src/duel/presets/deck-parser.ts";
-import {
-  loadMvpPreset,
-  type MvpPreset,
-} from "../../src/duel/presets/mvp-preset.ts";
+import type { MvpPreset } from "../../src/duel/presets/mvp-preset.ts";
+import { loadMvpPreset } from "../../src/duel/presets/mvp-preset-node.ts";
 import type { ActiveDuelDependencies } from "../../src/worker/assets/active-duel-dependencies.ts";
 import { loadActiveDuelDependenciesNode } from "../../src/worker/assets/active-duel-dependencies-node.ts";
 import type { DuelTrace } from "../../src/worker/diagnostics/duel-trace.ts";

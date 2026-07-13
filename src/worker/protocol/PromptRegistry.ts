@@ -1,3 +1,4 @@
+import { isCardIdentityVisible } from "../../duel/card-visibility.ts";
 import { duelOperationError } from "../../duel/contracts/duel-error.ts";
 import {
   cardCode,
@@ -110,6 +111,32 @@ export class PromptRegistry {
 }
 
 export function buildEnginePrompt(
+  message: EngineMessage,
+  sequence: number,
+  dependencies: ActiveDuelDependencies,
+  idNamespace = "",
+): EnginePromptBinding | null {
+  const raw = buildRawEnginePrompt(
+    message,
+    sequence,
+    dependencies,
+    idNamespace,
+  );
+  if (raw === null) return null;
+  const contextCard =
+    message.type === EngineMessageType.SELECT_EFFECT_YES_NO
+      ? toPromptCard(message)
+      : raw.prompt.contextCard;
+  return {
+    ...raw,
+    prompt: enrichPlayerPrompt(
+      contextCard === undefined ? raw.prompt : { ...raw.prompt, contextCard },
+      dependencies,
+    ),
+  };
+}
+
+function buildRawEnginePrompt(
   message: EngineMessage,
   sequence: number,
   dependencies: ActiveDuelDependencies,
@@ -530,15 +557,22 @@ export function buildEnginePrompt(
       );
     }
     case EngineMessageType.SELECT_COUNTER: {
-      const bindings = message.cards.map((card, index) =>
-        makeCardBinding(
+      const bindings = message.cards.map((card, index) => {
+        const cardBinding = makeCardBinding(
           id,
           index,
           "select",
           `${text(card.code)} (${card.count} available)`,
           card,
-        ),
-      );
+        );
+        return {
+          ...cardBinding,
+          choice: {
+            ...cardBinding.choice,
+            allocationMaximum: card.count,
+          },
+        };
+      });
       return binding(
         prompt(
           id,
@@ -689,6 +723,61 @@ export function buildEnginePrompt(
     default:
       return null;
   }
+}
+
+function enrichPlayerPrompt(
+  value: PlayerPrompt,
+  dependencies: ActiveDuelDependencies,
+): PlayerPrompt {
+  const enrichCard = (card: PromptCard): PromptCard => {
+    if (!isPromptCardIdentityVisible(card, value.player)) {
+      const redacted = { ...card };
+      delete redacted.code;
+      delete redacted.name;
+      delete redacted.description;
+      return Object.freeze(redacted);
+    }
+    const cardText =
+      card.code === undefined ? undefined : dependencies.texts.get(card.code);
+    if (cardText === undefined) return card;
+    return Object.freeze({
+      ...card,
+      name: cardText.name,
+      description: cardText.description,
+    });
+  };
+  return Object.freeze({
+    ...value,
+    ...(value.contextCard === undefined
+      ? {}
+      : { contextCard: enrichCard(value.contextCard) }),
+    choices: Object.freeze(
+      value.choices.map((choice) => {
+        const card =
+          choice.card === undefined ? undefined : enrichCard(choice.card);
+        const identityRedacted =
+          choice.card !== undefined &&
+          !isPromptCardIdentityVisible(choice.card, value.player);
+        return Object.freeze({
+          ...choice,
+          ...(identityRedacted ? { label: "Hidden card" } : {}),
+          ...(card === undefined ? {} : { card }),
+        });
+      }),
+    ),
+  });
+}
+
+function isPromptCardIdentityVisible(
+  card: PromptCard,
+  viewer: PlayerIndex,
+): boolean {
+  return isCardIdentityVisible(
+    viewer,
+    card.controller,
+    card.location,
+    card.position,
+  );
 }
 
 function prompt(
@@ -968,9 +1057,9 @@ function toPromptCard(card: {
 }): PromptCard {
   return {
     instanceId: cardInstanceId(
-      `p${card.controller}-l${card.location}-s${card.sequence}-${card.code}`,
+      `p${card.controller}-l${card.location}-s${card.sequence}`,
     ),
-    code: cardCode(card.code),
+    ...(card.code > 0 ? { code: cardCode(card.code) } : {}),
     controller: card.controller,
     location: engineToPublicLocation(card.location),
     sequence: card.sequence,
