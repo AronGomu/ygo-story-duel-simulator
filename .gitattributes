@@ -1,0 +1,2 @@
+# Preserve the reviewed declaration payload byte-for-byte, including CRLFs.
+vendor/ocgcore-wasm/0.1.2/dist/index.d.ts -text -diff

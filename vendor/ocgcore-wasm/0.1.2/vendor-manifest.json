@@ -10,7 +10,10 @@
     11,
     0
   ],
-  "localPatches": [],
+  "localPatches": [
+    "upstream 1dabded283959f44a2c34494b5575434911b2c02 plus declaration alignment: correct SELECT_SUM message parsing",
+    "local: remove invalid length prefix from SORT_CARD response encoding"
+  ],
   "files": [
     {
       "path": "dist/chunk-6GYI7QPM.js",
@@ -34,18 +37,18 @@
     },
     {
       "path": "dist/index.d.ts",
-      "bytes": 82230,
-      "sha256": "f2f3babfe7f0ed4cb701469c7c5d9ee4190becb13a05c652c0e66da1ea0c42bb"
+      "bytes": 82233,
+      "sha256": "37995a6358221b06f634402446aaabac2fb2e9b21c99cce1e0d7e7b1d5bb18ac"
     },
     {
       "path": "dist/index.js",
-      "bytes": 46004,
-      "sha256": "5642dad500a7e801fa87190fe937b6efb4e8448a7cf6421836a60a039984379d"
+      "bytes": 45897,
+      "sha256": "d61d1529fe9ca32e486552797e7c376048a549c7b409051424864e52fb034cd3"
     },
     {
       "path": "dist/index.js.map",
-      "bytes": 195340,
-      "sha256": "b4cef0d1cee50a527c0313ae326afa3755c09a5ba11697a6f5559af475b28db2"
+      "bytes": 194817,
+      "sha256": "f8888d6b22791469cc2199fe3a332a33bb589159480585f1891504d71a9314e9"
     },
     {
       "path": "dist/ocgcore.jspi-ROQIC75H.js",
@@ -114,8 +117,8 @@
     },
     {
       "path": "VENDORING.md",
-      "bytes": 1297,
-      "sha256": "5c813975aa728a760bc20c54a8a2a835ddc1c692537b310283a21bbf1e1868f9"
+      "bytes": 1851,
+      "sha256": "e2c0cb09ebd6fd3bcf6b8fcf9c7e9868398f91d6e7cf7574a8a7465d1e578531"
     }
   ]
 }

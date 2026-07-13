@@ -177,7 +177,7 @@ export declare interface OcgCardLocPosActive extends OcgCardLocPos {
 }
 
 /** Card passcode, location, sum info */
-export declare interface OcgCardLocSum extends OcgCardLoc {
+export declare interface OcgCardLocSum extends OcgCardLocPos {
     amount: number;
 }
 

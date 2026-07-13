@@ -9,6 +9,11 @@
 - exposed core version: `11.0`
 - license: MIT; `LICENSE` copied from the upstream package revision because the npm tarball declares MIT but omits the license file
 
-The payload was extracted from the integrity-verified npm tarball already acquired by `scripts/sync-engine.ts`. The asynchronous JSPI binaries under `lib/` were intentionally omitted; this application permits only `lib/ocgcore.sync.mjs` and `lib/ocgcore.sync.wasm`. The distributed `dist/` directory is retained unchanged because its public adapter and declarations are the supported API.
+The payload was extracted from the integrity-verified npm tarball already acquired by `scripts/sync-engine.ts`. The asynchronous JSPI binaries under `lib/` were intentionally omitted; this application permits only `lib/ocgcore.sync.mjs` and `lib/ocgcore.sync.wasm`.
 
-No local patches have been applied. `vendor-manifest.json` records every vendored payload file except itself. Updating any payload requires replacing this directory from a newly integrity-verified package and running the complete headless integration suite.
+Two reviewed adapter corrections are applied to `dist/index.js` and its source map:
+
+1. Backport upstream commit [`1dabded`](https://github.com/n1xx1/ocgcore-wasm/commit/1dabded283959f44a2c34494b5575434911b2c02), which parses `MSG_SELECT_SUM` mandatory/optional cards in core wire order and includes each card's complete location/position record; align the bundled declaration with that record.
+2. Remove the spurious count byte from `SORT_CARD` responses. The embedded core reads one order byte per card directly; prefixing `order.length` makes every non-empty sort response invalid and produces `MSG_RETRY`.
+
+The package version and embedded WASM remain unchanged. `vendor-manifest.json` records both patches and every vendored payload file except itself. Updating any payload requires replacing this directory from a newly integrity-verified package, re-evaluating these patches and running the complete headless integration suite.
