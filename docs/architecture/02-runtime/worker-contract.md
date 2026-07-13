@@ -8,7 +8,7 @@
 type DuelCommand =
   | { type: "initialize" }
   | { type: "startDuel"; duelId: string }
-  | { type: "respond"; promptId: string; choiceId: string }
+  | { type: "respond"; promptId: string; choiceIds: readonly string[] }
   | { type: "surrender" }
   | { type: "dispose" };
 ```
@@ -30,7 +30,11 @@ type DuelWorkerEvent =
 
 - Put each public discriminated union/interface in its own focused contract file unless two tiny private types are inseparable.
 - Contract values must survive structured cloning; no functions, raw `bigint`, engine objects, or handles.
-- Prompt and choice IDs are opaque. Raw response indexes stay in a Worker-private lookup.
-- Only the current prompt can be answered; reject stale, duplicate, and unknown IDs.
+- Prompt and choice IDs are opaque and namespaced per duel session. Raw response indexes stay in a Worker-private lookup.
+- Only the current prompt can be answered; reject stale, duplicate, unknown, and previous-session IDs.
+- Untrusted Worker commands are runtime-validated and size-bounded before dispatch.
+- Public commands cannot provide seeds, deck order, startup scripts, or programmed mode; those seams are internal to headless tests/authorized diagnostics.
+- Commands execute in arrival order through a bounded queue; initialization is single-flight.
+- `dispose` invalidates queued work, aborts cooperative initialization, suppresses late events, and is idempotent.
 - Commands and events are exhaustive unions with `assertNever` consumers.
 - Every shape has serialization and boundary tests.

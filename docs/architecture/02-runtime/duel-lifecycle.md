@@ -16,8 +16,8 @@
 
 ## Randomness and replay
 
-- Every production duel receives a fresh non-zero seed and normal core shuffling/draws.
-- Deterministic seed, order, hand, and response injection is available only to integration tests and authorized diagnostic replay.
+- Every production duel receives a fresh non-zero seed. An application-owned `EVENT_STARTUP` script asks the real core to shuffle both decks before normal opening draws; repeated production tests require varied hands.
+- Deterministic seed/order/response and compatibility-startup-script injection exists only on the internal programmed-session configuration. No public Worker command can select it.
 - Every run records seed, snapshot revisions, and ordered responses.
 
 ## Lifetime rules

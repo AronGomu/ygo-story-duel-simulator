@@ -6,7 +6,7 @@ The MVP launches directly into a normal duel between one human player and a basi
 
 Development is headless-first. Programmed real-WASM integration scenarios must cover every supported game-action family before Svelte, Phaser, or other visual duel-simulator work begins. The target architecture requires `ocgcore-wasm@0.1.2` to be vendored and integrity-verified.
 
-> **Current status:** the repository contains the complete asset acquisition and verification pipeline. The playable browser duel application has not been implemented yet.
+> **Current status:** headless Checkpoint C is green locally. Six persisted real-WASM scenarios replay deterministically without human fallback, all 45 supported action/prompt rows have executed evidence, production core shuffling produces varied hands, and lifecycle cleanup is pinned. The playable browser UI remains intentionally unimplemented pending clean-checkout gate acceptance and Step 19.
 
 ## Included asset pipeline
 
@@ -73,8 +73,15 @@ Both launchers accept the same options as `npm run assets:mvp` and can be launch
 | `npm run assets:verify` | Verify generated data manifests, hashes, counts, shards, and coverage. |
 | `npm run assets:images` | Download or resume the full-card JPEG archive. |
 | `npm run assets:images:verify` | Verify image coverage, report consistency, sizes, and JPEG boundaries. |
-| `npm test` | Run all current Node.js tests. |
+| `npm test` | Run the legacy, Vitest unit, and real-WASM integration suites. |
+| `npm run test:unit` | Run the focused Vitest unit suite. |
+| `npm run test:integration` | Run real asset/WASM integration tests. |
+| `npm run lint` | Run ESLint. |
+| `npm run format:check` | Verify Prettier formatting. |
 | `npm run typecheck` | Run strict TypeScript checking without emitting files. |
+| `npm run vendor:verify` | Verify every vendored engine file against its reviewed manifest. |
+| `npm run snapshot:verify` | Verify the generated runtime snapshot files and digests. |
+| `npm run check:headless` | Run the complete mandatory local headless quality gate. |
 
 To display the unified downloader help:
 
@@ -201,6 +208,17 @@ generated/
 
 A successful unified run writes `status: "ready"` to `generated/mvp-assets-status.json`. Do not consume a snapshot marked `in-progress` or `failed`.
 
+## Worker diagnostics
+
+The Worker IPC boundary emits structured warning/error/completion objects to the browser Worker console (or the Node console in a headless host). A caller can inject a debug logger for receive/dispatch traces. Grep/filter the stable `duel.worker.*` event prefix:
+
+- `duel.worker.command.*` — receive, rejection, failure, completion, or intentional skip at `src/worker/duel.worker.ts`;
+- `duel.worker.event.*` — event dispatch and posting failures at `src/worker/duel.worker.ts`;
+- `duel.worker.detached` — attachment teardown at `src/worker/duel.worker.ts`;
+- `duel.worker.logging.failed` — injected logger failure fallback at `src/worker/diagnostics/worker-log.ts`.
+
+Per-duel bounded in-memory traces also record engine errors and successful terminal session-close reasons. Persistent/downloadable diagnostics remain a later MVP milestone.
+
 ## Documentation
 
 - [`context.md`](context.md) — concise project context and target architecture
@@ -212,7 +230,8 @@ A successful unified run writes `status: "ready"` to `generated/mvp-assets-statu
 
 ## Current limitations
 
-- The browser duel UI and headless duel integration suite are not implemented yet.
-- The current acquisition pipeline extracts the pinned engine into ignored generated output; checked-in vendoring remains an implementation milestone.
+- Headless Checkpoint C is green: six persisted no-fallback real-WASM scenarios replay twice with fixed trace digests, and the supported action/prompt matrix has no uncovered row. The browser duel UI has not been implemented yet.
+- Rare protocol families are exercised by test-only startup scripts inside the real core; normal Worker commands cannot select programmed mode or load those scripts.
+- The vendored high-level adapter still cannot preserve unknown raw message bytes, so downloadable compatibility traces remain incomplete.
 - The initial image run resolved 14,579 of 14,794 manifest IDs; 215 provider-missing IDs are recorded explicitly.
 - Card artwork and Yu-Gi-Oh! data may have redistribution restrictions. Review image hosting, licenses, AGPL obligations, and intellectual-property requirements before public deployment.

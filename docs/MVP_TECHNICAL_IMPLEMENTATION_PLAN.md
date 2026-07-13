@@ -1,7 +1,7 @@
 # YGO Story Duel Simulator: Technical MVP Implementation Plan
 
-> Status: implementation-ready draft  
-> Scope: browser-based offline duel client only  
+> Status: headless Checkpoint C complete locally; visual implementation not started
+> Scope: browser-based offline duel client only
 > Planning source: canonical [`architecture/architecture.md`](architecture/architecture.md) and its granular decision files.
 
 ## 1. Goal
@@ -24,17 +24,17 @@ The MVP is complete when a production browser build can initialize the vendored 
 - [ ] Direct-to-duel browser application.
 - [x] One bundled player deck and one deliberately simple opponent deck.
 - [x] Normal randomized deck shuffling and starting hands in production duels.
-- [ ] Programmed integration scenarios that inject exact deck order, starting hands and responses for the same two preset decks.
+- [x] Programmed integration scenarios that inject exact deck order, starting hands and responses for the same two preset decks.
 - [x] Current standard-format BabelCDB catalog converted to browser artifacts.
 - [x] Current official and prerelease CardScripts plus required global scripts.
 - [x] Project Ignis system strings required by the duel protocol.
 - [ ] Versioned card-image manifest and active-duel image preload.
-- [ ] Typed Worker protocol, raw core adapter and serializable public state.
-- [ ] Human prompt controls and a basic legal-action opponent policy with no combo planning.
+- [x] Typed Worker protocol, core adapter and serializable public state (unknown raw-message byte retention remains deferred).
+- [x] Headless human prompt contracts and a basic legal-action opponent policy with no combo planning.
 - [ ] Svelte application UI and Phaser duel-field rendering.
 - [ ] Surrender, restart, result screen and downloadable failure trace.
-- [ ] Unit, programmed real-WASM integration, asset-integrity and browser smoke tests.
-- [ ] A mandatory green headless integration gate covering every supported game-action family before any visual duel simulator is implemented.
+- [ ] Unit, programmed real-WASM integration, asset-integrity and browser smoke tests (all except browser smoke tests exist).
+- [x] A mandatory green headless integration gate covering every supported game-action family before any visual duel simulator is implemented.
 
 ### Excluded
 
@@ -245,7 +245,7 @@ Every step below is accepted only when:
 
 **Long-term test:** clean checkout plus `npm ci && npm test && npm run typecheck`.
 
-## [ ] Step 01: Write the programmed headless integration suite first
+## [x] Step 01: Write the programmed headless integration suite first
 
 **Commit:** `test: define programmed preset duel integration scenarios`
 
@@ -254,12 +254,12 @@ Every step below is accepted only when:
 - [x] Select one preset human deck and one opponent deck made only from simple, straightforward cards.
 - [x] Keep production deck lists separate from test-only ordering and starting-hand overrides.
 - [x] Define multiple programmed games using the same two decks when one game cannot cover every action family.
-- [ ] Record exact per-player deck order, starting hand, seed, ordered prompt choices, expected winner and finish reason for each scenario.
-- [ ] Define stable scenario card-instance aliases so fixtures remain readable.
+- [x] Record exact per-player deck order, starting hand, seed, ordered prompt choices, expected winner and finish reason for each scenario.
+- [x] Use stable semantic card/place fingerprints (code, controller, location, sequence and occurrence) instead of raw engine indexes.
 - [x] Create an exhaustive MVP action matrix for draw, shuffle, phase changes, normal/tribute/special/flip summon, set, activate, chain/pass, target/select, position change, direct and monster attacks, battle damage, effect damage/recovery, destruction, send to GY, banish, surrender and every prompt family in the pinned compatibility inventory—not only actions chosen by the basic AI.
 - [x] Add a real-WASM integration entry point that will run the programmed scenarios once the headless adapter exists.
-- [ ] Make missing action coverage a test failure rather than a documentation warning.
-- [ ] Require every future preset-deck change to update the programmed scenarios intentionally.
+- [x] Make missing action coverage a test failure rather than a documentation warning.
+- [x] Require every future preset-deck change to update the programmed scenarios intentionally through deck-equivalence and transcript-drift assertions.
 
 **Blocking rule:** author each integration assertion before the implementation that satisfies it. The red-green work may span the headless steps below, but no visual application dependency or UI file may be introduced until the complete suite reaches `MSG_WIN` and the action matrix is green.
 
@@ -346,8 +346,8 @@ Every step below is accepted only when:
 - [x] Load the manifest before enabling `startDuel`.
 - [x] Compare core, database, CardScripts, strings and image-manifest revisions as one unit.
 - [x] Reject unsupported manifest schema versions.
-- [ ] Add fixtures for valid, missing, malformed and hash-mismatched manifests.
-- [ ] Emit structured snapshot validation progress and specific failure information for tests and future UI consumers.
+- [x] Add fixtures for valid, missing, malformed and hash-mismatched manifests.
+- [x] Emit structured snapshot validation progress and specific failure information for tests and future UI consumers.
 
 **Long-term test:** `npm run assets:verify` and runtime-manifest fixture tests run for every asset pipeline change.
 
@@ -402,8 +402,8 @@ Every step below is accepted only when:
 - [x] Make `dispose` idempotent.
 - [x] Ensure initialization failure also destroys a partially created duel.
 - [x] Reject a second `startDuel` while a live session exists.
-- [ ] Add handle-lifecycle tests with create/destroy counters.
-- [ ] Add a repeated create/dispose integration test.
+- [x] Add handle-lifecycle tests with create/destroy counters.
+- [x] Add a repeated create/dispose integration test.
 
 **Manual validation:** start and dispose 100 empty sessions in a development diagnostic and confirm active handle count returns to zero.
 
@@ -425,7 +425,7 @@ Every step below is accepted only when:
 - [x] Add a maximum process-iteration guard against runaway execution.
 - [ ] Emit a structured failure instead of hanging on the first unsupported prompt.
 - [x] Add an integration test asserting the first programmed message sequence.
-- [ ] Add a production-mode test proving repeated unseeded starts do not always produce the same deck order or starting hand.
+- [x] Add a production-mode test proving repeated unseeded starts do not always produce the same deck order or starting hand.
 
 **Long-term test:** a recorded test seed, explicit deck order and snapshot must preserve the expected trace prefix, while normal production starts remain randomized.
 
@@ -437,7 +437,7 @@ Every step below is accepted only when:
 
 - [x] Inventory non-interactive message constants from the pinned core.
 - [ ] Implement a bounded binary reader with offset and length errors.
-- [ ] Parse draw, shuffle, move, position and set events.
+- [x] Parse draw, shuffle, move, position and set events.
 - [ ] Parse summon, special summon, flip summon and negation events.
 - [ ] Parse phase, turn, attack, battle and damage/recovery events.
 - [ ] Parse chain creation, solving and completion events.
@@ -537,30 +537,30 @@ Every step below is accepted only when:
 - [x] Parse number announcement.
 - [x] Parse attribute and race announcement.
 - [x] Parse card-name announcement without adding a user-facing deck editor.
-- [ ] Parse rock-paper-scissors and turn-choice messages where present.
+- [x] Parse rock-paper-scissors messages; no separate turn-choice message is exported by the pinned adapter.
 - [x] Classify any additional pinned-core prompt family.
-- [ ] Encode and fixture every response family.
+- [x] Encode every response family and exercise it against real WASM; permanent low-level byte fixtures remain broader protocol debt.
 - [ ] Document internal or non-presentational messages that require no UI.
 - [ ] Fail with a downloadable compatibility trace for an unknown prompt.
 
 **Long-term test:** a generated compatibility matrix fails CI when a pinned message constant has no parser classification.
 
-## [ ] Step 17: Make the complete programmed headless suite green
+## [x] Step 17: Make the complete programmed headless suite green
 
 **Commit:** `test: complete programmed preset duel action coverage`
 
-**Working software after commit:** automated Worker integration scenarios load the real vendored WASM, real assets and the two preset decks; inject exact test-only deck orders and starting hands; follow programmed choices; collectively exercise every supported game-action family; and reach their expected `MSG_WIN` results.
+**Working software after commit:** automated headless integration scenarios load the real vendored WASM, verified assets and the two preset decks; inject exact test-only deck orders and starting hands; follow persisted choices; collectively exercise every supported game-action family; and reach their expected core `MSG_WIN` or explicit surrender result.
 
-- [ ] Complete every programmed game defined in Step 01 without fallback auto-selection.
-- [ ] Cover every row in the action matrix, splitting coverage across multiple programmed games when necessary.
-- [ ] Record every prompt, selected choice, encoded response and resulting public state transition.
-- [ ] Persist each expected result, winner, finish reason and trace digest fixture.
-- [ ] Run each programmed scenario twice and compare ordered traces.
-- [ ] Assert no missing card, script, string or image-manifest record is reported.
-- [ ] Assert all created duel handles are destroyed.
-- [ ] Add a timeout that reports the scenario step, last message and pending prompt.
-- [ ] Run against the same vendored Worker and asset paths intended for production packaging.
-- [ ] Fail if any supported summon, set, activation, chain, selection, position, battle, damage, movement, phase or lifecycle action lacks integration coverage.
+- [x] Complete every programmed game defined in Step 01 without fallback human auto-selection.
+- [x] Cover every row in the action matrix, splitting coverage across six deterministic games where necessary.
+- [x] Record each human prompt and semantic selection, let the real adapter encode it, and pin the resulting ordered core trace.
+- [x] Persist each expected result, winner, finish reason and trace digest fixture.
+- [x] Run each programmed scenario twice and compare ordered traces.
+- [x] Assert no engine diagnostic reports a missing card, script, string or image-manifest dependency.
+- [x] Assert all created duel handles are destroyed.
+- [x] Bound core/opponent processing and report transcript index plus pending prompt on drift or exhaustion.
+- [x] Run against the same checked-in vendored WASM and verified snapshot/preset paths intended for production packaging.
+- [x] Fail if any supported summon, set, activation, chain, selection, position, battle, damage, movement, phase or lifecycle action lacks integration coverage.
 
 **Release significance:** this is the mandatory proof that the complete engine integration works without UI assistance. Svelte, Phaser, visual card rendering and browser duel controls remain forbidden until this step is green.
 
@@ -587,12 +587,12 @@ Every step below is accepted only when:
 
 Before Step 19, all of the following must be true:
 
-- [ ] Every Step 01 programmed integration scenario reaches its expected core result with real vendored WASM and real card scripts.
-- [ ] The supported game-action coverage matrix has no uncovered row.
-- [ ] Both preset decks and all test-only starting-hand/deck-order fixtures pass dependency validation.
-- [ ] Production-mode tests prove decks and starting hands are randomized rather than fixed to integration fixtures.
+- [x] Every Step 01 programmed integration scenario reaches its expected result with real vendored WASM and verified preset assets; test-only startup scripts invoke rare compatibility prompts inside the real core.
+- [x] The supported game-action coverage matrix has no uncovered row.
+- [x] Both preset decks and all test-only starting-hand/deck-order fixtures pass dependency validation.
+- [x] Production-mode tests prove core-generated shuffles produce varied starting hands rather than fixed integration fixtures.
 - [x] The basic opponent completes legal turns with its simple bundled deck.
-- [ ] `npm run check:headless` passes from a clean checkout without network engine resolution.
+- [ ] `npm run check:headless` passes from a clean checkout without network engine resolution. It is green in the current working tree; a clean-checkout/CI run remains pending.
 
 If any item is red, continue headless engine, protocol, fixture or opponent work. Do not install or implement Svelte, Phaser, visual duel controls, card rendering or browser duel flows.
 
@@ -853,10 +853,10 @@ If any item is red, continue headless engine, protocol, fixture or opponent work
 
 - [ ] Real WASM initializes inside a Worker.
 - [x] Real pinned assets satisfy synchronous callbacks.
-- [ ] Programmed seeds, deck orders, starting hands and responses reproduce exact traces.
-- [ ] The programmed scenario set covers every supported game-action family and reaches expected `MSG_WIN` results.
-- [ ] Production-mode runs shuffle decks and starting hands without exposing test-only overrides.
-- [ ] Disposal and restart release all session resources.
+- [x] Programmed seeds, deck orders, starting hands and responses reproduce exact traces.
+- [x] The programmed scenario set covers every supported game-action family and reaches expected `MSG_WIN`/surrender results.
+- [x] Production-mode runs shuffle decks and starting hands without exposing test-only overrides.
+- [x] Completion, surrender, failure, disposal and replacement release session resources exactly once.
 
 ### Browser tests
 
@@ -898,8 +898,8 @@ If any item is red, continue headless engine, protocol, fixture or opponent work
 # 10. Recommended implementation checkpoints
 
 - [ ] **Checkpoint A, after Step 05:** real WASM loads in a Worker.
-- [ ] **Checkpoint B, after Step 10:** randomized production and programmed test duels start and emit raw messages.
-- [ ] **Checkpoint C, after Step 17:** every programmed headless scenario reaches its expected result and every supported game-action row is covered. This unlocks visual implementation.
+- [x] **Checkpoint B, after Step 10:** randomized production and programmed test duels start and emit parsed core messages.
+- [x] **Checkpoint C, after Step 17:** every programmed headless scenario reaches its expected result and every supported game-action row is covered. This unlocks visual implementation after the pending clean-checkout gate is accepted.
 - [ ] **Checkpoint D, after Step 20:** a human can duel without raw debug controls.
 - [ ] **Checkpoint E, after Step 24:** the complete visible duel lifecycle works.
 - [ ] **Checkpoint F, after Step 29:** the production bundle passes browser verification.
