@@ -237,6 +237,21 @@ export class DuelStateProjector {
       case EngineMessageType.HINT:
         events.push({ type: "hint", message: `System hint ${message.hint}` });
         break;
+      case EngineMessageType.CARD_HINT:
+        events.push({
+          type: "hint",
+          message: `Card hint ${message.card_hint}: ${message.description}`,
+        });
+        break;
+      case EngineMessageType.SHOW_HINT:
+        events.push({ type: "hint", message: message.hint });
+        break;
+      case EngineMessageType.PLAYER_HINT:
+        events.push({
+          type: "hint",
+          message: `Player ${message.player + 1} hint ${message.player_hint}: ${message.description}`,
+        });
+        break;
       case EngineMessageType.WIN: {
         const winner = asPlayer(message.player);
         result = {

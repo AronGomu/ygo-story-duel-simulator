@@ -3,7 +3,11 @@ import type {
   PlayerPrompt,
   PromptChoice,
 } from "../../duel/contracts/player-prompt.ts";
-import type { PublicDuelState } from "../../duel/contracts/public-duel-state.ts";
+import type {
+  DuelPhase,
+  PlayerIndex,
+  PublicDuelState,
+} from "../../duel/contracts/public-duel-state.ts";
 import type { ActiveDuelDependencies } from "../assets/active-duel-dependencies.ts";
 import { findValidContributionSelection } from "../protocol/sum-selection.ts";
 
@@ -25,8 +29,67 @@ export interface OpponentDecision {
   readonly reason: OpponentDecisionReason;
 }
 
+export interface OpponentVisiblePlayerSummary {
+  readonly player: PlayerIndex;
+  readonly lifePoints: number;
+  readonly deckCount: number;
+  readonly extraDeckCount: number;
+  readonly handCount: number;
+  readonly monsterCount: number;
+  readonly spellTrapCount: number;
+  readonly graveyardCount: number;
+  readonly banishedCount: number;
+}
+
+/**
+ * Deliberately excludes every card identity. Legal opponent choices already
+ * carry the card context needed by the basic policy, so passing the human's
+ * hand or face-down cards here would only create an information leak.
+ */
+export interface OpponentVisibleDuelState {
+  readonly revision: number;
+  readonly turn: number;
+  readonly turnPlayer: PlayerIndex;
+  readonly phase: DuelPhase;
+  readonly players: readonly [
+    OpponentVisiblePlayerSummary,
+    OpponentVisiblePlayerSummary,
+  ];
+  readonly chainSize: number;
+}
+
 export interface OpponentPolicy {
-  choose(prompt: PlayerPrompt, visibleState: PublicDuelState): OpponentDecision;
+  choose(
+    prompt: PlayerPrompt,
+    visibleState: OpponentVisibleDuelState,
+  ): OpponentDecision;
+}
+
+export function toOpponentVisibleState(
+  state: PublicDuelState,
+): OpponentVisibleDuelState {
+  return Object.freeze({
+    revision: state.revision,
+    turn: state.turn,
+    turnPlayer: state.turnPlayer,
+    phase: state.phase,
+    players: Object.freeze(
+      state.players.map((player) =>
+        Object.freeze({
+          player: player.player,
+          lifePoints: player.lifePoints,
+          deckCount: player.deckCount,
+          extraDeckCount: player.extraDeckCount,
+          handCount: player.handCount,
+          monsterCount: player.monsters.length,
+          spellTrapCount: player.spellsAndTraps.length,
+          graveyardCount: player.graveyard.length,
+          banishedCount: player.banished.length,
+        }),
+      ) as [OpponentVisiblePlayerSummary, OpponentVisiblePlayerSummary],
+    ),
+    chainSize: state.chain.length,
+  });
 }
 
 export class BasicOpponentPolicy implements OpponentPolicy {
@@ -38,7 +101,7 @@ export class BasicOpponentPolicy implements OpponentPolicy {
 
   choose(
     prompt: PlayerPrompt,
-    visibleState: PublicDuelState,
+    visibleState: OpponentVisibleDuelState,
   ): OpponentDecision {
     void visibleState;
     if (prompt.choices.length === 0)
@@ -88,10 +151,22 @@ export class BasicOpponentPolicy implements OpponentPolicy {
           reason: "preserve_order",
         };
       case "selectCounter": {
-        const selected = Array.from(
-          { length: prompt.minimum },
-          (_, index) => prompt.choices[index % prompt.choices.length]!.id,
-        );
+        const selected: ChoiceId[] = [];
+        for (const choice of prompt.choices) {
+          const capacity = choice.allocationMaximum ?? 0;
+          const allocation = Math.min(
+            capacity,
+            prompt.minimum - selected.length,
+          );
+          for (let count = 0; count < allocation; count += 1)
+            selected.push(choice.id);
+          if (selected.length === prompt.minimum) break;
+        }
+        if (selected.length !== prompt.minimum) {
+          throw new Error(
+            `No legal counter allocation satisfies ${prompt.minimum}`,
+          );
+        }
         return { choiceIds: selected, reason: "select_first_legal" };
       }
       case "selectCard":

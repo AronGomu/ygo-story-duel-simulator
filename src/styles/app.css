@@ -332,6 +332,22 @@ progress {
   border-top: 1px solid var(--border);
 }
 
+button.card-detail-trigger {
+  min-height: 2rem;
+  padding: 0.2rem 0.35rem;
+  color: var(--accent);
+  border-color: transparent;
+  background: transparent;
+  text-align: left;
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
+button.card-detail-trigger:hover:not(:disabled) {
+  color: #ffffff;
+  background: transparent;
+}
+
 ul,
 ol {
   padding-left: 1.35rem;

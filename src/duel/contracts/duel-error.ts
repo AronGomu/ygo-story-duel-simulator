@@ -17,12 +17,32 @@ export type DuelErrorCode =
   | "worker_unexpected_exit"
   | "invalid_worker_event";
 
-export interface DuelError {
-  readonly code: DuelErrorCode;
+export type RecoverableDuelErrorCode =
+  | "duel_already_active"
+  | "duel_not_active"
+  | "invalid_command"
+  | "invalid_response"
+  | "stale_prompt";
+
+interface DuelErrorBase {
   readonly message: string;
   readonly detail?: Readonly<Record<string, string | number | boolean | null>>;
-  readonly recoverable: boolean;
 }
+
+export type NonRecoverableDuelErrorCode = Exclude<
+  DuelErrorCode,
+  RecoverableDuelErrorCode
+>;
+
+export type DuelError =
+  | (DuelErrorBase & {
+      readonly code: RecoverableDuelErrorCode;
+      readonly recoverable: true;
+    })
+  | (DuelErrorBase & {
+      readonly code: NonRecoverableDuelErrorCode;
+      readonly recoverable: false;
+    });
 
 const DUEL_ERROR_CODES: ReadonlySet<DuelErrorCode> = new Set([
   "engine_initialization_failed",
@@ -44,13 +64,14 @@ const DUEL_ERROR_CODES: ReadonlySet<DuelErrorCode> = new Set([
   "invalid_worker_event",
 ]);
 
-const RECOVERABLE_DUEL_ERROR_CODES: ReadonlySet<DuelErrorCode> = new Set([
-  "duel_already_active",
-  "duel_not_active",
-  "invalid_command",
-  "invalid_response",
-  "stale_prompt",
-]);
+const RECOVERABLE_DUEL_ERROR_CODES: ReadonlySet<RecoverableDuelErrorCode> =
+  new Set([
+    "duel_already_active",
+    "duel_not_active",
+    "invalid_command",
+    "invalid_response",
+    "stale_prompt",
+  ]);
 
 export function isDuelErrorCode(value: unknown): value is DuelErrorCode {
   return (
@@ -59,7 +80,7 @@ export function isDuelErrorCode(value: unknown): value is DuelErrorCode {
 }
 
 export function isRecoverableDuelErrorCode(code: DuelErrorCode): boolean {
-  return RECOVERABLE_DUEL_ERROR_CODES.has(code);
+  return RECOVERABLE_DUEL_ERROR_CODES.has(code as RecoverableDuelErrorCode);
 }
 
 export class DuelOperationError extends Error {
@@ -83,15 +104,10 @@ export function duelOperationError(
       : cause instanceof Error
         ? cause.message
         : String(cause);
-  return new DuelOperationError(
-    {
-      code,
-      message,
-      ...(causeMessage === undefined
-        ? {}
-        : { detail: { cause: causeMessage } }),
-      recoverable: isRecoverableDuelErrorCode(code),
-    },
-    cause,
-  );
+  const detail =
+    causeMessage === undefined ? {} : { detail: { cause: causeMessage } };
+  const duelError = isRecoverableDuelErrorCode(code)
+    ? ({ code, message, ...detail, recoverable: true } as DuelError)
+    : ({ code, message, ...detail, recoverable: false } as DuelError);
+  return new DuelOperationError(duelError, cause);
 }

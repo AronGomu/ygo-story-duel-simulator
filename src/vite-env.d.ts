@@ -5,6 +5,11 @@ declare const __RUNTIME_SNAPSHOT_ID__: string;
 declare const __ACTIVATION_SNAPSHOT_ID__: string;
 declare const __APP_BUILD_ID__: string;
 declare const __ACTIVE_IMAGE_MANIFEST_SHA256__: string;
+declare const __ACTIVE_CARD_TEXTS__: readonly Readonly<{
+  code: number;
+  name: string;
+  description: string;
+}>[];
 declare const __ACTIVE_IMAGE_MANIFEST__: Readonly<{
   schemaVersion: 1;
   snapshotId: string;

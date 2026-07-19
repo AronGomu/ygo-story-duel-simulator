@@ -1,10 +1,10 @@
 import {
   DuelOperationError,
-  type DuelError,
+  type NonRecoverableDuelErrorCode,
 } from "../duel/contracts/duel-error.ts";
 
 export async function runDuelRuntimeInitializationStage<T>(
-  code: DuelError["code"],
+  code: NonRecoverableDuelErrorCode,
   message: string,
   operation: () => Promise<T>,
 ): Promise<T> {

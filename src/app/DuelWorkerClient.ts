@@ -2,7 +2,7 @@ import {
   parseDuelCommand,
   type DuelCommand,
 } from "../duel/contracts/duel-command.ts";
-import type { DuelErrorCode } from "../duel/contracts/duel-error.ts";
+import type { NonRecoverableDuelErrorCode } from "../duel/contracts/duel-error.ts";
 import {
   parseDuelWorkerEvent,
   type DuelWorkerEvent,
@@ -355,7 +355,11 @@ export class DuelWorkerClient implements DuelClient {
     }
 
     if (event.type === "disposed") {
-      this.#disposalResolver?.({ type: "acknowledged", clean: event.clean });
+      if (this.#disposalResolver !== null) {
+        this.#disposalResolver({ type: "acknowledged", clean: event.clean });
+      } else if (!event.clean) {
+        this.#replaceWorkerAfterBoundaryFailure(generation);
+      }
       return;
     }
     if (event.type === "ready") {
@@ -428,9 +432,21 @@ export class DuelWorkerClient implements DuelClient {
     }
   }
 
+  #replaceWorkerAfterBoundaryFailure(generation: number): void {
+    if (generation !== this.#workerGeneration || this.#worker === null) return;
+    this.#clearWatchdog();
+    this.#log("error", {
+      event: "duel.client.worker.replaced_after_uncertain_cleanup",
+      workerGeneration: this.#workerGeneration,
+      sessionGeneration: this.#sessionGeneration,
+    });
+    this.#terminateCurrentWorker();
+    if (!this.#closed && this.#shutdown === null) this.#spawnWorker();
+  }
+
   #failWorker(
     generation: number,
-    code: DuelErrorCode,
+    code: NonRecoverableDuelErrorCode,
     message: string,
     evidence?: { readonly err?: unknown; readonly commandType?: string },
   ): void {
@@ -577,7 +593,7 @@ export class DuelWorkerClient implements DuelClient {
 
   #emitError(
     context: DuelClientContext,
-    code: DuelErrorCode,
+    code: NonRecoverableDuelErrorCode,
     message: string,
   ): void {
     this.#emit({

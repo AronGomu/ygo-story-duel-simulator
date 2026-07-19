@@ -55,6 +55,25 @@ describe("real ocgcore duel session", () => {
     expect(session.disposed).toBe(true);
   });
 
+  it("reclaims one hundred real core sessions", () => {
+    for (let index = 0; index < 100; index += 1) {
+      const session = DuelSession.create({
+        adapter,
+        dependencies,
+        playerDeck: preset.player,
+        opponentDeck: preset.opponent,
+        configuration: {
+          mode: "programmed",
+          seed: [1n, 2n, 3n, BigInt(index + 4)],
+          playerDeckOrder: preset.player.main,
+          opponentDeckOrder: preset.opponent.main,
+        },
+      });
+      session.dispose();
+      expect(session.disposed).toBe(true);
+    }
+  });
+
   it("generates fresh seeds and lets the core shuffle varied production hands", () => {
     const productionSessions = Array.from({ length: 8 }, () =>
       createProductionSession(),

@@ -28,6 +28,7 @@ export function attachDuelWorker(
 
   logger = safeWorkerLogger(logger);
   let disposed = false;
+  let replacementReported = false;
   const handler = (event: MessageEvent<unknown>): void => {
     let command;
     try {
@@ -81,16 +82,19 @@ export function attachDuelWorker(
             reason: "runtime_invalidated",
           });
         }
-        for (const message of messages) {
-          if (message.type === "result") {
-            logger.info({
-              event: "duel.worker.command.completed",
-              commandType: command.type,
-              resultType: message.result.type,
-            });
-          }
-          post(message);
+        for (const message of messages) post(message);
+        if (messages.length > 0) {
+          const result = messages.find(({ type }) => type === "result");
+          logger.info({
+            event: "duel.worker.command.completed",
+            commandType: command.type,
+            eventTypes: messages.map(({ type }) => type),
+            ...(result?.type === "result"
+              ? { resultType: result.result.type }
+              : {}),
+          });
         }
+        reportReplacementRequired();
       })
       .catch((error: unknown) => {
         logger.error({
@@ -99,8 +103,27 @@ export function attachDuelWorker(
           err: error,
         });
         post({ type: "error", error: toDuelError(error) });
+        reportReplacementRequired();
       });
   };
+  function reportReplacementRequired(): void {
+    if (!runtime.replacementRequired || replacementReported) return;
+    replacementReported = true;
+    const trace = runtime.diagnosticTrace();
+    if (trace !== null) post({ type: "diagnostics", trace });
+    post({ type: "disposed", clean: false });
+    try {
+      onBoundaryFailure?.(
+        new Error("Duel Worker cleanup was uncertain and requires replacement"),
+      );
+    } catch (error) {
+      logger.error({
+        event: "duel.worker.boundary.observer.failed",
+        err: error,
+      });
+    }
+  }
+
   function post(message: DuelWorkerEvent): void {
     if (disposed || scope.onmessage !== handler) {
       logger.debug({

@@ -222,6 +222,41 @@ describe("DuelStateProjector", () => {
     expect(value.snapshot().players[0].deckCount).toBe(40);
   });
 
+  it("projects generic, card, display, and player hints", () => {
+    const value = projector();
+    const events = [
+      value.apply({
+        type: EngineMessageType.HINT,
+        hint_type: 2,
+        player: 0,
+        hint: 42n,
+      }),
+      value.apply({
+        type: EngineMessageType.CARD_HINT,
+        controller: 0,
+        location: EngineLocation.MONSTER,
+        sequence: 0,
+        position: EnginePosition.FACE_UP_ATTACK,
+        card_hint: 1,
+        description: 43n,
+      }),
+      value.apply({ type: EngineMessageType.SHOW_HINT, hint: "Choose a card" }),
+      value.apply({
+        type: EngineMessageType.PLAYER_HINT,
+        player: 1,
+        player_hint: 6,
+        description: 44n,
+      }),
+    ].flatMap(({ events: projected }) => projected);
+
+    expect(events).toEqual([
+      { type: "hint", message: "System hint 42" },
+      { type: "hint", message: "Card hint 1: 43" },
+      { type: "hint", message: "Choose a card" },
+      { type: "hint", message: "Player 2 hint 6: 44" },
+    ]);
+  });
+
   it("tracks life points, turns, phases, and core-provided results", () => {
     const value = projector();
     value.apply({ type: EngineMessageType.NEW_TURN, player: 0 });

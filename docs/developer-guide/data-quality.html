@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Asset pipeline, storage, build, testing, CI, and governance architecture for YGO Story Duel Simulator.">
+  <title>Data &amp; Quality · YGO Developer Guide</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<a class="skip-link" href="#content">Skip to content</a>
+<header class="site-header"><div class="header-inner"><a class="brand" href="index.html"><span class="brand-mark">YGO</span><span>Developer Guide</span></a><nav aria-label="Developer guide"><a href="index.html">Overview</a><a href="architecture.html">Architecture</a><a href="runtime-flows.html">Runtime flows</a><a href="data-quality.html" aria-current="page">Data &amp; quality</a><a href="onboarding.html">Onboarding</a></nav></div></header>
+<main id="content">
+  <section class="hero"><div class="hero-copy"><p class="kicker">Supply chain · persistence · release evidence</p><h1>Data, build, quality</h1><p>Offline simulator depends on large third-party corpus. Repo treats engine + data + scripts + images as verified immutable supply chain, then proves packaged browser behavior through layered gates.</p></div><dl class="meta-stack"><div><dt>Catalog</dt><dd>14,794 cards/text/image records</dd></div><div><dt>Scripts</dt><dd>13,399 official + 125 prerelease</dd></div><div><dt>Images</dt><dd>14,579 verified · 215 missing</dd></div><div><dt>Snapshot</dt><dd>SHA-256 content identity</dd></div></dl></section>
+
+  <aside class="toc" aria-labelledby="toc-title"><h2 id="toc-title">Contents</h2><ol><li><a href="#sources">Sources</a></li><li><a href="#pipeline">Asset pipeline</a></li><li><a href="#snapshot">Snapshot model</a></li><li><a href="#browser">Browser loading/storage</a></li><li><a href="#build">Build packaging</a></li><li><a href="#tests">Test architecture</a></li><li><a href="#ci">CI/release gates</a></li><li><a href="#budgets">Budgets</a></li><li><a href="#governance">Security/licensing</a></li></ol></aside>
+
+  <section id="sources">
+    <h2>External source inventory</h2>
+    <table><thead><tr><th>Input</th><th>Source</th><th>Pin/provenance</th><th>Runtime use</th></tr></thead><tbody>
+      <tr><td>Rules engine</td><td><code>ocgcore-wasm@0.1.2</code> / Project Ignis core</td><td>npm SHA-512, per-file vendor manifest, embedded core revision</td><td>sync WASM in dedicated Worker</td></tr>
+      <tr><td>Card metadata/text</td><td>ProjectIgnis/BabelCDB</td><td>concrete Git revision in asset/runtime manifests</td><td>sharded card/text JSON</td></tr>
+      <tr><td>Card effects</td><td>ProjectIgnis/CardScripts</td><td>concrete Git revision; official/prerelease/global inventories</td><td>preloaded Lua strings via sync callback</td></tr>
+      <tr><td>System strings</td><td>ProjectIgnis/Distribution</td><td>concrete Git revision</td><td>prompt/effect text resolution</td></tr>
+      <tr><td>Artwork</td><td>YGOPRODeck URL convention/local archive</td><td>per-image bytes + SHA-256; provider report</td><td>active preset subset only</td></tr>
+      <tr><td>Preset decks</td><td>repo-owned <code>.ydk</code> files</td><td>source control + validation against catalog</td><td>fixed human/opponent MVP</td></tr>
+    </tbody></table>
+    <div class="notice"><strong>Current verified snapshot.</strong> Runtime ID <code>a562f5ad…f69fb2</code>; core version <code>11.0</code>; engine core revision <code>8e5f4e4…e3272</code>. Values come from <code>generated/runtime/current/manifest.json</code>.</div>
+  </section>
+
+  <section id="pipeline">
+    <h2>Asset acquisition and transformation</h2>
+    <figure class="diagram"><header><h3>Build-time dataflow</h3><p>network inputs become deterministic local snapshot</p></header>
+      <svg viewBox="0 0 1160 760" role="img" aria-labelledby="asset-title asset-desc"><title id="asset-title">Asset import pipeline</title><desc id="asset-desc">Pinned engine package and three Git sources are acquired and verified, transformed into deterministic shards, combined with verified image archive, manifested, independently checked, and published as current generated snapshot.</desc><defs><marker id="arrow" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 Z" fill="#73daca"/></marker><marker id="arrow-gold" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 Z" fill="#ffd580"/></marker><marker id="arrow-muted" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 Z" fill="#7f90aa"/></marker></defs>
+      <rect class="box-gold" x="45" y="45" width="210" height="85" rx="11"/><text class="label" x="150" y="78" text-anchor="middle">npm engine tarball</text><text class="small" x="150" y="102" text-anchor="middle">pinned version + integrity</text><rect class="box" x="325" y="45" width="210" height="85" rx="11"/><text class="label" x="430" y="78" text-anchor="middle">BabelCDB</text><text class="small" x="430" y="102" text-anchor="middle">standard CDB + text</text><rect class="box" x="605" y="45" width="210" height="85" rx="11"/><text class="label" x="710" y="78" text-anchor="middle">CardScripts</text><text class="small" x="710" y="102" text-anchor="middle">effects + globals</text><rect class="box" x="885" y="45" width="230" height="85" rx="11"/><text class="label" x="1000" y="78" text-anchor="middle">Distribution + images</text><text class="small" x="1000" y="102" text-anchor="middle">strings · provider archive</text>
+      <rect class="box-accent" x="70" y="200" width="1020" height="90" rx="12"/><text class="label" x="580" y="234" text-anchor="middle">Acquire into staging / .cache</text><text class="small" x="580" y="258" text-anchor="middle">fetch pinned refs · verify npm SHA-512 · safe extraction · cross-process lock · resume images</text><text class="tiny" x="580" y="278" text-anchor="middle">scripts/download-mvp-assets.ts · sync-engine.ts · sync-assets.ts · download-images.ts</text>
+      <path class="arrow" d="M150 130 V175 H580 V200"/><path class="arrow" d="M430 130 V200"/><path class="arrow" d="M710 130 V200"/><path class="arrow" d="M1000 130 V175 H580 V200"/>
+      <rect class="box" x="55" y="360" width="235" height="130" rx="12"/><text class="label" x="172" y="393" text-anchor="middle">Normalize catalog</text><text class="small" x="172" y="420" text-anchor="middle">64 card shards</text><text class="small" x="172" y="442" text-anchor="middle">64 English text shards</text><text class="small" x="172" y="464" text-anchor="middle">64 image-record shards</text><text class="tiny" x="172" y="480" text-anchor="middle">ID modulo 64</text>
+      <rect class="box" x="325" y="360" width="235" height="130" rx="12"/><text class="label" x="442" y="393" text-anchor="middle">Package scripts</text><text class="small" x="442" y="420" text-anchor="middle">256 card-script shards</text><text class="small" x="442" y="442" text-anchor="middle">global/procedure JSON</text><text class="small" x="442" y="464" text-anchor="middle">official/prerelease index</text><text class="tiny" x="442" y="480" text-anchor="middle">ID modulo 256</text>
+      <rect class="box" x="595" y="360" width="235" height="130" rx="12"/><text class="label" x="712" y="393" text-anchor="middle">Verify image archive</text><text class="small" x="712" y="420" text-anchor="middle">JPEG signature</text><text class="small" x="712" y="442" text-anchor="middle">provider missing report</text><text class="small" x="712" y="464" text-anchor="middle">resumable full archive</text><text class="tiny" x="712" y="480" text-anchor="middle">2.37 GB local</text>
+      <rect class="box-gold" x="865" y="360" width="235" height="130" rx="12"/><text class="label" x="982" y="393" text-anchor="middle">Manifest everything</text><text class="small" x="982" y="420" text-anchor="middle">path · bytes · SHA-256</text><text class="small" x="982" y="442" text-anchor="middle">upstream revisions</text><text class="small" x="982" y="464" text-anchor="middle">record counts/schemas</text><text class="tiny" x="982" y="480" text-anchor="middle">content-derived identity</text>
+      <path class="arrow-muted" d="M580 290 C500 325 172 325 172 360"/><path class="arrow-muted" d="M580 290 C520 325 442 325 442 360"/><path class="arrow-muted" d="M580 290 C650 325 712 325 712 360"/><path class="arrow-gold" d="M580 290 C750 320 982 320 982 360"/>
+      <rect class="box-accent" x="160" y="565" width="840" height="80" rx="12"/><text class="label" x="580" y="598" text-anchor="middle">Independent staging verification</text><text class="small" x="580" y="622" text-anchor="middle">hashes · lengths · counts · coverage · exact files · required globals · ID uniqueness · redistribution flag</text>
+      <path class="arrow" d="M172 490 V535 H580 V565"/><path class="arrow" d="M442 490 V565"/><path class="arrow" d="M712 490 V565"/><path class="arrow-gold" d="M982 490 V535 H580 V565"/>
+      <rect class="box-gold" x="310" y="690" width="540" height="50" rx="12"/><text class="label" x="580" y="721" text-anchor="middle">Recoverably publish generated/*/current + ready status</text><path class="arrow-gold" d="M580 645 V690"/>
+      </svg>
+    </figure>
+    <p>Unified command: <code>npm run assets:mvp</code>. Offline regeneration: <code>npm run assets:mvp -- --offline</code>. Run is cross-process locked; final status becomes <code>ready</code> only after all verifiers pass.</p>
+  </section>
+
+  <section id="snapshot">
+    <h2>Atomic snapshot identity</h2>
+    <div class="grid-2"><div class="panel accent"><h3>Runtime snapshot ID</h3><p>Content-derived from verified asset manifest content digest + vendored engine manifest digest. Identifies rules/data/script compatibility unit.</p><pre><code>runtimeSnapshotId = sha256(
+  runtimeAssetContentSha256,
+  engineVendorManifestSha256
+)</code></pre></div><div class="panel accent"><h3>Activation snapshot ID</h3><p>Separates browser activation when image subset changes without runtime change.</p><pre><code>activationId = sha256(JSON.stringify({
+  runtimeSnapshotId,
+  activeImageManifestSha256
+}))</code></pre></div></div>
+    <h3>Why two IDs</h3><p>Engine/data/scripts define duel compatibility. Active image manifest defines UI artifact set and legal distribution packaging. Combining them for browser activation prevents image-only release from colliding with existing persisted runtime record.</p>
+    <h3>Generated layout</h3><pre><code>generated/
+├── mvp-assets-status.json
+├── runtime/current/manifest.json
+├── engine/current/
+├── assets/current/
+│   ├── catalog/cards/00..3f.json
+│   ├── catalog/texts/en/00..3f.json
+│   ├── scripts/cards/00..ff.json
+│   ├── scripts/globals.json
+│   ├── scripts/index.json
+│   ├── strings/en.json
+│   └── images/00..3f.json
+└── card-images/archive/
+    ├── download-report.json
+    └── full/&lt;CARD_ID&gt;.jpg</code></pre>
+  </section>
+
+  <section id="browser">
+    <h2>Browser data and persistence</h2>
+    <figure class="diagram"><header><h3>Persistence topology</h3><p>identity in IndexedDB · verified bytes in Cache Storage</p></header>
+      <svg viewBox="0 0 1160 520" role="img" aria-labelledby="storage-title"><title id="storage-title">Browser storage topology</title><defs><marker id="arrow" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 Z" fill="#73daca"/></marker><marker id="arrow-gold" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 Z" fill="#ffd580"/></marker><marker id="arrow-muted" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 Z" fill="#7f90aa"/></marker></defs>
+      <rect class="box-accent" x="55" y="55" width="260" height="115" rx="12"/><text class="label" x="185" y="90" text-anchor="middle">App / SnapshotStore</text><text class="small" x="185" y="116" text-anchor="middle">stage · verify · activate</text><text class="small" x="185" y="138" text-anchor="middle">rollback · cleanup</text><rect class="box-accent" x="450" y="55" width="260" height="115" rx="12"/><text class="label" x="580" y="90" text-anchor="middle">Worker runtime loader</text><text class="small" x="580" y="116" text-anchor="middle">manifest + active deps</text><text class="small" x="580" y="138" text-anchor="middle">current/cache/fallback</text><rect class="box" x="845" y="55" width="260" height="115" rx="12"/><text class="label" x="975" y="90" text-anchor="middle">CardImageCache</text><text class="small" x="975" y="116" text-anchor="middle">verify · decode · object URLs</text><text class="small" x="975" y="138" text-anchor="middle">placeholders on failure</text>
+      <rect class="box-gold" x="90" y="270" width="420" height="185" rx="12"/><text class="label" x="300" y="305" text-anchor="middle">IndexedDB · ygo-story-duel · v2</text><text class="small" x="125" y="340">snapshots</text><text class="tiny" x="260" y="340">staged / active / previous + receipts/revisions</text><text class="small" x="125" y="372">pointers</text><text class="tiny" x="260" y="372">active / previous + CAS generation</text><text class="small" x="125" y="404">preferences</text><text class="tiny" x="260" y="404">bounded primitive values</text><text class="small" x="125" y="436">debugRuns</text><text class="tiny" x="260" y="436">max 20 metadata records</text>
+      <rect class="box-gold" x="650" y="270" width="420" height="185" rx="12"/><text class="label" x="860" y="305" text-anchor="middle">Cache Storage</text><text class="small" x="690" y="345">ygo-runtime-v1-&lt;snapshot&gt;-&lt;manifest&gt;</text><text class="tiny" x="690" y="368">verified manifest/WASM/active JSON closure</text><text class="small" x="690" y="408">ygo-card-images-v1-&lt;snapshot&gt;-&lt;imageDigest&gt;</text><text class="tiny" x="690" y="431">verified image manifest + JPEG bytes</text>
+      <path class="arrow-gold" d="M185 170 V270"/><path class="arrow-gold" d="M580 170 C580 230 760 220 800 270"/><path class="arrow-gold" d="M975 170 V270"/><path class="arrow-muted" d="M450 135 C380 200 350 220 350 270"/><path class="arrow-muted" d="M845 135 C750 210 440 220 440 270"/>
+      </svg>
+    </figure>
+    <h3>Activation transaction</h3><ol class="flow-list"><li>Validate exact input shape, digests, runtime/image receipt consistency.</li><li>Stage immutable candidate unless identical record exists.</li><li>Verify receipts exactly equal required set.</li><li>Open read-write transaction over snapshots + pointers.</li><li>Validate active/previous pointer targets and generations.</li><li>Compare actual active ID/generation to caller expectation.</li><li>Move active→previous, candidate→active, update pointers to next generation.</li><li>Delete stale previous after atomic commit.</li></ol>
+    <div class="notice"><strong>Cross-tab safety.</strong> App combines Web Lock around activation/cache cleanup with IndexedDB compare-and-swap. Lock serializes cooperating tabs; CAS rejects stale actors even if lock unavailable/logic changes.</div>
+  </section>
+
+  <section id="build">
+    <h2>Production package flow</h2>
+    <ol class="flow-list"><li><code>vendor:verify</code> proves vendored engine package/file hashes.</li><li><code>snapshot:verify</code> proves current runtime root and all generated inputs.</li><li><code>vite build --mode private</code> compiles Svelte, dedicated module Worker, sync engine adapter, lazy Phaser chunk.</li><li>Vite runtime plugin copies only recursively resolved active-deck closure, active preset images, engine WASM/manifests, licenses.</li><li>Unapproved image posture writes <code>PRIVATE_DEPLOYMENT_ONLY.txt</code>; ordinary non-private packaging refuses.</li><li><code>build:verify</code> independently rehashes source vs dist, exact file sets, content-derived IDs, engine chunk, Worker digest embedding, activation ID, licenses, forbidden Node markers, size budgets.</li><li><code>build:reproducible</code> creates two isolated builds and requires identical hashes.</li></ol>
+    <div class="grid-2"><div class="panel"><h3>Initial JS</h3><p>Svelte app + lightweight orchestration. Phaser excluded from first-load bundle.</p></div><div class="panel"><h3>Lazy presentation</h3><p><code>DuelField.svelte</code> dynamic-imports Phaser bridge only after semantic duel UI has state/images.</p></div><div class="panel"><h3>Dedicated Worker</h3><p>Vite emits separate <code>duel.worker-browser-*</code> module containing runtime/protocol/adapter, not Node loaders.</p></div><div class="panel"><h3>Static runtime</h3><p>Dist carries manifest, sync WASM, active JSON shards/scripts/strings, active images, licenses under base-aware <code>runtime/</code>.</p></div></div>
+  </section>
+
+  <section id="tests">
+    <h2>Test architecture</h2>
+    <figure class="diagram"><header><h3>Evidence pyramid</h3><p>narrow fast checks below; expensive production proof above</p></header>
+      <svg viewBox="0 0 1160 560" role="img" aria-labelledby="tests-title"><title id="tests-title">Test architecture pyramid</title>
+      <polygon points="580,55 735,170 425,170" fill="#2a2518" stroke="#ffd580" stroke-width="2"/><text class="label" x="580" y="112" text-anchor="middle">Browser E2E</text><text class="tiny" x="580" y="137" text-anchor="middle">real dist · Worker · WASM · keyboard · recovery</text>
+      <polygon points="425,190 735,190 870,300 290,300" fill="#123236" stroke="#73daca" stroke-width="2"/><text class="label" x="580" y="235" text-anchor="middle">Integration</text><text class="small" x="580" y="260" text-anchor="middle">real WASM · Worker thread · programmed duels</text><text class="tiny" x="580" y="281" text-anchor="middle">7 suites · 1,094 lines</text>
+      <polygon points="290,320 870,320 1005,430 155,430" fill="#17243a" stroke="#657692" stroke-width="2"/><text class="label" x="580" y="360" text-anchor="middle">Unit + component</text><text class="small" x="580" y="385" text-anchor="middle">contracts · protocol · projection · store · storage · field · UI</text><text class="tiny" x="580" y="407" text-anchor="middle">30 suites · 5,775 lines</text>
+      <rect x="80" y="455" width="1000" height="70" rx="12" fill="#111d31" stroke="#657692" stroke-width="1.5"/><text class="label" x="580" y="486" text-anchor="middle">Static + artifact verification</text><text class="small" x="580" y="510" text-anchor="middle">format · lint · strict types · asset hashes/counts · build exactness · reproducibility · budgets</text>
+      </svg>
+    </figure>
+    <table><thead><tr><th>Layer</th><th>What it proves</th><th>Representative suites</th></tr></thead><tbody>
+      <tr><td>Pure unit</td><td>Parser/encoder behavior, privacy, immutable state, prompt constraints, opponent choices, client/store state</td><td class="path">tests/unit/contracts.test.ts<br>prompt-registry.test.ts<br>duel-state-projector.test.ts<br>duel-worker-client.test.ts</td></tr>
+      <tr><td>Component</td><td>Every prompt family maps to accessible controls and valid submission behavior</td><td class="path">tests/component/PromptControls.test.ts</td></tr>
+      <tr><td>Integration</td><td>Real WASM startup/processing, active deps, controller lifecycle, actual Node Worker structured clone</td><td class="path">tests/integration/real-wasm-smoke.test.ts<br>programmed-duel.test.ts<br>node-worker-thread.test.ts</td></tr>
+      <tr><td>Legacy pipeline</td><td>Asset import helpers and acquisition behavior</td><td class="path">tests/*.test.ts</td></tr>
+      <tr><td>Browser E2E</td><td>Production static package at subpath, real browser Worker/WASM/images, hidden privacy, full keyboard duel, restart, timeouts, fallbacks</td><td class="path">e2e/duel-smoke.spec.ts</td></tr>
+    </tbody></table>
+    <h3>E2E browser matrix</h3><ul><li><strong>Chromium:</strong> complete flow suite, including full duel.</li><li><strong>Firefox/WebKit:</strong> production startup smoke selected by test title.</li><li><strong>Base path:</strong> <code>/ygo-story-duel/</code> catches root-relative Worker/WASM/image bugs.</li><li><strong>Artifacts on failure:</strong> trace, screenshot, video retained.</li></ul>
+  </section>
+
+  <section id="ci">
+    <h2>CI and local gates</h2>
+    <figure class="diagram"><header><h3>Compatibility-and-browser pipeline</h3><p>.github/workflows/ci.yml</p></header>
+      <svg viewBox="0 0 1160 340" role="img" aria-labelledby="ci-title"><title id="ci-title">CI pipeline</title><defs><marker id="arrow" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 Z" fill="#73daca"/></marker><marker id="arrow-gold" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 Z" fill="#ffd580"/></marker><marker id="arrow-muted" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 Z" fill="#7f90aa"/></marker></defs>
+      <rect class="box" x="30" y="75" width="145" height="90" rx="10"/><text class="label" x="102" y="108" text-anchor="middle">Checkout</text><text class="small" x="102" y="132" text-anchor="middle">Node 24</text><text class="tiny" x="102" y="151" text-anchor="middle">restore caches</text><rect class="box-accent" x="215" y="75" width="175" height="90" rx="10"/><text class="label" x="302" y="108" text-anchor="middle">Regenerate</text><text class="small" x="302" y="132" text-anchor="middle">assets:mvp</text><text class="tiny" x="302" y="151" text-anchor="middle">network + verify</text><rect class="box" x="430" y="75" width="190" height="90" rx="10"/><text class="label" x="525" y="108" text-anchor="middle">Isolated copy</text><text class="small" x="525" y="132" text-anchor="middle">npm ci --offline</text><text class="tiny" x="525" y="151" text-anchor="middle">check:headless</text><rect class="box" x="660" y="75" width="175" height="90" rx="10"/><text class="label" x="747" y="108" text-anchor="middle">Browsers</text><text class="small" x="747" y="132" text-anchor="middle">install 3 engines</text><text class="tiny" x="747" y="151" text-anchor="middle">Chromium/FF/WebKit</text><rect class="box-accent" x="875" y="75" width="250" height="90" rx="10"/><text class="label" x="1000" y="108" text-anchor="middle">npm run check</text><text class="small" x="1000" y="132" text-anchor="middle">headless + browser</text><text class="tiny" x="1000" y="151" text-anchor="middle">build/repro/E2E</text>
+      <path class="arrow" d="M175 120 H215"/><path class="arrow" d="M390 120 H430"/><path class="arrow" d="M620 120 H660"/><path class="arrow" d="M835 120 H875"/>
+      <rect class="box-gold" x="655" y="235" width="225" height="65" rx="10"/><text class="label" x="767" y="264" text-anchor="middle">Success artifact</text><text class="small" x="767" y="286" text-anchor="middle">private dist + manifests</text><rect class="box-danger" x="925" y="235" width="200" height="65" rx="10"/><text class="label" x="1025" y="264" text-anchor="middle">Failure evidence</text><text class="small" x="1025" y="286" text-anchor="middle">traces/reports/status</text><path class="arrow-gold" d="M1000 165 C950 210 800 205 800 235"/><path class="arrow-muted" d="M1000 165 V235"/>
+      </svg>
+    </figure>
+    <table><thead><tr><th>Command</th><th>Use</th></tr></thead><tbody><tr><td><code>npm run test:unit</code></td><td>Fast focused implementation tests.</td></tr><tr><td><code>npm run test:component</code></td><td>Svelte prompt controls.</td></tr><tr><td><code>npm run test:integration</code></td><td>Real assets/WASM/Worker integration.</td></tr><tr><td><code>npm run check:headless</code></td><td>Format, lint, types, non-browser tests, vendor/assets/snapshot verification.</td></tr><tr><td><code>npm run check:browser</code></td><td>Component test, build, independent verify, reproducibility, browser E2E.</td></tr><tr><td><code>npm run check</code></td><td>Full release-equivalent local gate.</td></tr></tbody></table>
+  </section>
+
+  <section id="budgets">
+    <h2>Production size budgets</h2>
+    <table><thead><tr><th>Artifact</th><th>Maximum</th><th>Reason</th></tr></thead><tbody><tr><td>Aggregate cold start</td><td>10 MB</td><td>Initial JS + Worker + runtime closure + active images</td></tr><tr><td>Initial JS</td><td>300 KB</td><td>Keep shell/control path fast</td></tr><tr><td>Duel Worker JS</td><td>200 KB</td><td>Exclude embedded-WASM fallback/unneeded host code</td></tr><tr><td>Lazy Phaser presentation</td><td>1.6 MB</td><td>Heavy renderer stays off initial path</td></tr><tr><td>Active runtime closure</td><td>6.5 MB</td><td>Package only preset dependencies, not full 45 MB data corpus</td></tr><tr><td>Active card images</td><td>4 MB</td><td>Package preset subset only</td></tr></tbody></table>
+    <p>Verifier computes actual emitted bytes. Any breach fails build. Chunk naming checks ensure exactly one small synchronous engine adapter chunk, no JSPI chunk.</p>
+  </section>
+
+  <section id="governance">
+    <h2>Security and licensing boundaries</h2>
+    <div class="grid-2"><div class="panel"><span class="tag accent">Security</span><h3>Trusted local inputs only</h3><ul><li>Pinned project-provided Lua, decks, manifests.</li><li>Path containment + realpath checks in dev/build asset serving.</li><li>Strict manifest/payload bounds.</li><li>Dedicated Worker termination boundary.</li><li>Hidden identities removed before IPC.</li><li>No user scripts/decks or multiplayer authority in MVP.</li></ul></div><div class="panel warning"><span class="tag gold">Distribution</span><h3>Public deployment blocked</h3><ul><li>Embedded core + CardScripts carry AGPL obligations.</li><li>BabelCDB redistribution terms need separate review.</li><li>Artwork/content/trademarks need permission.</li><li>Image provider access does not grant redistribution.</li><li>Current active manifest explicitly says <code>redistributionApproved: false</code>.</li><li>Build marker says keep artifact private.</li></ul></div></div>
+    <div class="notice danger"><strong>Do not publish <code>dist/</code> publicly.</strong> Existing build is intentionally private-only until source availability, DB terms, artwork/content permissions receive authorized review.</div>
+  </section>
+</main>
+<footer><p>Next: <a href="onboarding.html">setup and safe change recipes</a> · <a href="runtime-flows.html">runtime sequence details</a>.</p></footer>
+</body>
+</html>

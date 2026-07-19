@@ -3,7 +3,11 @@ import { readdir, readFile, stat } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { parseRuntimeSnapshotManifest } from "../src/worker/assets/runtime-manifest.ts";
-import { verifyRuntimeSnapshotFiles } from "../src/worker/assets/runtime-snapshot-node.ts";
+import {
+  deriveRuntimeSnapshotId,
+  runtimeAssetContentSha256,
+  verifyRuntimeSnapshotFiles,
+} from "../src/worker/assets/runtime-snapshot-node.ts";
 import { resolveActiveRuntimeFiles } from "./lib/active-runtime-files.ts";
 
 const projectRoot = path.resolve(
@@ -73,12 +77,13 @@ if (sha256(packagedAssetManifest) !== manifest.assets.manifestSha256)
   throw new Error("Packaged asset manifest does not match the runtime root");
 if (sha256(packagedVendorManifest) !== manifest.engine.manifestSha256)
   throw new Error("Packaged vendor manifest does not match the runtime root");
-const derivedSnapshotId = sha256(
-  JSON.stringify({
-    schemaVersion: 1,
-    assetManifestSha256: sha256(packagedAssetManifest),
-    engineManifestSha256: sha256(packagedVendorManifest),
-  }),
+const derivedSnapshotId = deriveRuntimeSnapshotId(
+  runtimeAssetContentSha256(
+    JSON.parse(packagedAssetManifest.toString("utf8")) as Parameters<
+      typeof runtimeAssetContentSha256
+    >[0],
+  ),
+  sha256(packagedVendorManifest),
 );
 if (derivedSnapshotId !== manifest.snapshotId)
   throw new Error("Packaged runtime snapshot ID is not content-derived");

@@ -416,7 +416,7 @@ test("a full preset duel can be completed using keyboard controls only", async (
     };
   };
   expect(diagnostics).toMatchObject({
-    schemaVersion: 1,
+    schemaVersion: 2,
     sensitivity: "contains-production-seed",
     application: { buildId: expect.stringMatching(/^0\.1\.0\+/) },
   });

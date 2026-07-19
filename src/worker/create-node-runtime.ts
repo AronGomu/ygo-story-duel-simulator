@@ -86,6 +86,14 @@ export function createNodeDuelWorkerRuntime(
         loadMvpPreset,
       );
       signal.throwIfAborted();
+      let dependencyGroupsLoaded = 0;
+      const reportDependencyProgress = (group: string): void => {
+        dependencyGroupsLoaded += 1;
+        progress(
+          `dependencies:${group}`,
+          Math.min(0.98, 0.5 + dependencyGroupsLoaded * 0.06),
+        );
+      };
       const dependencies = await runInitializationStage(
         "dependency_resolution_failed",
         "Unable to resolve active-duel dependencies",
@@ -93,6 +101,7 @@ export function createNodeDuelWorkerRuntime(
           loadActiveDuelDependenciesNode(
             assetRoot,
             uniqueDeckCodes(preset.player, preset.opponent),
+            reportDependencyProgress,
           ),
       );
       signal.throwIfAborted();
@@ -101,8 +110,18 @@ export function createNodeDuelWorkerRuntime(
         "deck_validation_failed",
         "The MVP preset decks failed validation",
         async () => {
-          validateDeck(preset.player, catalogCodes);
-          validateDeck(preset.opponent, catalogCodes);
+          validateDeck(
+            preset.player,
+            catalogCodes,
+            undefined,
+            dependencies.cards,
+          );
+          validateDeck(
+            preset.opponent,
+            catalogCodes,
+            undefined,
+            dependencies.cards,
+          );
         },
       );
       progress("ready", 1);

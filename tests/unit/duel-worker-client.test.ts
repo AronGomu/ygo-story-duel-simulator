@@ -161,7 +161,7 @@ describe("DuelWorkerClient", () => {
     worker.emit({
       type: "diagnostics",
       trace: {
-        schemaVersion: 1,
+        schemaVersion: 2,
         sensitivity: "contains-production-seed",
         presetId: "mvp-preset-v1",
         snapshotId: snapshotId("a".repeat(64)),

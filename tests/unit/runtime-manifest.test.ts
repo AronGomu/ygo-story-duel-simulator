@@ -5,6 +5,7 @@ import path from "node:path";
 import { describe, expect, it } from "vitest";
 import { parseRuntimeSnapshotManifest } from "../../src/worker/assets/runtime-manifest.ts";
 import {
+  runtimeAssetContentSha256,
   safeArtifactPath,
   verifyRuntimeSnapshotFiles,
 } from "../../src/worker/assets/runtime-snapshot-node.ts";
@@ -37,6 +38,25 @@ function validManifest() {
 describe("runtime snapshot manifest", () => {
   it("accepts the supported immutable schema", () => {
     expect(validManifest().snapshotId).toBe(digest);
+  });
+
+  it("derives immutable asset identity without the generation timestamp", () => {
+    const assets = {
+      schemaVersion: 1,
+      generatedAt: "2026-07-13T00:00:00.000Z",
+      sources: {
+        babelCdb: { commit: "a" },
+        cardScripts: { commit: "b" },
+        distribution: { commit: "c" },
+      },
+      files: [{ path: "catalog/cards/01.json", bytes: 1, sha256: digest }],
+    };
+    expect(
+      runtimeAssetContentSha256({
+        ...assets,
+        generatedAt: "2026-07-14T00:00:00.000Z",
+      }),
+    ).toBe(runtimeAssetContentSha256(assets));
   });
 
   it("rejects malformed, unsupported, and unsafe manifests", () => {

@@ -1,6 +1,5 @@
 import {
   DuelOperationError,
-  isRecoverableDuelErrorCode,
   type DuelError,
 } from "../duel/contracts/duel-error.ts";
 
@@ -27,6 +26,6 @@ function fallbackEngineError(error: unknown): DuelError {
     code,
     message,
     detail: { cause: message },
-    recoverable: isRecoverableDuelErrorCode(code),
+    recoverable: false,
   };
 }

@@ -38,10 +38,10 @@ try {
         workerGlobal.close();
       }
     },
-    (failure) => closeAfterBoundaryFailure(failure),
+    (failure) => closeAfterBoundaryFailure(failure, { notify: false }),
   );
 } catch (error) {
-  closeAfterBoundaryFailure(error);
+  closeAfterBoundaryFailure(error, { notify: true });
 }
 
 function redactSensitiveTrace(entry: WorkerLogEntry): WorkerLogEntry {
@@ -59,21 +59,30 @@ function redactSensitiveTrace(entry: WorkerLogEntry): WorkerLogEntry {
   return { ...entry, traceMetadata: safeMetadata };
 }
 
-function closeAfterBoundaryFailure(failure: unknown): void {
-  logger.error({ event: "duel.worker.browser.bootstrap.failed", err: failure });
-  try {
-    const event: DuelWorkerEvent = {
-      type: "error",
-      error: toDuelError(failure, { terminal: true }),
-    };
-    workerGlobal.postMessage(event);
-  } catch (deliveryError) {
-    logger.error({
-      event: "duel.worker.browser.failure-notification.failed",
-      err: deliveryError,
-      originalError: failure,
-    });
-  } finally {
-    workerGlobal.close();
+function closeAfterBoundaryFailure(
+  failure: unknown,
+  options: { readonly notify: boolean },
+): void {
+  logger.error({
+    event: options.notify
+      ? "duel.worker.browser.bootstrap.failed"
+      : "duel.worker.browser.boundary.failed",
+    err: failure,
+  });
+  if (options.notify) {
+    try {
+      const event: DuelWorkerEvent = {
+        type: "error",
+        error: toDuelError(failure, { terminal: true }),
+      };
+      workerGlobal.postMessage(event);
+    } catch (deliveryError) {
+      logger.error({
+        event: "duel.worker.browser.failure-notification.failed",
+        err: deliveryError,
+        originalError: failure,
+      });
+    }
   }
+  workerGlobal.close();
 }

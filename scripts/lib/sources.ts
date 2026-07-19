@@ -93,6 +93,7 @@ export async function syncRepository(
   }
 
   const commit = runGit(["rev-parse", "HEAD"], directory);
+  validatePinnedRevision(definition.ref, commit);
   return {
     directory,
     revision: {
@@ -101,6 +102,17 @@ export async function syncRepository(
       commit,
     },
   };
+}
+
+export function validatePinnedRevision(
+  requestedRef: string,
+  observedCommit: string,
+): void {
+  if (/^[a-f0-9]{40}$/i.test(requestedRef) && requestedRef !== observedCommit) {
+    throw new Error(
+      `Pinned source revision mismatch: expected ${requestedRef}, found ${observedCommit}`,
+    );
+  }
 }
 
 export function validateGitRef(ref: string): void {

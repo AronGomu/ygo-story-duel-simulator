@@ -106,6 +106,15 @@ describe("real Node duel Worker thread", () => {
     await expect(harness.waitForExit()).resolves.toBe(1);
   });
 
+  it("terminates the headless Worker when initialization exceeds its bound", async () => {
+    const harness = new NodeDuelWorkerHarness({ fixture: "unresponsive" });
+
+    await expect(harness.initializeWithin(100)).rejects.toThrow(
+      "Timed out after 100ms waiting for a Duel Worker message",
+    );
+    await expect(harness.waitForExit()).resolves.toBe(1);
+  });
+
   it("falls back to forced termination when graceful disposal times out", async () => {
     const harness = new NodeDuelWorkerHarness({ fixture: "unresponsive" });
     onTestFinished(async () => {

@@ -11,8 +11,11 @@ export interface PublicDuelTraceEntry {
     | "response"
     | "result"
     | "error"
+    | "engineDiagnostic"
+    | "promptDiagnostic"
     | "lifecycle";
   readonly status?: number;
+  readonly diagnosticType?: number;
   readonly messageType?: number;
   readonly promptId?: PromptId;
   readonly choiceIds?: readonly ChoiceId[];
@@ -22,7 +25,7 @@ export interface PublicDuelTraceEntry {
 }
 
 export interface DuelDiagnosticTrace {
-  readonly schemaVersion: 1;
+  readonly schemaVersion: 2;
   readonly sensitivity: "contains-production-seed";
   readonly presetId: string;
   readonly snapshotId: SnapshotId;
@@ -42,7 +45,7 @@ export interface DuelDiagnosticTrace {
 }
 
 export interface DownloadableDuelDiagnostics {
-  readonly schemaVersion: 1;
+  readonly schemaVersion: 2;
   readonly sensitivity: "contains-production-seed";
   readonly generatedAt: string;
   readonly application: {

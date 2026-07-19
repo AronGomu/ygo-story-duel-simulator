@@ -167,6 +167,14 @@ export function createBrowserDuelWorkerRuntime(
         async () => createMvpPreset(playerDeckSource, opponentDeckSource),
       );
       signal.throwIfAborted();
+      let dependencyGroupsLoaded = 0;
+      const reportDependencyProgress = (group: string): void => {
+        dependencyGroupsLoaded += 1;
+        progress(
+          `dependencies:${group}`,
+          Math.min(0.98, 0.85 + dependencyGroupsLoaded * 0.018),
+        );
+      };
       progress("dependencies", 0.85);
       const dependencies = await runDuelRuntimeInitializationStage(
         "dependency_resolution_failed",
@@ -175,6 +183,7 @@ export function createBrowserDuelWorkerRuntime(
           loadActiveDuelDependencies(
             assets,
             uniqueDeckCodes(preset.player, preset.opponent),
+            reportDependencyProgress,
           ),
       );
       const catalogCodes = new Set(dependencies.cards.keys());
@@ -182,8 +191,18 @@ export function createBrowserDuelWorkerRuntime(
         "deck_validation_failed",
         "The MVP preset decks failed validation",
         async () => {
-          validateDeck(preset.player, catalogCodes);
-          validateDeck(preset.opponent, catalogCodes);
+          validateDeck(
+            preset.player,
+            catalogCodes,
+            undefined,
+            dependencies.cards,
+          );
+          validateDeck(
+            preset.opponent,
+            catalogCodes,
+            undefined,
+            dependencies.cards,
+          );
         },
       );
       signal.throwIfAborted();

@@ -83,9 +83,9 @@ export interface PromptChoice {
   readonly allocationMaximum?: number;
 }
 
-export interface PlayerPrompt {
+interface PlayerPromptBase<Kind extends PromptKind> {
   readonly id: PromptId;
-  readonly kind: PromptKind;
+  readonly kind: Kind;
   readonly player: PlayerIndex;
   readonly title: string;
   readonly message?: string;
@@ -99,3 +99,7 @@ export interface PlayerPrompt {
   readonly sumMode?: "exact" | "atLeast";
   readonly mandatoryContributions?: readonly PromptContribution[];
 }
+
+export type PlayerPrompt = {
+  readonly [Kind in PromptKind]: PlayerPromptBase<Kind>;
+}[PromptKind];

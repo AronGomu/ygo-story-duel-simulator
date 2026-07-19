@@ -17,8 +17,11 @@ export interface DuelTraceEntry {
     | "response"
     | "result"
     | "error"
+    | "engineDiagnostic"
+    | "promptDiagnostic"
     | "lifecycle";
   readonly status?: number;
+  readonly diagnosticType?: number;
   readonly messageType?: number;
   readonly promptId?: PromptId;
   readonly choiceIds?: readonly ChoiceId[];
@@ -28,7 +31,7 @@ export interface DuelTraceEntry {
 }
 
 export interface DuelTrace {
-  readonly schemaVersion: 1;
+  readonly schemaVersion: 2;
   readonly presetId: string;
   readonly snapshotId: SnapshotId;
   readonly seed: readonly [string, string, string, string];
@@ -86,7 +89,7 @@ export class BoundedDuelTrace {
 
   snapshot(): DuelTrace {
     return Object.freeze({
-      schemaVersion: 1,
+      schemaVersion: 2,
       presetId: this.#presetId,
       snapshotId: this.#snapshotId,
       seed: this.#seed.map(String) as [string, string, string, string],

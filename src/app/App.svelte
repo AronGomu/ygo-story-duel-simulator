@@ -34,6 +34,9 @@
   const CURRENT_RUNTIME_SNAPSHOT_ID = snapshotId(__RUNTIME_SNAPSHOT_ID__);
   const CURRENT_ACTIVATION_SNAPSHOT_ID = snapshotId(__ACTIVATION_SNAPSHOT_ID__);
   const EMPTY_CARD_IMAGES = new Map<number, string>();
+  const ACTIVE_CARD_TEXTS = new Map(
+    __ACTIVE_CARD_TEXTS__.map((record) => [record.code, record] as const),
+  );
   const CURRENT_ARTIFACT_RECEIPTS: readonly SnapshotArtifactReceipt[] = [
     { id: "runtime-package", sha256: __RUNTIME_MANIFEST_SHA256__ },
     { id: "active-images", sha256: __ACTIVE_IMAGE_MANIFEST_SHA256__ },
@@ -48,6 +51,8 @@
   let promptPanel: HTMLElement;
   let resultHeading: HTMLHeadingElement;
   let errorHeading: HTMLHeadingElement;
+  let cardInspectorHeading: HTMLHeadingElement;
+  let cardInspectorTrigger: HTMLButtonElement | null = null;
   let previousErrorKey = "";
   let previousStatus = $duel.status;
   let imageLibrary: CardImageLibrary | null = null;
@@ -513,7 +518,12 @@
   }
 
   function fieldCardIntent(instanceId: string): void {
-    inspectedCard = findPublicCard(instanceId);
+    const card = findPublicCard(instanceId);
+    if (card !== null) {
+      cardInspectorTrigger = null;
+      inspectedCard = card;
+      void tick().then(() => cardInspectorHeading?.focus());
+    }
     const choices = fieldCardChoices($duel.prompt, $duel.snapshot, instanceId);
     if (choices.length === 1) {
       queueFieldChoice(choices[0]?.id);
@@ -593,7 +603,45 @@
   }
 
   function cardLabel(card: PublicCard): string {
-    return card.code === undefined ? "Hidden card" : `Card ${card.code}`;
+    if (card.code === undefined) return "Hidden card";
+    return ACTIVE_CARD_TEXTS.get(card.code)?.name ?? `Card ${card.code}`;
+  }
+
+  function cardDescription(card: PublicCard): string | null {
+    if (card.code === undefined) return null;
+    return ACTIVE_CARD_TEXTS.get(card.code)?.description ?? null;
+  }
+
+  async function inspectCard(
+    card: PublicCard,
+    event: MouseEvent,
+  ): Promise<void> {
+    cardInspectorTrigger = event.currentTarget as HTMLButtonElement;
+    inspectedCard = card;
+    await tick();
+    cardInspectorHeading.focus();
+  }
+
+  async function closeCardInspector(): Promise<void> {
+    inspectedCard = null;
+    await tick();
+    cardInspectorTrigger?.focus();
+    cardInspectorTrigger = null;
+  }
+
+  function handleGlobalKeydown(event: KeyboardEvent): void {
+    if (event.key === "Escape" && inspectedCard !== null) {
+      event.preventDefault();
+      void closeCardInspector();
+    }
+  }
+
+  function inspectorLabel(
+    card: PublicCard,
+    player: 0 | 1,
+    zone: string,
+  ): string {
+    return `Inspect ${cardLabel(card)}, ${player === 0 ? "your" : "opponent"} ${zone}`;
   }
 
   function phaseLabel(value: string): string {
@@ -622,6 +670,8 @@
 <svelte:head>
   <title>Preset Duel · YGO Story Duel Simulator</title>
 </svelte:head>
+
+<svelte:window onkeydown={handleGlobalKeydown} />
 
 <header class="app-header">
   <div>
@@ -897,15 +947,33 @@
   {/if}
 
   {#if inspectedCard}
-    <aside class="card-inspector" aria-labelledby="card-inspector-heading">
+    <aside
+      id="card-inspector"
+      class="card-inspector"
+      aria-labelledby="card-inspector-heading"
+      aria-describedby={cardDescription(inspectedCard) === null
+        ? "card-inspector-location"
+        : "card-inspector-location card-inspector-description"}
+    >
       <div>
         <p class="eyebrow">Public card details</p>
-        <h2 id="card-inspector-heading">{cardLabel(inspectedCard)}</h2>
-        <p>
+        <h2
+          id="card-inspector-heading"
+          tabindex="-1"
+          bind:this={cardInspectorHeading}
+        >
+          {cardLabel(inspectedCard)}
+        </h2>
+        <p id="card-inspector-location">
           {phaseLabel(inspectedCard.location)} · {phaseLabel(
             inspectedCard.position,
           )}
         </p>
+        {#if cardDescription(inspectedCard)}
+          <p id="card-inspector-description">
+            {cardDescription(inspectedCard)}
+          </p>
+        {/if}
       </div>
       {#if resolvePublicCardImage(inspectedCard)}
         <img
@@ -916,7 +984,7 @@
       <button
         type="button"
         class="secondary"
-        onclick={() => (inspectedCard = null)}>Close card details</button
+        onclick={() => void closeCardInspector()}>Close card details</button
       >
     </aside>
   {/if}
@@ -973,7 +1041,27 @@
                 {:else}
                   <ul>
                     {#each player.monsters as card (card.instanceId)}
-                      <li>{cardLabel(card)} · {phaseLabel(card.position)}</li>
+                      <li>
+                        {#if card.code === undefined}
+                          {cardLabel(card)}
+                        {:else}
+                          <button
+                            type="button"
+                            class="card-detail-trigger"
+                            aria-controls="card-inspector"
+                            aria-expanded={inspectedCard?.instanceId ===
+                              card.instanceId}
+                            aria-label={inspectorLabel(
+                              card,
+                              player.player,
+                              "monsters",
+                            )}
+                            onclick={(event) => void inspectCard(card, event)}
+                            >{cardLabel(card)}</button
+                          >
+                        {/if}
+                        · {phaseLabel(card.position)}
+                      </li>
                     {/each}
                   </ul>
                 {/if}
@@ -985,7 +1073,27 @@
                 {:else}
                   <ul>
                     {#each player.spellsAndTraps as card (card.instanceId)}
-                      <li>{cardLabel(card)} · {phaseLabel(card.position)}</li>
+                      <li>
+                        {#if card.code === undefined}
+                          {cardLabel(card)}
+                        {:else}
+                          <button
+                            type="button"
+                            class="card-detail-trigger"
+                            aria-controls="card-inspector"
+                            aria-expanded={inspectedCard?.instanceId ===
+                              card.instanceId}
+                            aria-label={inspectorLabel(
+                              card,
+                              player.player,
+                              "spells and traps",
+                            )}
+                            onclick={(event) => void inspectCard(card, event)}
+                            >{cardLabel(card)}</button
+                          >
+                        {/if}
+                        · {phaseLabel(card.position)}
+                      </li>
                     {/each}
                   </ul>
                 {/if}
@@ -997,7 +1105,22 @@
                 {:else}
                   <ul>
                     {#each player.graveyard as card (card.instanceId)}
-                      <li>{cardLabel(card)}</li>
+                      <li>
+                        <button
+                          type="button"
+                          class="card-detail-trigger"
+                          aria-controls="card-inspector"
+                          aria-expanded={inspectedCard?.instanceId ===
+                            card.instanceId}
+                          aria-label={inspectorLabel(
+                            card,
+                            player.player,
+                            "graveyard",
+                          )}
+                          onclick={(event) => void inspectCard(card, event)}
+                          >{cardLabel(card)}</button
+                        >
+                      </li>
                     {/each}
                   </ul>
                 {/if}
@@ -1009,7 +1132,27 @@
                 {:else}
                   <ul>
                     {#each player.banished as card (card.instanceId)}
-                      <li>{cardLabel(card)} · {phaseLabel(card.position)}</li>
+                      <li>
+                        {#if card.code === undefined}
+                          {cardLabel(card)}
+                        {:else}
+                          <button
+                            type="button"
+                            class="card-detail-trigger"
+                            aria-controls="card-inspector"
+                            aria-expanded={inspectedCard?.instanceId ===
+                              card.instanceId}
+                            aria-label={inspectorLabel(
+                              card,
+                              player.player,
+                              "banished cards",
+                            )}
+                            onclick={(event) => void inspectCard(card, event)}
+                            >{cardLabel(card)}</button
+                          >
+                        {/if}
+                        · {phaseLabel(card.position)}
+                      </li>
                     {/each}
                   </ul>
                 {/if}
@@ -1022,7 +1165,22 @@
                   {:else}
                     <ul>
                       {#each player.hand as card (card.instanceId)}
-                        <li>{cardLabel(card)}</li>
+                        <li>
+                          <button
+                            type="button"
+                            class="card-detail-trigger"
+                            aria-controls="card-inspector"
+                            aria-expanded={inspectedCard?.instanceId ===
+                              card.instanceId}
+                            aria-label={inspectorLabel(
+                              card,
+                              player.player,
+                              "hand",
+                            )}
+                            onclick={(event) => void inspectCard(card, event)}
+                            >{cardLabel(card)}</button
+                          >
+                        </li>
                       {/each}
                     </ul>
                   {/if}

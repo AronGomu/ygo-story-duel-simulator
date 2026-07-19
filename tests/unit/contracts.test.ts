@@ -32,6 +32,48 @@ const examples: readonly (DuelCommand | DuelWorkerEvent)[] = [
   { type: "disposed", clean: true },
   { type: "loading", stage: "snapshot", progress: 0.5 },
   {
+    type: "state",
+    state: {
+      snapshotId: snapshotId("a".repeat(64)),
+      revision: 1,
+      turn: 1,
+      turnPlayer: 0,
+      phase: "main1",
+      players: [
+        {
+          player: 0,
+          lifePoints: 8000,
+          deckCount: 35,
+          extraDeckCount: 0,
+          handCount: 0,
+          hand: [],
+          monsters: [],
+          spellsAndTraps: [],
+          graveyard: [],
+          banished: [],
+        },
+        {
+          player: 1,
+          lifePoints: 8000,
+          deckCount: 35,
+          extraDeckCount: 0,
+          handCount: 5,
+          hand: [],
+          monsters: [],
+          spellsAndTraps: [],
+          graveyard: [],
+          banished: [],
+        },
+      ],
+      chain: [],
+    },
+  },
+  { type: "event", event: { type: "phaseChanged", phase: "main1" } },
+  {
+    type: "result",
+    result: { type: "completed", winner: 0, loser: 1, reason: 1 },
+  },
+  {
     type: "prompt",
     prompt: {
       id: promptId("sum-prompt"),
@@ -66,7 +108,7 @@ const examples: readonly (DuelCommand | DuelWorkerEvent)[] = [
   {
     type: "diagnostics",
     trace: {
-      schemaVersion: 1,
+      schemaVersion: 2,
       sensitivity: "contains-production-seed",
       presetId: "mvp-preset-v1",
       snapshotId: snapshotId("a".repeat(64)),
@@ -92,6 +134,18 @@ const examples: readonly (DuelCommand | DuelWorkerEvent)[] = [
     },
   },
 ];
+
+// These compile-only fixtures prove that boundary commands cannot acquire
+// non-cloneable payloads without failing the strict TypeScript gate.
+// @ts-expect-error bigint is not part of the initialize command contract
+const nonCloneableBigIntCommand: DuelCommand = { type: "initialize", seed: 1n };
+const nonCloneableFunctionCommand: DuelCommand = {
+  type: "initialize",
+  // @ts-expect-error functions are not part of the initialize command contract
+  callback: () => undefined,
+};
+void nonCloneableBigIntCommand;
+void nonCloneableFunctionCommand;
 
 describe("Worker contracts", () => {
   it.each(examples)("survives structured cloning: $type", (example) => {

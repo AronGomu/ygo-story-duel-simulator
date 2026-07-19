@@ -30,6 +30,57 @@ describe("sum selection", () => {
     ).toEqual([24]);
   });
 
+  it("matches a brute-force oracle across bounded generated inputs", () => {
+    for (let candidateCount = 1; candidateCount <= 4; candidateCount += 1) {
+      for (const contributions of contributionVectors(candidateCount)) {
+        const candidates = contributions.map((contribution) => ({
+          contribution,
+        }));
+        for (const mode of ["exact", "atLeast"] as const) {
+          for (let target = 1; target <= 6; target += 1) {
+            for (let minimum = 0; minimum <= candidateCount; minimum += 1) {
+              const selected = findValidContributionSelection(
+                candidates,
+                [],
+                target,
+                mode,
+                minimum,
+                candidateCount,
+              );
+              const possible = hasBruteForceSelection(
+                contributions,
+                target,
+                mode,
+                minimum,
+              );
+              expect(
+                selected !== null,
+                JSON.stringify({
+                  contributions,
+                  target,
+                  mode,
+                  minimum,
+                  selected,
+                }),
+              ).toBe(possible);
+              if (selected !== null) {
+                expect(new Set(selected).size).toBe(selected.length);
+                expect(selected.length).toBeGreaterThanOrEqual(minimum);
+                expect(
+                  isValidContributionTotal(
+                    selected.map((index) => [contributions[index]!]),
+                    target,
+                    mode,
+                  ),
+                ).toBe(true);
+              }
+            }
+          }
+        }
+      }
+    }
+  });
+
   it("includes mandatory contributions when choosing optional cards", () => {
     expect(
       findValidContributionSelection(
@@ -53,3 +104,37 @@ describe("sum selection", () => {
     ).toEqual([]);
   });
 });
+
+function contributionVectors(length: number): number[][] {
+  return Array.from({ length: 3 ** length }, (_, encoded) => {
+    let value = encoded;
+    return Array.from({ length }, () => {
+      const contribution = (value % 3) + 1;
+      value = Math.floor(value / 3);
+      return contribution;
+    });
+  });
+}
+
+function hasBruteForceSelection(
+  contributions: readonly number[],
+  target: number,
+  mode: "exact" | "atLeast",
+  minimum: number,
+): boolean {
+  for (let mask = 0; mask < 2 ** contributions.length; mask += 1) {
+    const selected = contributions.filter(
+      (_, index) => (mask & (1 << index)) !== 0,
+    );
+    if (selected.length < minimum) continue;
+    if (
+      isValidContributionTotal(
+        selected.map((value) => [value]),
+        target,
+        mode,
+      )
+    )
+      return true;
+  }
+  return false;
+}

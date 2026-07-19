@@ -33,7 +33,12 @@ import { catalogShard, scriptShard } from "./lib/transform.ts";
 
 const scriptDirectory = path.dirname(fileURLToPath(import.meta.url));
 const projectRoot = path.resolve(scriptDirectory, "..");
-const options = parseOptions(process.argv.slice(2));
+const sourceLock = parseSourceLock(
+  JSON.parse(
+    await readFile(path.join(projectRoot, "assets-source-lock.json"), "utf8"),
+  ),
+);
+const options = parseOptions(process.argv.slice(2), sourceLock);
 const stageStartedAt = new Map<string, number>();
 const cacheRoot = resolveProjectSubpath(
   projectRoot,
@@ -202,6 +207,13 @@ try {
   await releaseRunLock();
 }
 
+interface AssetSourceLock {
+  readonly schemaVersion: 1;
+  readonly babelCdb: string;
+  readonly cardScripts: string;
+  readonly distribution: string;
+}
+
 interface Options {
   offline: boolean;
   cacheDirectory: string;
@@ -211,7 +223,7 @@ interface Options {
   distributionRef: string;
 }
 
-function parseOptions(args: string[]): Options {
+function parseOptions(args: string[], lock: AssetSourceLock): Options {
   const values = new Map<string, string>();
   let offline = false;
 
@@ -221,7 +233,13 @@ function parseOptions(args: string[]): Options {
       offline = true;
       continue;
     }
-    if (!argument?.startsWith("--")) {
+    if (
+      argument !== "--cache-dir" &&
+      argument !== "--output" &&
+      argument !== "--babel-ref" &&
+      argument !== "--scripts-ref" &&
+      argument !== "--distribution-ref"
+    ) {
       throw new Error(`Unknown argument: ${argument ?? "<missing>"}`);
     }
     const value = args[index + 1];
@@ -232,14 +250,47 @@ function parseOptions(args: string[]): Options {
     index += 1;
   }
 
+  const babelRef = values.get("--babel-ref") ?? lock.babelCdb;
+  const scriptsRef = values.get("--scripts-ref") ?? lock.cardScripts;
+  const distributionRef =
+    values.get("--distribution-ref") ?? lock.distribution;
+  for (const [name, requested, pinned] of [
+    ["babel-ref", babelRef, lock.babelCdb],
+    ["scripts-ref", scriptsRef, lock.cardScripts],
+    ["distribution-ref", distributionRef, lock.distribution],
+  ] as const) {
+    if (requested !== pinned) {
+      throw new Error(
+        `--${name} cannot override the pinned asset source lock; update assets-source-lock.json through review instead`,
+      );
+    }
+  }
+
   return {
     offline,
     cacheDirectory: values.get("--cache-dir") ?? ".cache/upstream",
     outputDirectory: values.get("--output") ?? "generated/assets/current",
-    babelRef: values.get("--babel-ref") ?? "master",
-    scriptsRef: values.get("--scripts-ref") ?? "master",
-    distributionRef: values.get("--distribution-ref") ?? "master",
+    babelRef,
+    scriptsRef,
+    distributionRef,
   };
+}
+
+function parseSourceLock(value: unknown): AssetSourceLock {
+  if (typeof value !== "object" || value === null)
+    throw new Error("Asset source lock must be an object");
+  const lock = value as Partial<AssetSourceLock>;
+  if (lock.schemaVersion !== 1)
+    throw new Error("Unsupported asset source lock schema");
+  for (const [name, revision] of [
+    ["babelCdb", lock.babelCdb],
+    ["cardScripts", lock.cardScripts],
+    ["distribution", lock.distribution],
+  ] as const) {
+    if (typeof revision !== "string" || !/^[a-f0-9]{40}$/.test(revision))
+      throw new Error(`Asset source lock has an invalid ${name} revision`);
+  }
+  return lock as AssetSourceLock;
 }
 
 async function writeCatalogShards(

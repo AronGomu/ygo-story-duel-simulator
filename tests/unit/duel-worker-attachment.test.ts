@@ -99,7 +99,13 @@ describe("duel Worker attachment", () => {
       scope.onmessage?.({ data: { type: "unknown" } } as MessageEvent<unknown>);
       expect(posted.at(-1)).toMatchObject({ type: "error" });
       expect(consoleError).toHaveBeenCalledWith(
-        expect.objectContaining({ event: "duel.worker.logging.failed" }),
+        expect.objectContaining({
+          event: "duel.worker.logging.failed",
+          originalEvent: "duel.worker.command.rejected",
+        }),
+      );
+      expect(consoleError.mock.calls[0]?.[0]).not.toHaveProperty(
+        "originalEntry",
       );
     } finally {
       detach();

@@ -97,6 +97,17 @@ export const PINNED_MESSAGE_CLASSIFICATION = {
   190: "event",
 } as const satisfies Readonly<Record<number, EngineMessageClassification>>;
 
+export const INTERNAL_MESSAGE_RATIONALE = Object.freeze(
+  Object.fromEntries(
+    Object.entries(PINNED_MESSAGE_CLASSIFICATION)
+      .filter(([, classification]) => classification === "internal")
+      .map(([type]) => [
+        Number(type),
+        "Adapter-internal synchronization or data-free completion marker; no user response or standalone public-state projection is required.",
+      ]),
+  ) as Readonly<Record<number, string>>,
+);
+
 export const PINNED_MESSAGE_TYPES = Object.freeze(
   Object.keys(PINNED_MESSAGE_CLASSIFICATION).map(Number),
 );

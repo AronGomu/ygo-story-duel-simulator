@@ -25,7 +25,12 @@ export function safeWorkerLogger(logger: WorkerLogger): WorkerLogger {
         logger[level](entry);
       } catch (error) {
         try {
-          console.error({ event: "duel.worker.logging.failed", level, error });
+          console.error({
+            event: "duel.worker.logging.failed",
+            level,
+            originalEvent: entry.event,
+            error,
+          });
         } catch {
           // No secondary observation path remains when the host console fails.
         }

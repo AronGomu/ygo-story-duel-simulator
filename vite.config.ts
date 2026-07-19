@@ -4,6 +4,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { svelte } from "@sveltejs/vite-plugin-svelte";
 import { defineConfig } from "vite";
+import { buildActiveCardTextManifest } from "./scripts/lib/active-card-text-manifest.ts";
 import {
   activeImageManifestSha256,
   buildActiveImageManifest,
@@ -34,6 +35,13 @@ const activeImageManifest = buildActiveImageManifest(
   runtimeSnapshotId,
 );
 const activeImageDigest = activeImageManifestSha256(activeImageManifest);
+const activeCardTexts = buildActiveCardTextManifest(
+  projectRoot,
+  new Set([
+    ...activeImageManifest.files.map(({ code }) => code),
+    ...activeImageManifest.missing,
+  ]),
+);
 const activationSnapshotId = createHash("sha256")
   .update(
     JSON.stringify({
@@ -59,6 +67,7 @@ export default defineConfig({
     ),
     __ACTIVE_IMAGE_MANIFEST__: JSON.stringify(activeImageManifest),
     __ACTIVE_IMAGE_MANIFEST_SHA256__: JSON.stringify(activeImageDigest),
+    __ACTIVE_CARD_TEXTS__: JSON.stringify(activeCardTexts),
     __RUNTIME_REVISIONS__: JSON.stringify({
       runtimeSnapshotId,
       runtimeManifestSha256,

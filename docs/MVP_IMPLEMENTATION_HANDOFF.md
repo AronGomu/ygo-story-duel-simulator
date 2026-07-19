@@ -1,7 +1,7 @@
 # MVP implementation handoff
 
-> Date: 2026-07-13
-> Status: **Checkpoints A–G are complete. The private MVP release candidate passed the full local and isolated clean-checkout gates.**
+> Date: 2026-07-14
+> Status: **Checkpoints A–G are complete. The private MVP release candidate passed the full local and isolated clean-checkout gates; 2026-07-14 closed remaining plan-checklist gaps with verification.**
 > Canonical plan: [`MVP_TECHNICAL_IMPLEMENTATION_PLAN.md`](MVP_TECHNICAL_IMPLEMENTATION_PLAN.md)
 
 ## 1. Start here
@@ -15,15 +15,16 @@ npm run format
 npm run check
 ```
 
-Latest local result on 2026-07-13:
+Latest local result on 2026-07-14:
 
 - formatting, ESLint and TypeScript/Svelte checks passed;
-- 20 legacy asset-pipeline tests, 158 unit tests, 16 real-WASM integration tests and 10 Svelte component tests passed;
-- the verified private build passed with 70 active runtime files and snapshot `e0a1fc92e5564e7ab20f79c8b3662294eb38fa15ee72a6f51acfb108886bb5a5`;
+- 21 legacy asset-pipeline tests, 181 unit tests, 18 real-WASM integration tests and 10 Svelte component tests passed;
+- the verified private build passed with 70 active runtime files and content-stable snapshot `a562f5ad6794e377157d91adba6a51d73960d5384a00b25fd8bf1236b0f69fb2`;
 - reproducibility verification matched all 109 packaged files;
 - all eight Chromium cases and the Firefox/WebKit production startup smokes passed;
-- the Firefox IndexedDB close race is fixed and passed both the complete local gate and the isolated gate;
-- an isolated copy installed 249 packages with `npm ci --offline`, reported zero vulnerabilities, and passed the same complete gate.
+- the Firefox IndexedDB close race remains fixed;
+- CI now regenerates the locked offline asset pipeline, runs an isolated `npm ci --offline && npm run check:headless` gate, then the full browser gate;
+- diagnostic traces use schema version 2 (actual process statuses, redacted engine/prompt diagnostics).
 
 The mandatory pre-visual isolated `npm ci --offline && npm run check:headless` gate was accepted before the browser dependencies were installed. Svelte, Vite, Playwright, Phaser and `idb` are now implemented at their designated checkpoints.
 
@@ -302,7 +303,8 @@ npm ci --offline
 
 Verified private release-candidate facts:
 
-- runtime snapshot: `e0a1fc92e5564e7ab20f79c8b3662294eb38fa15ee72a6f51acfb108886bb5a5`;
+- runtime snapshot: `a562f5ad6794e377157d91adba6a51d73960d5384a00b25fd8bf1236b0f69fb2`;
 - active runtime closure: 70 files;
 - reproducible static package: 109 files;
+- pinned upstream lock: `assets-source-lock.json`;
 - current distribution mode: private-only.

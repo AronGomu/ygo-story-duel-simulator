@@ -96,6 +96,7 @@ export class DuelWorkerRuntime {
   #nextDuelSequence = 0;
   #activeCommandDepth = 0;
   #deferredControllerDisposal: HeadlessDuelController | null = null;
+  #replacementRequired = false;
   #disposed = false;
 
   constructor(
@@ -132,7 +133,7 @@ export class DuelWorkerRuntime {
       this.dispose();
       return Promise.resolve([]);
     }
-    if (this.#disposed) return Promise.resolve([]);
+    if (this.#disposed || this.#replacementRequired) return Promise.resolve([]);
     if (this.#pendingCommands >= this.#maximumQueuedCommands) {
       const error = new DuelCommandValidationError(
         `Worker command queue limit of ${this.#maximumQueuedCommands} was reached`,
@@ -153,7 +154,7 @@ export class DuelWorkerRuntime {
 
     this.#pendingCommands += 1;
     const operation = this.#commandQueue.then(async () => {
-      if (this.#disposed) return [];
+      if (this.#disposed || this.#replacementRequired) return [];
       this.#activeCommandDepth += 1;
       try {
         return await this.#handleCommand(command, progressSink, failureSink);
@@ -245,6 +246,11 @@ export class DuelWorkerRuntime {
       const traceTail = trace?.entries.slice(-20);
       const terminal = controller?.disposed === true;
       if (terminal) this.#controller = null;
+      if (
+        controller?.cleanupUncertain === true ||
+        error instanceof AggregateError
+      )
+        this.#replacementRequired = true;
       const duelError = toDuelError(error, { terminal });
       this.#reportFailure(
         error,
@@ -334,7 +340,13 @@ export class DuelWorkerRuntime {
         playerDeck: resources.preset.player,
         opponentDeck: resources.preset.opponent,
         configuration: { mode: "production", seed },
-        onEngineDiagnostic: ({ type, message, error }) =>
+        onEngineDiagnostic: ({ type, message, error }) => {
+          trace.record({
+            kind: "engineDiagnostic",
+            diagnosticType: type,
+            detail: "engine diagnostic emitted",
+          });
+          this.#lastTrace = trace.snapshot();
           this.#logger.warn({
             event: "duel.worker.engine.session.diagnostic",
             runtimeId: this.#runtimeId,
@@ -342,7 +354,8 @@ export class DuelWorkerRuntime {
             diagnosticType: type,
             message,
             ...(error === undefined ? {} : { err: error }),
-          }),
+          });
+        },
       });
     } catch (error) {
       trace.record({
@@ -425,6 +438,7 @@ export class DuelWorkerRuntime {
     try {
       controller.dispose();
     } catch (error) {
+      this.#replacementRequired = true;
       this.#logger.error({
         event: "duel.worker.session.cleanup.failed",
         runtimeId: this.#runtimeId,
@@ -488,7 +502,7 @@ export class DuelWorkerRuntime {
               promptId === lastPrompt.promptId,
           );
     return Object.freeze({
-      schemaVersion: 1,
+      schemaVersion: 2,
       sensitivity: "contains-production-seed",
       presetId: trace.presetId,
       snapshotId: trace.snapshotId,
@@ -512,6 +526,18 @@ export class DuelWorkerRuntime {
         ? {}
         : { pendingPromptId: lastPrompt.promptId }),
     });
+  }
+
+  get replacementRequired(): boolean {
+    return this.#replacementRequired;
+  }
+
+  diagnosticTrace(): DuelDiagnosticTrace | null {
+    try {
+      return this.#diagnosticTrace();
+    } catch {
+      return null;
+    }
   }
 
   #requireResources(): DuelRuntimeResources {

@@ -13,6 +13,8 @@ test("MVP asset command runs every online acquisition and verification stage in 
       "verifyDataScriptsAndStrings",
       "downloadCardImages",
       "verifyCardImages",
+      "generateRuntimeSnapshot",
+      "verifyRuntimeSnapshot",
     ],
   );
 });
@@ -23,7 +25,7 @@ test("offline MVP asset command performs no network image stage", () => {
   assert.deepEqual(stages[0]?.args, ["--offline"]);
   assert.deepEqual(stages[2]?.args, ["--offline"]);
   assert.equal(stages.some((stage) => stage.name === "downloadCardImages"), false);
-  assert.equal(stages.at(-1)?.name, "verifyCardImages");
+  assert.equal(stages.at(-1)?.name, "verifyRuntimeSnapshot");
 });
 
 test("MVP asset options enforce the provider request ceiling", () => {

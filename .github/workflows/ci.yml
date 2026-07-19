@@ -38,6 +38,22 @@ jobs:
       - run: npm ci
       - name: Regenerate and verify the pinned snapshot
         run: npm run assets:mvp -- --concurrency 8 --requests-per-second 8
+      - name: Verify an isolated offline headless checkout
+        shell: bash
+        run: |
+          isolated="$RUNNER_TEMP/ygo-story-duel-isolated"
+          mkdir -p "$isolated"
+          rsync -a --delete \
+            --exclude .git \
+            --exclude .agentsystem \
+            --exclude .pi \
+            --exclude node_modules \
+            --exclude dist \
+            --exclude test-results \
+            ./ "$isolated/"
+          cd "$isolated"
+          npm ci --offline
+          npm run check:headless
       - name: Install supported browser engines
         run: npx playwright install --with-deps chromium firefox webkit
       - name: Run protocol, asset, Worker, build, and browser gates

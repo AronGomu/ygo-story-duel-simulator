@@ -7,7 +7,7 @@ import {
   type RuntimeSnapshotManifest,
 } from "./runtime-manifest.ts";
 
-interface AssetManifest {
+export interface AssetManifest {
   readonly schemaVersion: number;
   readonly generatedAt: string;
   readonly sources: {
@@ -51,14 +51,9 @@ export async function buildRuntimeSnapshotManifest(
     throw new Error("Unsupported vendored engine manifest");
   }
   const assetManifestSha256 = sha256(assetBytes);
+  const assetContentSha256 = runtimeAssetContentSha256(assets);
   const engineManifestSha256 = sha256(vendorBytes);
-  const id = sha256(
-    JSON.stringify({
-      schemaVersion: 1,
-      assetManifestSha256,
-      engineManifestSha256,
-    }),
-  );
+  const id = deriveRuntimeSnapshotId(assetContentSha256, engineManifestSha256);
 
   return parseRuntimeSnapshotManifest({
     schemaVersion: 1,
@@ -80,6 +75,29 @@ export async function buildRuntimeSnapshotManifest(
       files: assets.files,
     },
   });
+}
+
+export function runtimeAssetContentSha256(assets: AssetManifest): string {
+  return sha256(
+    JSON.stringify({
+      schemaVersion: assets.schemaVersion,
+      sources: assets.sources,
+      files: assets.files,
+    }),
+  );
+}
+
+export function deriveRuntimeSnapshotId(
+  assetContentSha256: string,
+  engineManifestSha256: string,
+): string {
+  return sha256(
+    JSON.stringify({
+      schemaVersion: 1,
+      assetContentSha256,
+      engineManifestSha256,
+    }),
+  );
 }
 
 export async function verifyRuntimeSnapshotFiles(

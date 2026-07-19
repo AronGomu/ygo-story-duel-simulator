@@ -54,15 +54,28 @@ export interface EnginePromptBinding {
   readonly resolve: (choiceIds: readonly ChoiceId[]) => EngineResponse;
 }
 
+export interface PromptDiagnostic {
+  readonly type: "missing_text";
+  readonly reference: string;
+}
+
+export type PromptDiagnosticSink = (diagnostic: PromptDiagnostic) => void;
+
 export class PromptRegistry {
   readonly #dependencies: ActiveDuelDependencies;
   readonly #idNamespace: string;
+  readonly #onDiagnostic: PromptDiagnosticSink;
   #sequence = 0;
   #current: EnginePromptBinding | null = null;
 
-  constructor(dependencies: ActiveDuelDependencies, idNamespace = "") {
+  constructor(
+    dependencies: ActiveDuelDependencies,
+    idNamespace = "",
+    onDiagnostic: PromptDiagnosticSink = () => undefined,
+  ) {
     this.#dependencies = dependencies;
     this.#idNamespace = idNamespace;
+    this.#onDiagnostic = onDiagnostic;
   }
 
   publish(message: EngineMessage): PlayerPrompt | null {
@@ -71,6 +84,7 @@ export class PromptRegistry {
       ++this.#sequence,
       this.#dependencies,
       this.#idNamespace,
+      this.#onDiagnostic,
     );
     if (binding === null) return null;
     this.#current = binding;
@@ -115,22 +129,33 @@ export function buildEnginePrompt(
   sequence: number,
   dependencies: ActiveDuelDependencies,
   idNamespace = "",
+  onDiagnostic: PromptDiagnosticSink = () => undefined,
 ): EnginePromptBinding | null {
   const raw = buildRawEnginePrompt(
     message,
     sequence,
     dependencies,
     idNamespace,
+    onDiagnostic,
   );
   if (raw === null) return null;
   const contextCard =
     message.type === EngineMessageType.SELECT_EFFECT_YES_NO
       ? toPromptCard(message)
       : raw.prompt.contextCard;
+  const effectMessage =
+    message.type === EngineMessageType.SELECT_EFFECT_YES_NO &&
+    message.description !== 0n
+      ? describeOption(message.description, dependencies, onDiagnostic)
+      : undefined;
   return {
     ...raw,
     prompt: enrichPlayerPrompt(
-      contextCard === undefined ? raw.prompt : { ...raw.prompt, contextCard },
+      {
+        ...raw.prompt,
+        ...(contextCard === undefined ? {} : { contextCard }),
+        ...(effectMessage === undefined ? {} : { message: effectMessage }),
+      },
       dependencies,
     ),
   };
@@ -141,14 +166,19 @@ function buildRawEnginePrompt(
   sequence: number,
   dependencies: ActiveDuelDependencies,
   idNamespace = "",
+  onDiagnostic: PromptDiagnosticSink = () => undefined,
 ): EnginePromptBinding | null {
   const id = promptId(
     idNamespace.length === 0
       ? `prompt-${sequence}`
       : `${idNamespace}-prompt-${sequence}`,
   );
-  const text = (code: number): string =>
-    dependencies.texts.get(code)?.name ?? `Card ${code}`;
+  const text = (code: number): string => {
+    const value = dependencies.texts.get(code)?.name;
+    if (value !== undefined) return value;
+    onDiagnostic({ type: "missing_text", reference: `card:${code}` });
+    return `Card ${code}`;
+  };
 
   switch (message.type) {
     case EngineMessageType.SELECT_IDLE_COMMAND: {
@@ -290,7 +320,7 @@ function buildRawEnginePrompt(
           id,
           index,
           "select",
-          describeOption(option, dependencies),
+          describeOption(option, dependencies, onDiagnostic),
           String(option),
         ),
       );
@@ -1177,11 +1207,21 @@ function positionLabel(position: number): string {
 function describeOption(
   option: bigint,
   dependencies: ActiveDuelDependencies,
+  onDiagnostic: PromptDiagnosticSink,
 ): string {
   const code = Number(option >> 20n);
   const index = Number(option & 0xfffffn);
   const text = dependencies.texts.get(code);
-  return text?.strings[index] || text?.name || `Option ${option}`;
+  const value =
+    text?.strings[index] ||
+    text?.name ||
+    (code === 0 ? dependencies.strings.system[String(index)] : undefined);
+  if (value !== undefined) return value;
+  onDiagnostic({
+    type: "missing_text",
+    reference: `option:${option.toString()}`,
+  });
+  return `Option ${option}`;
 }
 
 function bits(mask: bigint): bigint[] {

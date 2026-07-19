@@ -20,6 +20,14 @@ export const MVP_DECK_CONSTRAINTS: DeckConstraints = {
   allowSide: false,
 };
 
+// Exact reviewed card pool for the bundled preset-only MVP. Changing this
+// list requires intentional deck/transcript/compatibility review.
+export const MVP_SUPPORTED_CARD_CODES: ReadonlySet<number> = new Set([
+  4031928, 4206964, 5053103, 5758500, 12580477, 13039848, 15025844, 17814387,
+  30113682, 32274490, 32452818, 40640057, 41762634, 44095762, 70781052,
+  75356564, 76103675, 83764718, 84257639, 89631139, 91152256, 97590747,
+]);
+
 export function parseYdk(source: string): ParsedDeck {
   const sections: Record<"main" | "extra" | "side", CardCode[]> = {
     main: [],
@@ -70,6 +78,7 @@ export function validateDeck(
   deck: ParsedDeck,
   catalogCodes: ReadonlySet<number>,
   constraints: DeckConstraints = MVP_DECK_CONSTRAINTS,
+  cardData?: ReadonlyMap<number, { readonly type: number }>,
 ): void {
   if (
     deck.main.length < constraints.minimumMain ||
@@ -92,6 +101,18 @@ export function validateDeck(
     throw new Error(
       `Deck references missing card code(s): ${[...new Set(missing)].join(", ")}`,
     );
+  }
+
+  if (cardData !== undefined) {
+    const unsupported = [...new Set([...deck.main, ...deck.extra])].filter(
+      (code) =>
+        cardData.get(code) === undefined || !MVP_SUPPORTED_CARD_CODES.has(code),
+    );
+    if (unsupported.length > 0) {
+      throw new Error(
+        `Deck uses card(s) outside the reviewed MVP pool: ${unsupported.join(", ")}`,
+      );
+    }
   }
 }
 

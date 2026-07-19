@@ -39,6 +39,13 @@ describe("headless duel handle lifecycle", () => {
     expect(session.disposed).toBe(true);
     expect(harness.counters).toEqual({ createDuel: 1, destroyDuel: 1 });
     expect(harness.activeHandles()).toBe(0);
+    expect(controller.trace().entries).toContainEqual(
+      expect.objectContaining({
+        kind: "process",
+        status: EngineProcess.END,
+        detail: "iteration 1 of 1",
+      }),
+    );
     expect(controller.trace().entries.at(-1)).toMatchObject({
       kind: "lifecycle",
       detail: "session_closed:completed",

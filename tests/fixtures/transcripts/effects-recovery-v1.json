@@ -3,7 +3,7 @@
   "scenarioId": "effects-recovery-and-position",
   "responseCount": 141,
   "runCount": 63,
-  "expectedTraceSha256": "103fbdafa1f692b09835a457b9ed366c3f3bb730f3a34f572a1b13e5b6733418",
+  "expectedTraceSha256": "3c65f52dc59478e2776380b73c71cf23f2899e983554b7e832f848cb8862f4b4",
   "runs": [
     {
       "prompt": "idleCommand",

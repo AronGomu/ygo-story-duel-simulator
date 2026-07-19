@@ -18,7 +18,7 @@ const imageCache = {
 } as const;
 
 const trace: DuelDiagnosticTrace = {
-  schemaVersion: 1,
+  schemaVersion: 2,
   sensitivity: "contains-production-seed",
   presetId: "mvp-preset-v1",
   snapshotId: snapshotId("a".repeat(64)),
@@ -62,7 +62,7 @@ describe("downloadable duel diagnostics", () => {
         now: () => new Date("2026-07-13T00:00:00.000Z"),
       }),
     ).toEqual({
-      schemaVersion: 1,
+      schemaVersion: 2,
       sensitivity: "contains-production-seed",
       generatedAt: "2026-07-13T00:00:00.000Z",
       application: {

@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { vendoredMessageTypes } from "../../src/worker/engine/OcgCoreAdapter.ts";
 import {
   classifyEngineMessage,
+  INTERNAL_MESSAGE_RATIONALE,
   PINNED_MESSAGE_CLASSIFICATION,
   PINNED_MESSAGE_TYPES,
 } from "../../src/worker/protocol/message-classification.ts";
@@ -20,6 +21,20 @@ describe("pinned protocol compatibility inventory", () => {
         classifyEngineMessage(type),
       );
     }
+  });
+
+  it("documents why every internal message needs no presentation", () => {
+    const internalTypes = Object.entries(PINNED_MESSAGE_CLASSIFICATION)
+      .filter(([, classification]) => classification === "internal")
+      .map(([type]) => Number(type));
+    expect(Object.keys(INTERNAL_MESSAGE_RATIONALE).map(Number).sort()).toEqual(
+      internalTypes.sort(),
+    );
+    expect(
+      Object.values(INTERNAL_MESSAGE_RATIONALE).every(
+        (rationale) => rationale.length > 40,
+      ),
+    ).toBe(true);
   });
 
   it("rejects unknown future message constants instead of guessing", () => {

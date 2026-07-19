@@ -137,6 +137,35 @@ export class NodeDuelWorkerHarness {
     }
   }
 
+  async initializeWithin(
+    timeoutMs = DEFAULT_WAIT_TIMEOUT_MS,
+  ): Promise<unknown> {
+    const afterSequence = this.cursor;
+    this.post({ type: "initialize" });
+    try {
+      const message = await this.waitForMessage(
+        (value) => {
+          const type = workerEventType(value);
+          return type === "ready" || type === "error";
+        },
+        { afterSequence, timeoutMs },
+      );
+      if (workerEventType(message) === "error")
+        throw new Error("Duel Worker initialization failed");
+      return message;
+    } catch (error) {
+      try {
+        if (this.#exitCode === undefined) await this.#forceTerminate(timeoutMs);
+      } catch (terminationError) {
+        throw new AggregateError(
+          [error, terminationError],
+          "Duel Worker initialization and forced termination both failed",
+        );
+      }
+      throw error;
+    }
+  }
+
   waitForMessage(
     predicate: MessagePredicate,
     options: MessageWaitOptions = {},

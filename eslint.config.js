@@ -9,6 +9,8 @@ export default tseslint.config(
       ".agentsystem/**",
       ".cache/**",
       ".pi/**",
+      ".github/skills/**",
+      ".github/hooks/**",
       "coverage/**",
       "dist*/**",
       "generated/**",
@@ -44,6 +46,7 @@ export default tseslint.config(
         __APP_BUILD_ID__: "readonly",
         __ACTIVE_IMAGE_MANIFEST_SHA256__: "readonly",
         __ACTIVE_IMAGE_MANIFEST__: "readonly",
+        __ACTIVE_CARD_TEXTS__: "readonly",
         __RUNTIME_REVISIONS__: "readonly",
       },
       parserOptions: {

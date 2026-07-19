@@ -19,7 +19,7 @@ export function buildDownloadableDiagnostics(
   environment: DiagnosticEnvironment,
 ): DownloadableDuelDiagnostics {
   return Object.freeze({
-    schemaVersion: 1,
+    schemaVersion: 2,
     sensitivity: "contains-production-seed",
     generatedAt: (environment.now ?? (() => new Date()))().toISOString(),
     application: Object.freeze({

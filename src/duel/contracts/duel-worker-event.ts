@@ -723,7 +723,7 @@ function validateDiagnosticTrace(value: unknown): void {
     ],
     "diagnostics",
   );
-  if (trace.schemaVersion !== 1) throw invalid("diagnostics.schemaVersion");
+  if (trace.schemaVersion !== 2) throw invalid("diagnostics.schemaVersion");
   if (trace.sensitivity !== "contains-production-seed")
     throw invalid("diagnostics.sensitivity");
   const presetId = requireString(
@@ -779,6 +779,8 @@ function validateDiagnosticTrace(value: unknown): void {
     "response",
     "result",
     "error",
+    "engineDiagnostic",
+    "promptDiagnostic",
     "lifecycle",
   ]);
   entries.forEach((entry, index) => {
@@ -790,6 +792,7 @@ function validateDiagnosticTrace(value: unknown): void {
         "sequence",
         "kind",
         "status",
+        "diagnosticType",
         "messageType",
         "promptId",
         "choiceIds",
@@ -810,6 +813,13 @@ function validateDiagnosticTrace(value: unknown): void {
       requireSafeInteger(
         record.status,
         `${label}.status`,
+        0,
+        Number.MAX_SAFE_INTEGER,
+      );
+    if (record.diagnosticType !== undefined)
+      requireSafeInteger(
+        record.diagnosticType,
+        `${label}.diagnosticType`,
         0,
         Number.MAX_SAFE_INTEGER,
       );

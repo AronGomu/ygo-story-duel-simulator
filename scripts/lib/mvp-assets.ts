@@ -80,6 +80,16 @@ export function buildAssetStages(options: MvpAssetOptions): AssetStage[] {
       ? []
       : [{ name: "downloadCardImages", script: "download-images.ts", args: imageArguments }]),
     { name: "verifyCardImages", script: "verify-images.ts", args: [] },
+    {
+      name: "generateRuntimeSnapshot",
+      script: "generate-runtime-snapshot.ts",
+      args: [],
+    },
+    {
+      name: "verifyRuntimeSnapshot",
+      script: "verify-runtime-snapshot.ts",
+      args: [],
+    },
   ];
 }
 

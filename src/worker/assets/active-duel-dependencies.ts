@@ -40,6 +40,19 @@ export interface ActiveDuelAssetReader {
   readJson<T>(relativePath: string): Promise<T>;
 }
 
+export type ActiveDependencyArtifactGroup =
+  | "catalog"
+  | "texts"
+  | "images"
+  | "scriptIndex"
+  | "globalScripts"
+  | "cardScripts"
+  | "strings";
+
+export type ActiveDependencyProgress = (
+  group: ActiveDependencyArtifactGroup,
+) => void;
+
 interface AssetCardRecord {
   readonly code: number;
   readonly alias: number;
@@ -58,6 +71,7 @@ interface AssetCardRecord {
 export async function loadActiveDuelDependencies(
   reader: ActiveDuelAssetReader,
   requestedCodes: ReadonlySet<CardCode>,
+  onProgress: ActiveDependencyProgress = () => undefined,
 ): Promise<ActiveDuelDependencies> {
   const pending = new Set<number>(requestedCodes);
   const cardRecords = new Map<number, AssetCardRecord>();
@@ -92,19 +106,40 @@ export async function loadActiveDuelDependencies(
     }
   }
 
+  onProgress("catalog");
   const allCodes = new Set(cardRecords.keys());
   const [texts, images, scriptIndex, globalScripts, strings] =
     await Promise.all([
-      loadRecords<ActiveCardText>(reader, "catalog/texts/en", allCodes, 64),
-      loadRecords<ActiveImageRecord>(reader, "images", allCodes, 64),
-      reader.readJson<{
-        official: string[];
-        preRelease: string[];
-        globals: string[];
-        shardCount: number;
-      }>("scripts/index.json"),
-      reader.readJson<Record<string, string>>("scripts/globals.json"),
-      reader.readJson<ActiveSystemStrings>("strings/en.json"),
+      trackGroup(
+        "texts",
+        loadRecords<ActiveCardText>(reader, "catalog/texts/en", allCodes, 64),
+        onProgress,
+      ),
+      trackGroup(
+        "images",
+        loadRecords<ActiveImageRecord>(reader, "images", allCodes, 64),
+        onProgress,
+      ),
+      trackGroup(
+        "scriptIndex",
+        reader.readJson<{
+          official: string[];
+          preRelease: string[];
+          globals: string[];
+          shardCount: number;
+        }>("scripts/index.json"),
+        onProgress,
+      ),
+      trackGroup(
+        "globalScripts",
+        reader.readJson<Record<string, string>>("scripts/globals.json"),
+        onProgress,
+      ),
+      trackGroup(
+        "strings",
+        reader.readJson<ActiveSystemStrings>("strings/en.json"),
+        onProgress,
+      ),
     ]);
   if (scriptIndex.shardCount !== 256)
     throw new Error(
@@ -141,6 +176,7 @@ export async function loadActiveDuelDependencies(
       throw new Error(`Indexed active card script is missing: ${scriptName}`);
     scripts.set(scriptName, script);
   }
+  onProgress("cardScripts");
 
   for (const globalName of scriptIndex.globals) {
     if (!scripts.has(globalName))
@@ -218,6 +254,16 @@ async function loadRecords<T extends { readonly code: number }>(
     }),
   );
   return result;
+}
+
+async function trackGroup<T>(
+  group: ActiveDependencyArtifactGroup,
+  operation: Promise<T>,
+  onProgress: ActiveDependencyProgress,
+): Promise<T> {
+  const value = await operation;
+  onProgress(group);
+  return value;
 }
 
 function shardName(code: number, count: number): string {

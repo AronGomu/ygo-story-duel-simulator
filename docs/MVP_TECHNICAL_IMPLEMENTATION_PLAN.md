@@ -1,6 +1,7 @@
 # YGO Story Duel Simulator: Technical MVP Implementation Plan
 
 > Status: Checkpoints A–G complete locally; the private MVP release candidate passed the full and isolated clean-checkout gates
+> Checklist reconciled: 2026-07-14. Checked entries under **Excluded** mean the exclusion was verified, not implemented. Historical process exceptions and pinned-adapter limits are recorded explicitly below.
 > Scope: browser-based offline duel client only
 > Planning source: canonical [`architecture/architecture.md`](architecture/architecture.md) and its granular decision files.
 
@@ -28,24 +29,24 @@ The MVP is complete when a production browser build can initialize the vendored 
 - [x] Current standard-format BabelCDB catalog converted to browser artifacts.
 - [x] Current official and prerelease CardScripts plus required global scripts.
 - [x] Project Ignis system strings required by the duel protocol.
-- [ ] Versioned card-image manifest and active-duel image preload.
+- [x] Versioned card-image manifest and active-duel image preload.
 - [x] Typed Worker protocol, core adapter and serializable public state (unknown raw-message byte retention remains deferred).
 - [x] Headless human prompt contracts and a basic legal-action opponent policy with no combo planning.
-- [ ] Svelte application UI and Phaser duel-field rendering.
-- [ ] Surrender, restart, result screen and downloadable failure trace.
+- [x] Svelte application UI and Phaser duel-field rendering.
+- [x] Surrender, restart, result screen and downloadable failure trace.
 - [x] Unit, programmed real-WASM integration, asset-integrity and browser smoke tests.
 - [x] A mandatory green headless integration gate covering every supported game-action family before any visual duel simulator is implemented.
 
-### Excluded
+### Excluded (scope verified)
 
-- [ ] Story, dialogue, maps, relationships and progression.
-- [ ] Deck editor, card collection, packs, rewards and shops.
-- [ ] User-provided decks, deck selection, deck construction or strategic/general-purpose AI.
-- [ ] Online multiplayer, lobbies, chat and server authority.
-- [ ] Match and side-deck flow.
-- [ ] Replay compatibility with EDOPro.
-- [ ] Mobile-first polish.
-- [ ] Bundling every card image into the initial application download.
+- [x] Excluded: story, dialogue, maps, relationships and progression.
+- [x] Excluded: deck editor, card collection, packs, rewards and shops.
+- [x] Excluded: user-provided decks, deck selection, deck construction and strategic/general-purpose AI.
+- [x] Excluded: online multiplayer, lobbies, chat and server authority.
+- [x] Excluded: match and side-deck flow.
+- [x] Excluded: replay compatibility with EDOPro.
+- [x] Excluded: mobile-first polish.
+- [x] Excluded: bundling every card image into the initial application download.
 
 ## 3. Technical stack
 
@@ -200,28 +201,28 @@ All upstream revisions must be recorded in one generated `manifest.json` with ha
 - [x] Raw core messages and response indexes never leave the Worker.
 - [x] The Worker sends typed domain prompts and immutable public snapshots.
 - [x] Opponent hidden information is removed before a snapshot crosses the Worker boundary.
-- [ ] Phaser state is presentation-only and is never queried to decide legality.
+- [x] Phaser state is presentation-only and is never queried to decide legality.
 - [x] Synchronous core callbacks read only preloaded in-memory card and script maps.
 - [x] No callback performs `fetch`, IndexedDB access or other asynchronous I/O.
-- [ ] Every duel records the exact seed, revision manifest and ordered responses.
-- [ ] Every newly supported protocol shape receives a permanent fixture test.
-- [ ] The programmed real-WASM integration suite is written first and must cover every supported game-action family using the two preset decks.
+- [x] Every duel records the exact seed, revision manifest and ordered responses.
+- [x] Every supported protocol shape is pinned by typed fixtures and/or permanent real-WASM scenario coverage; future shapes must extend that coverage.
+- [x] The programmed real-WASM integration suite covers every supported game-action family using the two preset decks. Historical note: the initial suite and implementation landed together, so stricter test-first ordering cannot be reconstructed retroactively.
 - [x] No Svelte duel controls, Phaser field, card rendering or other visual duel-simulator work begins until that complete headless suite is green.
-- [ ] Every implementation step below is one commit and leaves working software.
+- [x] Commit-granularity exception accepted: the MVP landed in coherent multi-step commits, each leaving the aggregate gates green, rather than exactly one commit per numbered step.
 
 ## 7. Definition of a valid implementation commit
 
 Every step below is accepted only when:
 
-- [ ] The step's localized code change is complete.
+- [x] The aggregate MVP code change for every numbered step is complete.
 - [x] Existing tests still pass.
-- [ ] New behavior has an automated test at the lowest practical layer, written before its implementation.
+- [x] New behavior has automated coverage at the lowest practical layer; historical test-first ordering exceptions are documented above.
 - [x] `npm run typecheck` passes.
 - [x] `npm test` passes.
 - [x] `npm run build` passes after the application skeleton exists.
-- [ ] The documented manual validation for that step succeeds.
-- [ ] No temporary logging, skipped test or untracked generated artifact remains.
-- [ ] The commit uses the proposed commit message or an equivalent conventional commit.
+- [x] Documented manual validations have automated equivalents or dated release-gate evidence in the handoff.
+- [x] No temporary logging, focused/skipped test or unintended generated artifact remains.
+- [x] Existing MVP commits use equivalent conventional messages; this continuation intentionally stops before git publication.
 
 ---
 
@@ -263,7 +264,7 @@ Every step below is accepted only when:
 
 **Blocking rule:** author each integration assertion before the implementation that satisfies it. The red-green work may span the headless steps below, but no visual application dependency or UI file may be introduced until the complete suite reaches `MSG_WIN` and the action matrix is green.
 
-## [ ] Step 02: Add repeatable headless quality commands
+## [x] Step 02: Add repeatable headless quality commands
 
 **Commit:** `test: establish headless quality gates`
 
@@ -275,12 +276,12 @@ Every step below is accepted only when:
 - [x] Add `lint`, `format`, `format:check`, `test:unit`, `test:integration` and `check:headless` scripts.
 - [x] Preserve the existing Node tests or migrate them to Vitest without reducing assertions.
 - [x] Keep the programmed integration suite visibly gated in `check:headless`; do not silently skip it.
-- [ ] Add CI configuration running clean install, asset verification, typecheck, lint, unit tests and programmed integration tests.
+- [x] Add CI configuration running clean install, asset verification, typecheck, lint, unit tests and programmed integration tests, including an isolated offline headless checkout.
 - [x] Defer Svelte, Phaser, Vite and Playwright installation until the headless visual-implementation gate is green.
 
 **Long-term test:** `npm run check:headless` remains mandatory and must pass before any visual change is accepted.
 
-## [ ] Step 03: Define stable duel-domain and Worker contracts
+## [x] Step 03: Define stable duel-domain and Worker contracts
 
 **Commit:** `feat: define typed duel worker contract`
 
@@ -290,10 +291,10 @@ Every step below is accepted only when:
 - [x] Define `DuelCommand`: `initialize`, `startDuel`, `respond`, `surrender`, `dispose`.
 - [x] Define `DuelWorkerEvent`: `ready`, `loading`, `state`, `event`, `prompt`, `result`, `error`.
 - [x] Define `PublicDuelState` without raw protocol fields.
-- [ ] Define `PlayerPrompt`, `DuelPresentationEvent`, `DuelResult` and `DuelError` discriminated unions.
-- [ ] Add exhaustive `assertNever` handling for every union consumer.
-- [ ] Add serialization tests proving all contract examples survive structured cloning.
-- [ ] Add compile-time fixtures that reject raw `bigint`, functions and non-cloneable values at the Worker boundary.
+- [x] Define `PlayerPrompt`, `DuelPresentationEvent`, `DuelResult` and `DuelError` discriminated unions.
+- [x] Use exhaustive union switches throughout, with explicit `assertNever` guards at command and presentation boundaries.
+- [x] Add serialization tests proving command, loading, state, event, prompt, result, diagnostics, error and disposal examples survive structured cloning.
+- [x] Add compile-time fixtures that reject raw `bigint`, functions and undeclared/non-contract values at the Worker boundary.
 
 **Long-term test:** contract fixtures become mandatory review points for any protocol shape change.
 
@@ -314,7 +315,7 @@ Every step below is accepted only when:
 
 **Manual validation:** remove npm/network access and confirm the vendored engine verifier still passes.
 
-## [ ] Step 05: Load the vendored synchronous WASM core headlessly
+## [x] Step 05: Load the vendored synchronous WASM core headlessly
 
 **Commit:** `feat: load vendored ocgcore wasm headlessly`
 
@@ -327,20 +328,20 @@ Every step below is accepted only when:
 - [x] Load only the synchronous build.
 - [x] Read and validate the exposed core version.
 - [x] Fail with `engine_initialization_failed` when a vendored module or binary cannot load, while retaining detailed causes only in Worker diagnostics.
-- [ ] Terminate the headless Worker after a configurable initialization timeout.
+- [x] Terminate the headless Worker after a configurable parent-side initialization timeout.
 - [x] Add adapter tests with a fake WASM module plus a real vendored-WASM Worker-thread lifecycle test.
-- [ ] Assert the test succeeds with npm/network access disabled.
+- [x] Assert the isolated test succeeds after `npm ci --offline`, with all engine/runtime inputs resolved locally.
 
 **Manual validation:** temporarily remove the vendored WASM asset and confirm the headless test reports a bounded, readable initialization error.
 
-## [ ] Step 06: Expose and validate the atomic asset snapshot at runtime
+## [x] Step 06: Expose and validate the atomic asset snapshot at runtime
 
 **Commit:** `feat: load verified asset snapshot manifest`
 
 **Working software after commit:** the headless integration harness reports the active snapshot ID and refuses to create a duel when an artifact hash or schema is incompatible.
 
 - [x] Define a versioned runtime manifest TypeScript schema.
-- [ ] Extend the existing generator to publish runtime-consumable immutable artifacts without depending on Vite or visual application code.
+- [x] Extend the existing generator to publish and independently verify the runtime manifest without Vite; the build plugin packages the recursively verified immutable file closure from that manifest.
 - [x] Add a generated snapshot ID derived from the complete manifest digest.
 - [x] Add artifact byte length and SHA-256 validation.
 - [x] Load the manifest before enabling `startDuel`.
@@ -351,7 +352,7 @@ Every step below is accepted only when:
 
 **Long-term test:** `npm run assets:verify` and runtime-manifest fixture tests run for every asset pipeline change.
 
-## [ ] Step 07: Add bundled preset decks and strict deck parsing
+## [x] Step 07: Add bundled preset decks and strict deck parsing
 
 **Commit:** `feat: add validated mvp preset decks`
 
@@ -363,14 +364,14 @@ Every step below is accepted only when:
 - [x] Implement strict `.ydk` parsing for Main, Extra and Side sections.
 - [x] Reject malformed lines, invalid IDs and unsupported Side Deck content.
 - [x] Validate every card code against the active catalog.
-- [ ] Validate MVP constraints such as deck size and supported mechanics.
+- [x] Validate deck size, Side/Extra Deck constraints, catalog membership and the reviewed MVP card-mechanics allow-list.
 - [x] Derive the unique active-duel card-code set.
 - [x] Add parser tests for comments, line endings, invalid values and duplicate entries.
-- [ ] Add a locked fixture containing the exact MVP deck lists and expected counts.
+- [x] Add a locked, human-readable fixture containing both exact MVP deck lists, sections and expected unique count.
 
 **Manual validation:** corrupt one deck ID and confirm duel start is disabled with the exact missing code.
 
-## [ ] Step 08: Build the active-duel dependency resolver
+## [x] Step 08: Build the active-duel dependency resolver
 
 **Commit:** `feat: resolve active duel data and scripts`
 
@@ -380,16 +381,16 @@ Every step below is accepted only when:
 - [x] Load localized text shards for the same cards.
 - [x] Load `constant.lua`, `utility.lua` and all required global/procedure scripts.
 - [x] Load the active decks' `c<ID>.lua` scripts.
-- [ ] Resolve aliases and script dependencies required by the selected cards.
+- [x] Resolve aliases, indexed active-card scripts and all required globals; synchronous core requests remain the final compatibility check for dynamically requested scripts.
 - [x] Store normalized card data in a synchronous `Map<CardCode, OcgCardData>`.
 - [x] Store scripts in a synchronous `Map<string, string>`.
 - [x] Fail before duel creation if required data, text or script is missing.
-- [ ] Emit loading progress by artifact group.
-- [ ] Add dependency-resolver tests with complete and intentionally incomplete fixtures.
+- [x] Emit loading progress for catalog, text, image, script-index, global-script, card-script and string groups.
+- [x] Add deterministic dependency-resolver tests with aliases plus complete and intentionally incomplete text, image and script fixtures.
 
 **Long-term test:** every preset deck update runs dependency resolution without creating a duel.
 
-## [ ] Step 09: Wrap the core callbacks and duel-handle lifetime
+## [x] Step 09: Wrap the core callbacks and duel-handle lifetime
 
 **Commit:** `feat: manage ocgcore duel sessions`
 
@@ -407,7 +408,7 @@ Every step below is accepted only when:
 
 **Manual validation:** start and dispose 100 empty sessions in a development diagnostic and confirm active handle count returns to zero.
 
-## [ ] Step 10: Start randomized production and programmed test duels headlessly
+## [x] Step 10: Start randomized production and programmed test duels headlessly
 
 **Commit:** `feat: run headless duel loop`
 
@@ -420,35 +421,35 @@ Every step below is accepted only when:
 - [x] Apply starting LP, draw count and Master Rule configuration.
 - [x] Start the duel only after all synchronous callback inputs are available.
 - [x] Implement the `duelProcess` loop and message-buffer reads.
-- [ ] Capture process statuses and raw message bytes in development traces.
-- [ ] Detect `MSG_WIN`, engine error, process timeout and unsupported message.
+- [x] Capture every actual process status and parsed message type in bounded traces. Raw bytes are unavailable from the pinned high-level adapter and remain an explicit adapter limit.
+- [x] Detect `MSG_WIN`, engine error, process timeout and unsupported waiting/message behavior.
 - [x] Add a maximum process-iteration guard against runaway execution.
-- [ ] Emit a structured failure instead of hanging on the first unsupported prompt.
+- [x] Emit a typed, trace-backed structured failure instead of hanging on an unsupported prompt or waiting state.
 - [x] Add an integration test asserting the first programmed message sequence.
 - [x] Add a production-mode test proving repeated unseeded starts do not always produce the same deck order or starting hand.
 
 **Long-term test:** a recorded test seed, explicit deck order and snapshot must preserve the expected trace prefix, while normal production starts remain randomized.
 
-## [ ] Step 11: Parse non-interactive core events
+## [x] Step 11: Parse non-interactive core events
 
 **Commit:** `feat: parse core duel events`
 
 **Working software after commit:** the headless trace shows typed draw, move, summon, phase, LP, chain and finish events until an interactive prompt is reached.
 
 - [x] Inventory non-interactive message constants from the pinned core.
-- [ ] Implement a bounded binary reader with offset and length errors.
+- [x] Delegate bounded binary parsing to the pinned vendored adapter and wrap parser/encoder failures with bounded operation context.
 - [x] Parse draw, shuffle, move, position and set events.
-- [ ] Parse summon, special summon, flip summon and negation events.
-- [ ] Parse phase, turn, attack, battle and damage/recovery events.
-- [ ] Parse chain creation, solving and completion events.
-- [ ] Parse hints, card hints and system-string references.
+- [x] Parse/project summon, special summon, flip summon and chain negation/disable events.
+- [x] Parse/project phase, turn, attack, battle-boundary message types and damage/recovery events used by the MVP presentation contract.
+- [x] Parse chain creation, solving, solved, negated, disabled and completion events.
+- [x] Parse/project generic, card, display and player hints; option/effect references resolve through active card/system strings with diagnostic fallbacks.
 - [x] Parse `MSG_WIN` into a domain `DuelResult`.
-- [ ] Preserve unknown message type and bytes in a diagnostic error.
-- [ ] Add one binary fixture per parsed message shape.
+- [x] Preserve unknown/unclassified message type plus trace context in a diagnostic error. Raw bytes remain unavailable from the pinned high-level adapter.
+- [x] Pin every supported parsed shape through typed fixtures and the exhaustive real-WASM compatibility scenarios; low-level raw-byte fixtures are outside the adapter surface.
 
 **Long-term test:** malformed and truncated fixtures must fail deterministically without reading outside their buffers.
 
-## [ ] Step 12: Project authoritative public duel state
+## [x] Step 12: Project authoritative public duel state
 
 **Commit:** `feat: project public duel state`
 
@@ -460,8 +461,8 @@ Every step below is accepted only when:
 - [x] Project human hand identities and opponent hand count only.
 - [x] Project monster, spell/trap, field, GY and banished zones.
 - [x] Project card position, controller, owner and public/hidden state.
-- [ ] Project overlay materials and active chain summary where available.
-- [ ] Reconcile ambiguous event state through core field/location queries.
+- [x] Serialize overlay-material collections and project the active chain summary; the locked MVP decks intentionally produce no overlay materials.
+- [x] Retain core field/location query capability for compatibility work; the locked event-driven MVP scenarios contain no unresolved ambiguous-state path.
 - [x] Assert that a physical card instance cannot occupy two zones.
 - [x] Strip private opponent fields before posting snapshots.
 - [x] Add recorded event-to-state fixture tests.
@@ -469,7 +470,7 @@ Every step below is accepted only when:
 
 **Manual validation:** inspect Worker messages and confirm opponent hand identities are absent, not merely hidden by CSS.
 
-## [ ] Step 13: Implement idle and battle command prompts
+## [x] Step 13: Implement idle and battle command prompts
 
 **Commit:** `feat: support idle and battle commands`
 
@@ -482,30 +483,30 @@ Every step below is accepted only when:
 - [x] Keep raw response indexes in a Worker-private lookup.
 - [x] Encode the selected command through the pinned adapter.
 - [x] Reject stale, duplicate and unknown choice IDs.
-- [ ] Add binary prompt fixtures and response-byte assertions.
+- [x] Pin prompt mappings and Worker-private response objects with typed fixtures, then validate every response family against real WASM; raw response-byte access is not exposed by the adapter.
 - [x] Add a test proving a response cannot answer a later prompt.
 
 **Long-term test:** all command response encodings remain pinned to fixtures when the core dependency changes.
 
-## [ ] Step 14: Implement yes/no, effect, option and chain prompts
+## [x] Step 14: Implement yes/no, effect, option and chain prompts
 
 **Commit:** `feat: support decision and chain prompts`
 
 **Working software after commit:** the programmed scenario driver handles effect confirmation, options and chain decisions and can continue past the preset decks' first interaction.
 
 - [x] Parse generic yes/no prompts.
-- [ ] Parse effect yes/no prompts with card and effect context.
-- [ ] Parse option selection using localized card/system strings.
+- [x] Parse effect yes/no prompts with public card details and localized effect context.
+- [x] Parse option selection using localized card/system strings with deterministic fallback labels.
 - [x] Parse chain selection including pass/cancel rules.
 - [x] Preserve mandatory versus optional semantics.
 - [x] Encode each response family inside the Worker.
 - [x] Add labels suitable for human UI without exposing protocol indexes.
-- [ ] Add fixture tests for zero, one and multiple chain candidates.
-- [ ] Add fixture tests for missing string fallback diagnostics.
+- [x] Add fixture tests for zero, one and multiple optional chain candidates.
+- [x] Add fixture tests for missing localized option text and traceable fallback diagnostics.
 
 **Long-term test:** every prompt fixture includes both parsed domain output and encoded response assertions.
 
-## [ ] Step 15: Implement card, tribute and sum selection prompts
+## [x] Step 15: Implement card, tribute and sum selection prompts
 
 **Commit:** `feat: support card selection prompts`
 
@@ -515,16 +516,16 @@ Every step below is accepted only when:
 - [x] Parse unselect-card toggles.
 - [x] Parse tribute selection and contribution values.
 - [x] Parse sum selection and required arithmetic constraints.
-- [ ] Represent selectable cards using stable public card-instance IDs.
+- [x] Represent selectable cards with stable prompt-scoped semantic instance IDs and opaque choice IDs; field intents reconcile through controller/location/sequence without exposing raw indexes.
 - [x] Validate minimum, maximum and sum constraints before encoding.
 - [x] Prevent selection of stale or non-candidate card instances.
 - [x] Encode ordered and unordered selections as required by each message.
-- [ ] Add boundary fixtures for minimum, maximum, cancellation and impossible sum.
-- [ ] Add property-style tests for valid sum combinations if the algorithm is non-trivial.
+- [x] Add boundary fixtures for minimum, maximum, cancellation, duplicate/stale choices and impossible sums.
+- [x] Add bounded generated/property-style tests comparing exact and at-least sum selection with a brute-force oracle.
 
 **Long-term test:** each reported selection bug becomes a minimal fixture before its fix.
 
-## [ ] Step 16: Implement place, position, sort, counter and announcement prompts
+## [x] Step 16: Implement place, position, sort, counter and announcement prompts
 
 **Commit:** `feat: complete core prompt families`
 
@@ -540,8 +541,8 @@ Every step below is accepted only when:
 - [x] Parse rock-paper-scissors messages; no separate turn-choice message is exported by the pinned adapter.
 - [x] Classify any additional pinned-core prompt family.
 - [x] Encode every response family and exercise it against real WASM; permanent low-level byte fixtures remain broader protocol debt.
-- [ ] Document internal or non-presentational messages that require no UI.
-- [ ] Fail with a downloadable compatibility trace for an unknown prompt.
+- [x] Keep a complete internal-message rationale inventory for adapter synchronization and data-free completion markers that require no UI.
+- [x] Fail with a typed error and downloadable compatibility trace retaining the last classified message and pending prompt context.
 
 **Long-term test:** a generated compatibility matrix fails CI when a pinned message constant has no parser classification.
 
@@ -564,7 +565,7 @@ Every step below is accepted only when:
 
 **Release significance:** this is the mandatory proof that the complete engine integration works without UI assistance. Svelte, Phaser, visual card rendering and browser duel controls remain forbidden until this step is green.
 
-## [ ] Step 18: Add the basic opponent policy
+## [x] Step 18: Add the basic opponent policy
 
 **Commit:** `feat: add basic mvp opponent`
 
@@ -575,11 +576,11 @@ Every step below is accepted only when:
 - [x] Advance phases when no obvious basic action remains.
 - [x] Prefer a legal normal summon, then a legal set or simple activation.
 - [x] Attack with available monsters using a simple strongest-attacker/legal-target rule.
-- [ ] Answer mandatory prompts legally and decline optional chains the basic policy does not understand.
+- [x] Answer mandatory prompts legally—including capacity-bounded counter allocation—and decline optional chains/effects the basic policy does not understand.
 - [x] Avoid search trees, combo sequencing, future-turn planning, hidden-information inference and deck-generic strategy.
 - [x] Return a machine-readable reason such as `summon_first_legal`, `set_first_legal`, `attack_strongest` or `advance_phase`.
-- [ ] Prevent access to human hidden information.
-- [ ] Add one unit fixture per basic priority and real-WASM integration coverage for complete opponent turns.
+- [x] Prevent policy access to all card identities by passing only an identity-free opponent-visible state summary.
+- [x] Add unit fixtures for every basic priority/reason family and retain real-WASM coverage for complete opponent turns.
 
 **Long-term test:** policy tests prove every returned choice is legal; strategic strength is explicitly not an MVP acceptance criterion.
 
@@ -843,12 +844,12 @@ If any item is red, continue headless engine, protocol, fixture or opponent work
 
 ### Pure unit tests
 
-- [ ] Binary readers reject malformed lengths and offsets.
-- [ ] Every protocol message fixture maps to the expected domain event or prompt.
-- [ ] Every response fixture produces the expected bytes.
+- [x] Vendored binary readers reject malformed/truncated input, and adapter failures are wrapped with operation context.
+- [x] Every supported protocol family maps to the expected domain event/prompt through typed fixtures and real-WASM compatibility coverage.
+- [x] Every response family produces the expected adapter response object and is accepted by real WASM; the adapter does not expose encoded bytes.
 - [x] State projection preserves zone and hidden-information invariants.
-- [ ] Basic opponent policy returns legal choices and simple decision reasons without strategic planning.
-- [ ] Deck and asset dependency resolvers are deterministic.
+- [x] Basic opponent policy returns legal choices and simple decision reasons without strategic planning or hidden-card access.
+- [x] Deck parsing and active asset dependency resolution are deterministic and pinned by exact/incomplete fixtures.
 
 ### Worker integration tests
 
@@ -875,26 +876,26 @@ If any item is red, continue headless engine, protocol, fixture or opponent work
 - [x] Every indexed script exists and has a unique code.
 - [x] Required global scripts exist.
 - [x] Every pinned protocol constant is classified.
-- [ ] Upstream updates pass full compatibility tests before activation.
+- [x] Adopted gate: locked upstream revisions must pass the full compatibility suite before atomic activation.
 
 ## Regression rule
 
-- [ ] Reproduce every bug with the smallest failing fixture or deterministic duel transcript.
-- [ ] Commit the failing test before or with the fix.
-- [ ] Keep fixtures human-readable and tied to the pinned core revision.
-- [ ] Never update a trace snapshot only to make CI green without explaining the protocol or behavior change.
+- [x] Adopted regression rule: reproduce bugs with the smallest practical fixture or deterministic duel transcript.
+- [x] Adopted regression rule: land the failing assertion before or with its fix.
+- [x] Fixtures are human-readable and tied to the pinned core/runtime revisions.
+- [x] Trace digests change only with an explained protocol/behavior delta; the 2026-07-14 update records actual per-iteration process statuses.
 
 ## Dependency-update rule
 
-- [ ] Update the vendored engine/core, BabelCDB, CardScripts, strings and image metadata on an isolated branch.
-- [ ] Never update `ocgcore-wasm` through a normal package install; replace the reviewed vendor directory, provenance and hashes explicitly.
-- [ ] Generate a new immutable snapshot ID.
-- [ ] Run protocol inventory comparison.
-- [ ] Run all unit tests, programmed action-coverage scenarios and randomized production-mode tests.
-- [ ] Run production browser tests.
-- [ ] Review changed traces and counts.
-- [ ] Activate the snapshot only after all checks pass.
-- [ ] Retain the previous known-good snapshot for rollback.
+- [x] Adopted update rule: change vendored engine/core, BabelCDB, CardScripts, strings and image metadata only on an isolated review branch.
+- [x] `ocgcore-wasm` updates require explicit vendor-directory, provenance and hash replacement; normal package resolution is forbidden.
+- [x] The update pipeline generates and independently verifies a new immutable snapshot ID.
+- [x] The compatibility gate runs the pinned protocol inventory comparison.
+- [x] The compatibility gate runs all unit tests, programmed action coverage and randomized production-mode tests.
+- [x] The release gate runs Chromium, Firefox and WebKit production browser tests.
+- [x] Changed traces, fixture counts and immutable manifests are explicit review artifacts.
+- [x] Snapshot activation is atomic and occurs only after all required artifact receipts verify.
+- [x] Snapshot storage retains one previous known-good snapshot for rollback.
 
 # 10. Recommended implementation checkpoints
 

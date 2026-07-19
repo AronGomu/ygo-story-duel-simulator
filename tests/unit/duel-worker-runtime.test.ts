@@ -192,6 +192,48 @@ describe("DuelWorkerRuntime command lifecycle", () => {
     expect(harness.activeHandles()).toBe(0);
   });
 
+  it("retains engine diagnostics in the downloadable bounded trace", async () => {
+    const harness = await createFakeOcgCoreAdapter(
+      () => ({
+        steps: [
+          {
+            status: EngineProcess.END,
+            messages: [WIN_MESSAGE],
+          },
+        ],
+      }),
+      { createDiagnostic: { type: 7, message: "fixture core diagnostic" } },
+    );
+    const runtime = new DuelWorkerRuntime(
+      async () => createResources(harness.adapter),
+      {
+        logger: {
+          debug: vi.fn(),
+          info: vi.fn(),
+          warn: vi.fn(),
+          error: vi.fn(),
+        },
+      },
+    );
+    await runtime.handle({ type: "initialize" });
+    await runtime.handle({ type: "startDuel", duelId: FAKE_PRESET.id });
+
+    const [diagnostics] = await runtime.handle({ type: "requestDiagnostics" });
+    expect(diagnostics).toMatchObject({
+      type: "diagnostics",
+      trace: {
+        entries: expect.arrayContaining([
+          expect.objectContaining({
+            kind: "engineDiagnostic",
+            diagnosticType: 7,
+            detail: "engine diagnostic emitted",
+          }),
+        ]),
+      },
+    });
+    runtime.dispose();
+  });
+
   it("defers reentrant diagnostic disposal until core processing unwinds", async () => {
     const harness = await createFakeOcgCoreAdapter(() => ({
       steps: [
@@ -273,6 +315,34 @@ describe("DuelWorkerRuntime command lifecycle", () => {
       }),
     );
     expect(harness.counters.destroyDuel).toBe(1);
+  });
+
+  it("poisons the runtime after uncertain core-handle cleanup", async () => {
+    const harness = await createFakeOcgCoreAdapter(
+      () => ({
+        steps: [{ status: EngineProcess.END, messages: [WIN_MESSAGE] }],
+      }),
+      { destroyError: new Error("uncertain destroy") },
+    );
+    const runtime = new DuelWorkerRuntime(async () =>
+      createResources(harness.adapter),
+    );
+    await runtime.handle({ type: "initialize" });
+
+    const failed = await runtime.handle({
+      type: "startDuel",
+      duelId: FAKE_PRESET.id,
+    });
+    expect(failed).toEqual([
+      expect.objectContaining({
+        type: "error",
+        error: expect.objectContaining({ recoverable: false }),
+      }),
+    ]);
+    expect(runtime.replacementRequired).toBe(true);
+    await expect(
+      runtime.handle({ type: "startDuel", duelId: FAKE_PRESET.id }),
+    ).resolves.toEqual([]);
   });
 
   it("bounds the pending command queue while initialization is blocked", async () => {
@@ -360,7 +430,7 @@ describe("DuelWorkerRuntime command lifecycle", () => {
     expect(diagnostics).toMatchObject({
       type: "diagnostics",
       trace: {
-        schemaVersion: 1,
+        schemaVersion: 2,
         sensitivity: "contains-production-seed",
         snapshotId: FAKE_SNAPSHOT_ID,
         coreVersion: [11, 0],

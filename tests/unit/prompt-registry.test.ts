@@ -22,7 +22,7 @@ const dependencies: ActiveDuelDependencies = {
         code: 97590747,
         name: "La Jinn",
         description: "A mystical genie.",
-        strings: [],
+        strings: ["Activate La Jinn's effect"],
       },
     ],
   ]),
@@ -216,6 +216,57 @@ describe("PromptRegistry", () => {
     );
   });
 
+  it("handles zero, one, and multiple chain candidates", () => {
+    const activeCard = (sequence: number) => ({
+      code: 97590747,
+      controller: 0 as const,
+      location: EngineLocation.MONSTER,
+      sequence,
+      position: EnginePosition.FACE_UP_ATTACK,
+      description: 0n,
+      client_mode: 0 as const,
+    });
+    for (const count of [0, 1, 2]) {
+      const binding = buildEnginePrompt(
+        {
+          type: EngineMessageType.SELECT_CHAIN,
+          player: 0,
+          spe_count: 0,
+          forced: false,
+          hint_timing: 1,
+          hint_timing_other: 1,
+          selects: Array.from({ length: count }, (_, index) =>
+            activeCard(index),
+          ),
+        },
+        10 + count,
+        dependencies,
+      );
+      expect(binding?.prompt.choices).toHaveLength(count + 1);
+      expect(binding?.prompt.choices.at(-1)?.action).toBe("pass");
+    }
+  });
+
+  it("emits a diagnostic when localized option text is missing", () => {
+    const diagnostics: unknown[] = [];
+    const option = 123n << 20n;
+    const binding = buildEnginePrompt(
+      {
+        type: EngineMessageType.SELECT_OPTION,
+        player: 0,
+        options: [option],
+      },
+      13,
+      dependencies,
+      "",
+      (diagnostic) => diagnostics.push(diagnostic),
+    );
+    expect(binding?.prompt.choices[0]?.label).toBe(`Option ${option}`);
+    expect(diagnostics).toEqual([
+      { type: "missing_text", reference: `option:${option}` },
+    ]);
+  });
+
   it("adds effect-card details and explicit counter capacities to public prompts", () => {
     const effect = buildEnginePrompt(
       {
@@ -226,15 +277,18 @@ describe("PromptRegistry", () => {
         location: EngineLocation.MONSTER,
         sequence: 0,
         position: EnginePosition.FACE_UP_ATTACK,
-        description: 0n,
+        description: (97590747n << 20n) | 0n,
       },
       5,
       dependencies,
     );
-    expect(effect?.prompt.contextCard).toMatchObject({
-      code: 97590747,
-      name: "La Jinn",
-      description: "A mystical genie.",
+    expect(effect?.prompt).toMatchObject({
+      message: "Activate La Jinn's effect",
+      contextCard: {
+        code: 97590747,
+        name: "La Jinn",
+        description: "A mystical genie.",
+      },
     });
 
     const counters = buildEnginePrompt(

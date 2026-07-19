@@ -9,6 +9,7 @@ import { BoundedDuelTrace, type DuelTrace } from "./diagnostics/duel-trace.ts";
 import type { DuelSession } from "./engine/DuelSession.ts";
 import {
   BasicOpponentPolicy,
+  toOpponentVisibleState,
   type OpponentPolicy,
 } from "./opponent/OpponentPolicy.ts";
 import { DuelStateProjector } from "./projection/DuelStateProjector.ts";
@@ -50,12 +51,6 @@ export class HeadlessDuelController {
       options.deckCounts,
       options.extraDeckCounts,
     );
-    this.#prompts = new PromptRegistry(
-      options.dependencies,
-      options.promptIdNamespace,
-    );
-    this.#opponent =
-      options.opponentPolicy ?? new BasicOpponentPolicy(options.dependencies);
     this.#trace =
       options.trace ??
       new BoundedDuelTrace(
@@ -63,6 +58,17 @@ export class HeadlessDuelController {
         options.snapshotId,
         options.session.seed,
       );
+    this.#prompts = new PromptRegistry(
+      options.dependencies,
+      options.promptIdNamespace,
+      ({ type }) =>
+        this.#trace.record({
+          kind: "promptDiagnostic",
+          detail: `prompt:${type}`,
+        }),
+    );
+    this.#opponent =
+      options.opponentPolicy ?? new BasicOpponentPolicy(options.dependencies);
     this.#maximumAutomaticResponses =
       options.maximumAutomaticResponses ?? 1_000;
   }
@@ -86,11 +92,13 @@ export class HeadlessDuelController {
       automaticResponses += 1
     ) {
       const boundary = this.#session.processUntilBoundary();
-      this.#trace.record({
-        kind: "process",
-        status: boundary.status === "waiting" ? 1 : 0,
-        detail: `${boundary.iterations} iteration(s)`,
-      });
+      for (const [index, status] of boundary.statuses.entries()) {
+        this.#trace.record({
+          kind: "process",
+          status,
+          detail: `iteration ${index + 1} of ${boundary.iterations}`,
+        });
+      }
       let answeredOpponent = false;
       let humanPrompt: PlayerPrompt | undefined;
 
@@ -128,7 +136,7 @@ export class HeadlessDuelController {
 
         const decision = this.#opponent.choose(
           prompt,
-          this.#projector.snapshot(),
+          toOpponentVisibleState(this.#projector.snapshot()),
         );
         const response = this.#prompts.respond(prompt.id, decision.choiceIds);
         this.#session.respond(response);
@@ -219,6 +227,10 @@ export class HeadlessDuelController {
 
   get disposed(): boolean {
     return this.#session.disposed;
+  }
+
+  get cleanupUncertain(): boolean {
+    return this.#session.cleanupFailed;
   }
 
   trace(): DuelTrace {

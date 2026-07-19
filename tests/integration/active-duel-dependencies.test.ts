@@ -16,8 +16,8 @@ describe("real MVP dependency snapshot", () => {
       codes,
     );
     const catalogCodes = new Set(dependencies.cards.keys());
-    validateDeck(preset.player, catalogCodes);
-    validateDeck(preset.opponent, catalogCodes);
+    validateDeck(preset.player, catalogCodes, undefined, dependencies.cards);
+    validateDeck(preset.opponent, catalogCodes, undefined, dependencies.cards);
 
     expect(dependencies.counts.cards).toBeGreaterThanOrEqual(codes.size);
     expect(dependencies.counts.texts).toBe(dependencies.counts.cards);

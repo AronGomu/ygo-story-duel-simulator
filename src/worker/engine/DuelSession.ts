@@ -49,6 +49,7 @@ export type DuelConfiguration =
 
 export interface DuelProcessBoundary {
   readonly status: "waiting" | "ended";
+  readonly statuses: readonly number[];
   readonly messages: readonly EngineMessage[];
   readonly iterations: number;
 }
@@ -72,6 +73,7 @@ export class DuelSession {
   readonly #adapter: OcgCoreAdapter;
   readonly #handle: EngineDuelHandle;
   readonly #maximumProcessIterations: number;
+  #cleanupFailed = false;
   #disposed = false;
 
   private constructor(
@@ -217,17 +219,29 @@ export class DuelSession {
   processUntilBoundary(): DuelProcessBoundary {
     this.#assertActive();
     const messages: EngineMessage[] = [];
+    const statuses: number[] = [];
     for (
       let iteration = 1;
       iteration <= this.#maximumProcessIterations;
       iteration += 1
     ) {
       const status = this.#adapter.process(this.#handle);
+      statuses.push(status);
       messages.push(...this.#adapter.getMessages(this.#handle));
       if (status === EngineProcess.WAITING)
-        return { status: "waiting", messages, iterations: iteration };
+        return {
+          status: "waiting",
+          statuses: Object.freeze(statuses),
+          messages,
+          iterations: iteration,
+        };
       if (status === EngineProcess.END)
-        return { status: "ended", messages, iterations: iteration };
+        return {
+          status: "ended",
+          statuses: Object.freeze(statuses),
+          messages,
+          iterations: iteration,
+        };
       if (status !== EngineProcess.CONTINUE)
         throw new Error(`Unknown core process status: ${status}`);
     }
@@ -245,7 +259,16 @@ export class DuelSession {
   dispose(): void {
     if (this.#disposed) return;
     this.#disposed = true;
-    this.#adapter.destroyDuel(this.#handle);
+    try {
+      this.#adapter.destroyDuel(this.#handle);
+    } catch (error) {
+      this.#cleanupFailed = true;
+      throw error;
+    }
+  }
+
+  get cleanupFailed(): boolean {
+    return this.#cleanupFailed;
   }
 
   get disposed(): boolean {
