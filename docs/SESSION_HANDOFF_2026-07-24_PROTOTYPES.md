@@ -141,11 +141,23 @@ npm run check
 
 ## 8. Git handoff
 
-All working-tree changes are intended to be committed on dedicated branch `feature/experience-prototypes` and pushed to `origin`. Commits should remain logically grouped where practical:
+Dedicated branch: `feature/experience-prototypes`.
+
+Logical commits already present:
 
 1. project agent/workflow assets;
-2. deck-builder contracts + persistence;
-3. deck-builder UI/tests/docs;
-4. VN prototype state/storage/UI;
-5. VN browser tests/docs/build verification;
-6. session handoff/evidence.
+2. isolated deck-builder prototype;
+3. visual-novel experience prototype;
+4. completed prototype handoff;
+5. validation evidence;
+6. final session stop-point details.
+
+## 9. Stop point for next session
+
+- Implementation stopped at user request; no further feature work should be inferred.
+- Deck-builder focused verification: **35 files / 98 tests passed**.
+- Deck-builder Chromium acceptance: **5/5 passed**, including direct-duel regression, Library import, save retry, and revision-conflict recovery.
+- Final deck-builder code and contract reviewer passes reported no blockers.
+- Atomic `createAndOpen`, conditional last-opened clearing, corrupt-row isolation, committed-import recovery, and failed-save navigation protection are implemented.
+- Implementation-plan checkboxes are complete in `docs/DECK_BUILDER_PROTOTYPE_IMPLEMENTATION_PLAN.md`.
+- Next session should begin with product review, not additional implementation, unless explicitly requested.
