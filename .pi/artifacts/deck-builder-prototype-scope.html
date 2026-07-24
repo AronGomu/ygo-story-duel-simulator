@@ -1,0 +1,1008 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="artifact-kind" content="markdown">
+<meta name="artifact-generated" content="1784905220077">
+<meta name="artifact-project" content="C:\Users\Natha\coding\ygo-story-duel-simulator">
+<title>Deck Builder Prototype Scope</title>
+<style data-base>:root { color-scheme: light dark;
+  --bg: #ffffff;
+  --fg: #1c1c1a;
+  --muted: #6b6862;
+  --border: #e7e5e0;
+  --code-bg: #f7f6f4;
+  --accent: #b95730;
+  --add-bg: #e9f7ee;
+  --add-word-bg: #c8ecd3;
+  --add-fg: #1a7f37;
+  --del-bg: #feeff1;
+  --del-word-bg: #f8d2d7;
+  --del-fg: #c93c4c;
+  --hl-comment: #6e7781;
+  --hl-keyword: #cf222e;
+  --hl-string: #0a3069;
+  --hl-number: #0550ae;
+  --hl-title: #8250df;
+  --hl-type: #953800;
+  --hl-attr: #0550ae;
+}
+@media (prefers-color-scheme: dark) { :root {
+  --bg: #171614;
+  --fg: #e6e3de;
+  --muted: #94918a;
+  --border: #2e2d29;
+  --code-bg: #201f1c;
+  --accent: #d67858;
+  --add-bg: #1d2a20;
+  --add-word-bg: #2b4232;
+  --add-fg: #85c793;
+  --del-bg: #2e1c1e;
+  --del-word-bg: #4a292c;
+  --del-fg: #e28a91;
+  --hl-comment: #8b949e;
+  --hl-keyword: #ff7b72;
+  --hl-string: #a5d6ff;
+  --hl-number: #79c0ff;
+  --hl-title: #d2a8ff;
+  --hl-type: #ffa657;
+  --hl-attr: #79c0ff;
+} }
+
+* { box-sizing: border-box; }
+html { font-size: 15px; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+article { max-width: 860px; margin: 0 auto; padding: 2.75rem 1.5rem 4rem; }
+h1, h2, h3, h4 { line-height: 1.3; letter-spacing: -0.01em; color: var(--fg); }
+h1 { font-size: 1.45rem; font-weight: 650; margin: 0 0 1rem; }
+h2 { font-size: 1.15rem; font-weight: 650; margin: 2.2em 0 .7em; padding-bottom: .35em; border-bottom: 1px solid var(--border); }
+h3 { font-size: 1rem; font-weight: 600; margin: 1.8em 0 .5em; }
+h4 { font-size: .9rem; font-weight: 600; margin: 1.5em 0 .4em; }
+p { margin: .8em 0; }
+a { color: var(--accent); text-decoration: underline; text-decoration-color: color-mix(in srgb, var(--accent) 35%, transparent); text-underline-offset: 2px; }
+a:hover { text-decoration-color: var(--accent); }
+strong { font-weight: 600; }
+ul, ol { margin: .8em 0; padding-left: 1.5em; }
+li { margin: .3em 0; }
+li > ul, li > ol { margin: .2em 0; }
+hr { border: none; border-top: 1px solid var(--border); margin: 2.5em 0; }
+img, svg, video { max-width: 100%; }
+::selection { background: color-mix(in srgb, var(--accent) 25%, transparent); }
+
+blockquote {
+  margin: 1.2em 0;
+  padding: .1em 1.1em;
+  border-left: 3px solid color-mix(in srgb, var(--accent) 55%, transparent);
+  color: var(--muted);
+}
+blockquote > :first-child { margin-top: .4em; }
+blockquote > :last-child { margin-bottom: .4em; }
+
+table { border-collapse: collapse; width: 100%; margin: 1.2em 0; font-size: .9rem; }
+th {
+  text-align: left; font-weight: 600; font-size: .74rem;
+  text-transform: uppercase; letter-spacing: .06em; color: var(--muted);
+  padding: .5em .75em; border-bottom: 1px solid var(--border);
+}
+td { padding: .55em .75em; border-bottom: 1px solid var(--border); vertical-align: top; }
+tr:last-child td { border-bottom: none; }
+
+code, kbd, samp { font-family: ui-monospace, "SF Mono", "JetBrains Mono", "Cascadia Code", Menlo, Consolas, "Liberation Mono", monospace; }
+code { font-size: .85em; background: var(--code-bg); padding: .15em .4em; border-radius: 4px; }
+pre {
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 1em 1.2em;
+  overflow-x: auto;
+  font-size: .82rem;
+  line-height: 1.55;
+  margin: 1.2em 0;
+}
+pre code { background: transparent; padding: 0; font-size: inherit; }
+
+input[type="checkbox"] { accent-color: var(--accent); margin-right: .4em; }
+
+
+.artifact-header {
+  display: flex; align-items: baseline; gap: .75rem; flex-wrap: wrap;
+  margin-bottom: 2rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border);
+}
+.artifact-header h1 { margin: 0; }
+.artifact-badge {
+  font-family: ui-monospace, "SF Mono", "JetBrains Mono", "Cascadia Code", Menlo, Consolas, "Liberation Mono", monospace; font-size: .66rem; text-transform: uppercase;
+  letter-spacing: .08em; color: var(--accent);
+  border: 1px solid color-mix(in srgb, var(--accent) 35%, transparent);
+  border-radius: 999px; padding: .2em .7em; white-space: nowrap;
+}
+.artifact-meta { margin-left: auto; color: var(--muted); font-size: .72rem; font-family: ui-monospace, "SF Mono", "JetBrains Mono", "Cascadia Code", Menlo, Consolas, "Liberation Mono", monospace; }
+.artifact-footer {
+  margin-top: 4rem; padding-top: 1rem; border-top: 1px solid var(--border);
+  color: var(--muted); font-size: .72rem; font-family: ui-monospace, "SF Mono", "JetBrains Mono", "Cascadia Code", Menlo, Consolas, "Liberation Mono", monospace;
+}
+.artifact-mermaid { text-align: center; margin: 1.5rem 0; }
+</style>
+<style data-hljs>
+.hljs { color: var(--fg); background: transparent; }
+.hljs-comment, .hljs-quote { color: var(--hl-comment); font-style: italic; }
+.hljs-keyword, .hljs-selector-tag, .hljs-literal, .hljs-deletion { color: var(--hl-keyword); }
+.hljs-string, .hljs-regexp, .hljs-addition { color: var(--hl-string); }
+.hljs-number, .hljs-symbol, .hljs-bullet, .hljs-meta, .hljs-link { color: var(--hl-number); }
+.hljs-title, .hljs-section, .hljs-function .hljs-title { color: var(--hl-title); }
+.hljs-type, .hljs-class .hljs-title, .hljs-built_in { color: var(--hl-type); }
+.hljs-variable, .hljs-template-variable, .hljs-attr, .hljs-attribute, .hljs-property { color: var(--hl-attr); }
+.hljs-emphasis { font-style: italic; }
+.hljs-strong { font-weight: 600; }
+</style>
+</head>
+<body>
+<article>
+<header class="artifact-header">
+<h1>Deck Builder Prototype Scope</h1>
+<span class="artifact-badge">markdown</span>
+<span class="artifact-meta">2026-07-24 15:00:20</span>
+</header>
+<h1>Deck Builder Prototype Scope</h1>
+<blockquote>
+<p>Status: reviewed direction captured; ready for implementation-plan review<br>Purpose: define prototype coverage before UI work<br>Output: interactive desktop prototype with isolated local persistence<br>Implementation status: no prototype or production deck builder exists</p>
+</blockquote>
+<h2>1. Goal</h2>
+<p>Prototype should validate deck-building UX before production integration.</p>
+<p>Primary outcome: reviewer can build, edit, import, export, recover, reopen, then request deck by ID through module boundary. Prototype should expose missing behavior, weak UI choices, unclear rules.</p>
+<p>Prototype is not duel integration. Visual Novel (VN) owns deck selection. Deck module owns deck creation, editing, validation, persistence, resolution by deck ID.</p>
+<h2>2. Repo alignment</h2>
+<p>Approved future direction already defines:</p>
+<ul>
+<li>unrestricted local deck library;</li>
+<li>create, edit, rename, duplicate, delete;</li>
+<li>validation;</li>
+<li>YDK import/export;</li>
+<li>deck selection outside deck module;</li>
+<li>versioned JSON deck records in IndexedDB;</li>
+<li>exact deck revision pinning for saves/battles;</li>
+<li>no campaign card-ownership restriction.</li>
+</ul>
+<p>Current shipped MVP differs:</p>
+<ul>
+<li>fixed preset decks only;</li>
+<li>reviewed 22-card allowlist;</li>
+<li>Main Deck constraint: 40–60;</li>
+<li>Extra Deck max: 15;</li>
+<li>Side Deck disabled;</li>
+<li>no user deck persistence;</li>
+<li>no arbitrary-deck duel start.</li>
+</ul>
+<p>Prototype targets future direction. Current preset restrictions must remain unchanged.</p>
+<h2>3. Accepted product decisions</h2>
+<table>
+<thead>
+<tr>
+<th>Topic</th>
+<th>Decision</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Entry</td>
+<td>Open last-opened deck. Fall back to Deck Library when no valid last-opened ID exists.</td>
+</tr>
+<tr>
+<td>Create</td>
+<td>Blank deck first. No template picker.</td>
+</tr>
+<tr>
+<td>Invalid draft</td>
+<td>Autosave allowed. Import/export allowed. VN resolution returns invalid result.</td>
+</tr>
+<tr>
+<td>Save</td>
+<td>Autosave every accepted mutation. Keep latest 50 card-content updates per deck.</td>
+</tr>
+<tr>
+<td>Selection</td>
+<td>No selected-deck UI. VN supplies deck ID. Deck module resolves validated deck.</td>
+</tr>
+<tr>
+<td>Side Deck</td>
+<td>First-class editor zone.</td>
+</tr>
+<tr>
+<td>Desktop layout</td>
+<td>Catalog + deck workspace + pinned card details.</td>
+</tr>
+<tr>
+<td>Deck display</td>
+<td>Card-art grid only. No compact list.</td>
+</tr>
+<tr>
+<td>Card details</td>
+<td>Always pinned on desktop. Full effect text lives here.</td>
+</tr>
+<tr>
+<td>Validation timing</td>
+<td>Recompute after every edit.</td>
+</tr>
+<tr>
+<td>Validation visibility</td>
+<td>Compact counts/status always visible. Expanded issue list appears when warnings/errors exist.</td>
+</tr>
+<tr>
+<td>Mobile</td>
+<td>Excluded. Desktop-only prototype.</td>
+</tr>
+<tr>
+<td>Pointer edit model</td>
+<td>Drag/drop.</td>
+</tr>
+<tr>
+<td>Add target</td>
+<td>One canonical target per catalog card: Main or Extra.</td>
+</tr>
+<tr>
+<td>Copies</td>
+<td>Repeated tiles. No stacked card or quantity collapse.</td>
+</tr>
+<tr>
+<td>Main layout</td>
+<td>0–40 cards: 40 slots, 10 × 4. 41–60 cards: 60 smaller slots, 12 × 5.</td>
+</tr>
+<tr>
+<td>Ordering</td>
+<td>No manual ordering. System auto-packs grid.</td>
+</tr>
+<tr>
+<td>Filters</td>
+<td>Name, card family, subtype, Attribute, monster type/race.</td>
+</tr>
+<tr>
+<td>Long effect text</td>
+<td>Omitted from result tiles. Pinned details panel shows full text.</td>
+</tr>
+<tr>
+<td>Limit state</td>
+<td>Distinct quantity badge at card top-left.</td>
+</tr>
+<tr>
+<td>Missing cards</td>
+<td>Error placeholder retains code plus validation issue.</td>
+</tr>
+<tr>
+<td>Rulesets</td>
+<td>One pinned ruleset. No format/banlist selector.</td>
+</tr>
+<tr>
+<td>Card model</td>
+<td>Based on vendored <code>ocgcore-wasm</code> data types. UI uses adapters/mappers.</td>
+</tr>
+</tbody></table>
+<h2>4. Clarified behavior</h2>
+<h3>4.1 Autosave plus 50-update history</h3>
+<p>“Latest 50 card updates” means bounded per-deck card-content history:</p>
+<ul>
+<li>card add, remove, zone move, YDK replacement each create one history entry;</li>
+<li>one drag transaction creates one entry;</li>
+<li>bulk YDK import creates one entry;</li>
+<li>deck rename autosaves but does not consume card-content history;</li>
+<li>history stores maximum 50 committed card-content updates per deck;</li>
+<li>update 51 evicts oldest entry;</li>
+<li>Undo/Redo operates on retained history;</li>
+<li>new card edit after Undo clears Redo branch;</li>
+<li>reload restores current deck plus retained history;</li>
+<li>deck, history, revision commit atomically;</li>
+<li>save failure leaves visible retry state;</li>
+<li>validity never controls autosave.</li>
+</ul>
+<h3>4.2 Validation visibility</h3>
+<p>Always-visible header shows:</p>
+<ul>
+<li>Main count;</li>
+<li>Extra count;</li>
+<li>Side count;</li>
+<li><code>Valid</code>, <code>Warnings</code>, or <code>Errors</code> status;</li>
+<li>autosave status kept separate.</li>
+</ul>
+<p>Expanded validation panel appears only when issues exist. Each issue points to affected zone/card. Valid state needs no large persistent panel.</p>
+<h3>4.3 Validation blocking policy</h3>
+<p>All drafts may be created, imported, edited, autosaved, duplicated, exported.</p>
+<p>Only deck resolution for VN is blocked:</p>
+<pre><code class="hljs language-ts"><span class="hljs-keyword">type</span> <span class="hljs-title class_">ResolveDeckResult</span> =
+  | <span class="hljs-title class_">Readonly</span>&lt;{ <span class="hljs-attr">type</span>: <span class="hljs-string">&quot;ready&quot;</span>; <span class="hljs-attr">deck</span>: <span class="hljs-title class_">ValidatedDeckSnapshot</span> }&gt;
+  | <span class="hljs-title class_">Readonly</span>&lt;{ <span class="hljs-attr">type</span>: <span class="hljs-string">&quot;missing&quot;</span>; <span class="hljs-attr">deckId</span>: <span class="hljs-title class_">DeckId</span> }&gt;
+  | <span class="hljs-title class_">Readonly</span>&lt;{
+      <span class="hljs-attr">type</span>: <span class="hljs-string">&quot;invalid&quot;</span>;
+      <span class="hljs-attr">deckId</span>: <span class="hljs-title class_">DeckId</span>;
+      <span class="hljs-attr">issues</span>: <span class="hljs-keyword">readonly</span> <span class="hljs-title class_">DeckValidationIssue</span>[];
+    }&gt;;</code></pre><p>No selected/active deck exists inside deck module. VN stores chosen deck ID, calls resolver before encounter dispatch.</p>
+<h3>4.4 Single add target plus Side Deck</h3>
+<p>Catalog card has one canonical target derived from <code>OcgCardData.type</code>:</p>
+<ul>
+<li>Fusion, Synchro, Xyz, Link → Extra;</li>
+<li>all other supported cards → Main.</li>
+</ul>
+<p>Catalog drag adds only to canonical target. No destination menu.</p>
+<p>Side Deck population uses zone-to-zone drag:</p>
+<ul>
+<li>Main/Extra → Side;</li>
+<li>Side → canonical Main/Extra target.</li>
+</ul>
+<p>Invalid imported placement remains visible as error placeholder/state. System never silently relocates it.</p>
+<h3>4.5 Long effect text</h3>
+<p>Catalog stays dense:</p>
+<ul>
+<li>art;</li>
+<li>card name;</li>
+<li>family/subtype summary;</li>
+<li>quantity-limit badge.</li>
+</ul>
+<p>Full description/effect text appears only in pinned details panel. Selecting catalog tile or deck tile updates details.</p>
+<h2>5. Prototype information architecture</h2>
+<pre><code class="hljs language-text">Deck Builder entry
+├── Valid last-opened ID → Deck Editor
+└── Missing/invalid last-opened ID → Deck Library
+
+Deck Library
+├── Create blank deck
+├── Import YDK
+├── Open deck
+├── Rename deck
+├── Duplicate deck
+├── Export deck
+└── Delete deck
+
+Deck Editor
+├── Deck name + autosave state
+├── Undo/Redo history
+├── Catalog search + filters
+├── Pinned card details
+├── Main Deck grid
+├── Extra Deck grid
+├── Side Deck grid
+├── Validation summary/issues
+├── YDK import/export
+└── Back to Deck Library
+
+VN integration boundary
+└── resolveDeck(deckId) → ready | missing | invalid</code></pre><p>Prototype remains isolated from current direct-to-duel entry. No current duel startup changes.</p>
+<h2>6. Screen coverage</h2>
+<h3>A. Deck Library</h3>
+<p>Must show:</p>
+<ul>
+<li><code>Create deck</code> primary action;</li>
+<li><code>Import YDK</code> action;</li>
+<li>library search by deck name;</li>
+<li>sort by name or last modified;</li>
+<li>deck entries containing:<ul>
+<li>name;</li>
+<li>Main/Extra/Side counts;</li>
+<li>validity state;</li>
+<li>updated timestamp;</li>
+<li>Open;</li>
+<li>Rename;</li>
+<li>Duplicate;</li>
+<li>Export;</li>
+<li>Delete;</li>
+</ul>
+</li>
+<li>empty state with Create plus Import;</li>
+<li>loading state;</li>
+<li>load failure plus Retry.</li>
+</ul>
+<p>No selected-deck marker/action.</p>
+<p>Representative fixtures:</p>
+<ol>
+<li>valid deck;</li>
+<li>incomplete invalid draft;</li>
+<li>imported deck with missing card;</li>
+<li>empty library.</li>
+</ol>
+<h3>B. Create Blank Deck</h3>
+<p>Must cover:</p>
+<ul>
+<li>deck name;</li>
+<li>blank creation only;</li>
+<li>Cancel;</li>
+<li>empty-name validation;</li>
+<li>duplicate-name warning;</li>
+<li>keyboard submit;</li>
+<li>initial focus;</li>
+<li>creation autosave;</li>
+<li>new deck becomes last-opened;</li>
+<li>editor opens with empty 40-slot Main grid.</li>
+</ul>
+<h3>C. Deck Editor</h3>
+<p>Fixed desktop topology:</p>
+<pre><code class="hljs language-text">┌──────────────────────────────────────────────────────────────────────────┐
+│ Library | Deck name | Save state | Main/Extra/Side | Validity | Undo Redo │
+├───────────────────────┬────────────────────────────┬─────────────────────┤
+│ Catalog               │ Deck workspace             │ Pinned details      │
+│ Name filter           │ Main: 10×4 or 12×5         │ Art                 │
+│ Family/subtype        │ Extra: 15 slots            │ Name + type         │
+│ Attribute/race        │ Side: 15 slots             │ Full effect text    │
+│ Art results           │ Validation issues          │ Limit badge         │
+└───────────────────────┴────────────────────────────┴─────────────────────┘</code></pre><p>Must show:</p>
+<ul>
+<li>editable deck name;</li>
+<li><code>Saving</code>, <code>Saved locally</code>, <code>Save failed</code>;</li>
+<li>Main/Extra/Side counts;</li>
+<li><code>Valid</code>, <code>Warnings</code>, <code>Errors</code>;</li>
+<li>Undo/Redo depth bounded by retained history;</li>
+<li>YDK Import/Export;</li>
+<li>Back to Deck Library;</li>
+<li>pinned details panel at all supported widths.</li>
+</ul>
+<p>No <code>Use deck</code>, <code>Select deck</code>, compact-list view, manual ordering, mobile collapse.</p>
+<h3>D. Catalog</h3>
+<p>Search/filter coverage is intentionally narrow:</p>
+<ul>
+<li>case-insensitive name filter;</li>
+<li>family: Monster, Spell, Trap;</li>
+<li>subtype from <code>OcgType</code> mask, including Normal, Effect, Ritual, Fusion, Synchro, Xyz, Pendulum, Link, Tuner, Quick-Play, Continuous, Equip, Field, Counter;</li>
+<li>Attribute from <code>OcgAttribute</code>;</li>
+<li>monster type/race from <code>OcgRace</code>;</li>
+<li>active-filter chips;</li>
+<li>Clear all;</li>
+<li>result count.</li>
+</ul>
+<p>Explicitly excluded filters:</p>
+<ul>
+<li>effect text;</li>
+<li>card code;</li>
+<li>ATK/DEF range;</li>
+<li>Level/Rank/Link range;</li>
+<li>archetype/set;</li>
+<li>limit status;</li>
+<li>target zone;</li>
+<li>formats/banlists.</li>
+</ul>
+<p>States:</p>
+<ul>
+<li>initial results;</li>
+<li>filtered results;</li>
+<li>no results plus Clear filters;</li>
+<li>loading skeleton;</li>
+<li>load error plus Retry.</li>
+</ul>
+<p>Result tile:</p>
+<ul>
+<li>card art or deterministic fallback;</li>
+<li>name;</li>
+<li>concise family/subtype;</li>
+<li>quantity-limit badge at top-left;</li>
+<li>current total copy count;</li>
+<li>draggable state;</li>
+<li>disabled drag plus reason when copy limit reached;</li>
+<li>selection updates pinned details.</li>
+</ul>
+<p>No Add button, double-click add, destination menu.</p>
+<h3>E. Pinned Card Details</h3>
+<p>Must show:</p>
+<ul>
+<li>image or deterministic fallback;</li>
+<li>full name;</li>
+<li>card code;</li>
+<li>family/subtype line;</li>
+<li>Attribute, race, Level/Rank/Link, ATK/DEF when applicable;</li>
+<li>full description/effect text;</li>
+<li>Pendulum scales/link markers when applicable;</li>
+<li>quantity-limit badge plus accessible label;</li>
+<li>current copies split across Main/Extra/Side;</li>
+<li>canonical target;</li>
+<li>missing catalog/text/image state.</li>
+</ul>
+<p>Panel remains pinned. Catalog/deck tile selection replaces panel content.</p>
+<h3>F. Deck Workspace</h3>
+<p>Main:</p>
+<ul>
+<li>0–40 cards → exactly 40 slots, 10 columns × 4 rows;</li>
+<li>41–60 cards → exactly 60 smaller slots, 12 columns × 5 rows;</li>
+<li>transition at card 41 updates tile dimensions without losing focus/drag state;</li>
+<li>empty slots remain visually distinct from cards;</li>
+<li>repeated copies render as repeated tiles;</li>
+<li>no quantity stacking;</li>
+<li>no manual order handles.</li>
+</ul>
+<p>Extra:</p>
+<ul>
+<li>exactly 15 visible slots;</li>
+<li>canonical Extra cards only unless invalid import fixture;</li>
+<li>overflow remains represented through validation fixture, never clipped.</li>
+</ul>
+<p>Side:</p>
+<ul>
+<li>exactly 15 visible slots;</li>
+<li>accepts cards dragged from Main/Extra;</li>
+<li>returning card goes to canonical Main/Extra zone;</li>
+<li>overflow remains represented through validation fixture, never clipped.</li>
+</ul>
+<p>Auto-pack order:</p>
+<ul>
+<li>system-owned, deterministic;</li>
+<li>Main groups Monster → Spell → Trap, then name/code;</li>
+<li>Extra groups Fusion → Synchro → Xyz → Link, then name/code;</li>
+<li>Side uses canonical class, then name/code;</li>
+<li>user cannot reorder.</li>
+</ul>
+<p>Workspace drag operations:</p>
+<ul>
+<li>Catalog → canonical Main/Extra;</li>
+<li>Main/Extra → Side;</li>
+<li>Side → canonical Main/Extra;</li>
+<li>any deck tile → visible Remove drop target;</li>
+<li>invalid placeholder → Remove only.</li>
+</ul>
+<p>Every successful drop creates one card-history update, autosave, validation run.</p>
+<h3>G. Keyboard drag equivalent</h3>
+<p>Pointer model remains drag/drop. Accessibility requires same conceptual operation without pointer:</p>
+<ol>
+<li>focus card tile;</li>
+<li>press Space/Enter to pick up;</li>
+<li>move focus among legal drop targets;</li>
+<li>press Space/Enter to drop;</li>
+<li>press Escape to cancel.</li>
+</ol>
+<p>Announcements must state picked card, legal target, successful drop, cancelled drop, blocked reason.</p>
+<p>No separate visible Add button required.</p>
+<h3>H. Validation</h3>
+<p>Runs after every accepted card mutation, import, Undo, Redo, catalog revision change.</p>
+<p>Errors:</p>
+<ul>
+<li>Main below 40;</li>
+<li>Main above 60;</li>
+<li>Extra above 15;</li>
+<li>Side above 15;</li>
+<li>total copies above pinned quantity limit;</li>
+<li>forbidden card;</li>
+<li>Extra card in Main;</li>
+<li>Main card in Extra;</li>
+<li>missing card code;</li>
+<li>stale card unavailable in pinned catalog;</li>
+<li>unsupported token/illegal card where ruleset rejects it.</li>
+</ul>
+<p>Warnings:</p>
+<ul>
+<li>empty Extra;</li>
+<li>empty Side;</li>
+<li>imported deck not yet reviewed;</li>
+<li>card image unavailable;</li>
+<li>pinned ruleset revision changed.</li>
+</ul>
+<p>Behavior:</p>
+<ul>
+<li>header counts/status update immediately;</li>
+<li>issue list appears only when non-empty;</li>
+<li>issue focuses affected card/zone where possible;</li>
+<li>error placeholder preserves missing card code;</li>
+<li>invalid draft still autosaves/imports/exports;</li>
+<li><code>resolveDeck</code> returns <code>invalid</code> until errors clear;</li>
+<li>no silent fix, removal, relocation, truncation.</li>
+</ul>
+<h3>I. Quantity-limit badge</h3>
+<p>Every catalog/deck card tile has top-left badge:</p>
+<ul>
+<li><code>0</code> Forbidden;</li>
+<li><code>1</code> Limited;</li>
+<li><code>2</code> Semi-Limited;</li>
+<li><code>3</code> Unlimited/current max.</li>
+</ul>
+<p>Badge needs distinct icon/shape plus number. Color may reinforce, never carry meaning alone. Accessible name includes status plus allowed quantity.</p>
+<p>Prototype uses one pinned fixture ruleset. No selector.</p>
+<h3>J. Missing-card placeholder</h3>
+<p>Imported/stale unknown card remains one tile per copy:</p>
+<ul>
+<li>error treatment;</li>
+<li>card code;</li>
+<li><code>Missing from catalog</code> label;</li>
+<li>zone retained;</li>
+<li>Remove drag/keyboard operation;</li>
+<li>validation issue link;</li>
+<li>no invented name/art/type;</li>
+<li>no silent canonical-zone move.</li>
+</ul>
+<h3>K. YDK Import</h3>
+<p>Must cover:</p>
+<ul>
+<li>paste text;</li>
+<li>choose <code>.ydk</code> file;</li>
+<li>file name;</li>
+<li>parse preview with Main/Extra/Side counts;</li>
+<li>imported deck name;</li>
+<li>malformed line with exact line number;</li>
+<li>unknown card-code list;</li>
+<li>illegal placement retained as validation error;</li>
+<li>duplicate-name warning;</li>
+<li>successful import as editable invalid/valid draft;</li>
+<li>existing editor import replaces card content only after explicit confirmation;</li>
+<li>whole import creates one card-history update;</li>
+<li>Cancel causes no mutation.</li>
+</ul>
+<p>No silent repair.</p>
+<h3>L. YDK Export</h3>
+<p>Must cover:</p>
+<ul>
+<li>current counts plus validity;</li>
+<li>invalid draft warning;</li>
+<li>download <code>.ydk</code>;</li>
+<li>copy YDK text;</li>
+<li>filename preview;</li>
+<li>success feedback;</li>
+<li>download/copy failure.</li>
+</ul>
+<p>Invalid export allowed.</p>
+<h3>M. Rename, Duplicate, Delete</h3>
+<p>Rename:</p>
+<ul>
+<li>name-only autosave;</li>
+<li>empty-name block;</li>
+<li>duplicate-name warning;</li>
+<li>does not consume 50-entry card history.</li>
+</ul>
+<p>Duplicate:</p>
+<ul>
+<li>independent deck ID/revision/history;</li>
+<li>generated <code>Copy</code> name;</li>
+<li>duplicate becomes last-opened, opens editor;</li>
+<li>copied card state begins one fresh baseline, no inherited Undo stack.</li>
+</ul>
+<p>Delete:</p>
+<ul>
+<li>named confirmation;</li>
+<li>Cancel;</li>
+<li>delete failure;</li>
+<li>deleting last-opened clears pointer, returns Library;</li>
+<li>no VN selection consequence because VN owns selected deck ID;</li>
+<li>later VN resolution of deleted ID returns <code>missing</code>.</li>
+</ul>
+<h2>7. OcgCore-based data contract</h2>
+<p>Prototype must not invent duplicate raw card semantics.</p>
+<p>Canonical card data uses vendored types:</p>
+<pre><code class="hljs language-ts"><span class="hljs-keyword">import</span> <span class="hljs-keyword">type</span> {
+  <span class="hljs-title class_">OcgAttribute</span>,
+  <span class="hljs-title class_">OcgCardData</span>,
+  <span class="hljs-title class_">OcgRace</span>,
+  <span class="hljs-title class_">OcgScope</span>,
+  <span class="hljs-title class_">OcgType</span>,
+} <span class="hljs-keyword">from</span> <span class="hljs-string">&quot;../../vendor/ocgcore-wasm/0.1.2/dist/index.js&quot;</span>;
+
+<span class="hljs-keyword">type</span> <span class="hljs-title class_">DeckCatalogText</span> = <span class="hljs-title class_">Readonly</span>&lt;{
+  <span class="hljs-attr">code</span>: <span class="hljs-built_in">number</span>;
+  <span class="hljs-attr">name</span>: <span class="hljs-built_in">string</span>;
+  <span class="hljs-attr">description</span>: <span class="hljs-built_in">string</span>;
+  <span class="hljs-attr">strings</span>: <span class="hljs-keyword">readonly</span> <span class="hljs-built_in">string</span>[];
+}&gt;;
+
+<span class="hljs-keyword">type</span> <span class="hljs-title class_">DeckCatalogRecord</span> = <span class="hljs-title class_">Readonly</span>&lt;{
+  <span class="hljs-attr">card</span>: <span class="hljs-title class_">Readonly</span>&lt;<span class="hljs-title class_">OcgCardData</span>&gt;;
+  <span class="hljs-attr">text</span>: <span class="hljs-title class_">DeckCatalogText</span>;
+  <span class="hljs-attr">scope</span>: <span class="hljs-title class_">OcgScope</span> | (<span class="hljs-built_in">number</span> &amp; {});
+  <span class="hljs-attr">imageUrl</span>: <span class="hljs-built_in">string</span> | <span class="hljs-literal">null</span>;
+}&gt;;</code></pre><p>Generated asset adapter maps existing fields without loss:</p>
+<ul>
+<li><code>linkMarker</code> → <code>OcgCardData.link_marker</code>;</li>
+<li>string <code>race</code> → <code>OcgCardData.race</code> bigint;</li>
+<li><code>ot</code> → <code>OcgScope</code>;</li>
+<li>text shard → <code>DeckCatalogText</code>;</li>
+<li>image manifest/cache → <code>imageUrl</code> or null.</li>
+</ul>
+<p>UI mapper derives display-only view:</p>
+<pre><code class="hljs language-ts"><span class="hljs-keyword">type</span> <span class="hljs-title class_">DeckBuilderCardView</span> = <span class="hljs-title class_">Readonly</span>&lt;{
+  <span class="hljs-attr">code</span>: <span class="hljs-built_in">number</span>;
+  <span class="hljs-attr">name</span>: <span class="hljs-built_in">string</span>;
+  <span class="hljs-attr">description</span>: <span class="hljs-built_in">string</span>;
+  <span class="hljs-attr">family</span>: <span class="hljs-string">&quot;monster&quot;</span> | <span class="hljs-string">&quot;spell&quot;</span> | <span class="hljs-string">&quot;trap&quot;</span>;
+  <span class="hljs-attr">subtypes</span>: <span class="hljs-keyword">readonly</span> <span class="hljs-built_in">string</span>[];
+  <span class="hljs-attr">attribute</span>: <span class="hljs-built_in">string</span> | <span class="hljs-literal">null</span>;
+  <span class="hljs-attr">race</span>: <span class="hljs-built_in">string</span> | <span class="hljs-literal">null</span>;
+  <span class="hljs-attr">levelRankLink</span>: <span class="hljs-built_in">number</span> | <span class="hljs-literal">null</span>;
+  <span class="hljs-attr">attack</span>: <span class="hljs-built_in">number</span> | <span class="hljs-literal">null</span>;
+  <span class="hljs-attr">defense</span>: <span class="hljs-built_in">number</span> | <span class="hljs-literal">null</span>;
+  <span class="hljs-attr">pendulumScales</span>: <span class="hljs-keyword">readonly</span> [<span class="hljs-built_in">number</span>, <span class="hljs-built_in">number</span>] | <span class="hljs-literal">null</span>;
+  <span class="hljs-attr">linkMarkers</span>: <span class="hljs-keyword">readonly</span> <span class="hljs-built_in">string</span>[];
+  <span class="hljs-attr">canonicalZone</span>: <span class="hljs-string">&quot;main&quot;</span> | <span class="hljs-string">&quot;extra&quot;</span>;
+  <span class="hljs-attr">imageUrl</span>: <span class="hljs-built_in">string</span> | <span class="hljs-literal">null</span>;
+}&gt;;</code></pre><p>Ruleset data remains separate from <code>OcgCardData</code>:</p>
+<pre><code class="hljs language-ts"><span class="hljs-keyword">type</span> <span class="hljs-title class_">PinnedDeckRuleset</span> = <span class="hljs-title class_">Readonly</span>&lt;{
+  <span class="hljs-attr">id</span>: <span class="hljs-built_in">string</span>;
+  <span class="hljs-attr">revision</span>: <span class="hljs-built_in">string</span>;
+  <span class="hljs-attr">quantityByCode</span>: <span class="hljs-title class_">ReadonlyMap</span>&lt;<span class="hljs-built_in">number</span>, <span class="hljs-number">0</span> | <span class="hljs-number">1</span> | <span class="hljs-number">2</span> | <span class="hljs-number">3</span>&gt;;
+}&gt;;</code></pre><p>Constraints:</p>
+<ul>
+<li>use <code>OcgType</code> bitmask semantics for family, subtype, canonical zone;</li>
+<li>use <code>OcgAttribute</code> for Attribute labels;</li>
+<li>use <code>OcgRace</code> bigint semantics for monster type labels;</li>
+<li>use <code>OcgScope</code> only as source scope metadata, not quantity limit;</li>
+<li>keep raw card record immutable;</li>
+<li>adapters/mappers may enrich presentation;</li>
+<li>no deck UI import from Worker internals;</li>
+<li>production client must not runtime-import core/WASM initializer solely for constants;</li>
+<li>type-only vendor imports plus parity-tested local masks are allowed.</li>
+</ul>
+<h2>8. Deck persistence contract</h2>
+<p>Prototype uses isolated IndexedDB namespace, never current snapshot stores.</p>
+<pre><code class="hljs language-ts"><span class="hljs-keyword">type</span> <span class="hljs-title class_">DeckCardUpdate</span> = <span class="hljs-title class_">Readonly</span>&lt;{
+  <span class="hljs-attr">id</span>: <span class="hljs-built_in">string</span>;
+  <span class="hljs-attr">deckId</span>: <span class="hljs-title class_">DeckId</span>;
+  <span class="hljs-attr">sequence</span>: <span class="hljs-built_in">number</span>;
+  <span class="hljs-attr">createdAt</span>: <span class="hljs-built_in">string</span>;
+  <span class="hljs-attr">before</span>: <span class="hljs-title class_">Readonly</span>&lt;<span class="hljs-title class_">Pick</span>&lt;<span class="hljs-title class_">DeckRecord</span>, <span class="hljs-string">&quot;main&quot;</span> | <span class="hljs-string">&quot;extra&quot;</span> | <span class="hljs-string">&quot;side&quot;</span>&gt;&gt;;
+  <span class="hljs-attr">after</span>: <span class="hljs-title class_">Readonly</span>&lt;<span class="hljs-title class_">Pick</span>&lt;<span class="hljs-title class_">DeckRecord</span>, <span class="hljs-string">&quot;main&quot;</span> | <span class="hljs-string">&quot;extra&quot;</span> | <span class="hljs-string">&quot;side&quot;</span>&gt;&gt;;
+  <span class="hljs-attr">reason</span>: <span class="hljs-string">&quot;add&quot;</span> | <span class="hljs-string">&quot;remove&quot;</span> | <span class="hljs-string">&quot;move&quot;</span> | <span class="hljs-string">&quot;import&quot;</span>;
+}&gt;;
+
+<span class="hljs-keyword">type</span> <span class="hljs-title class_">DeckHistory</span> = <span class="hljs-title class_">Readonly</span>&lt;{
+  <span class="hljs-attr">undo</span>: <span class="hljs-keyword">readonly</span> <span class="hljs-title class_">DeckCardUpdate</span>[];
+  <span class="hljs-attr">redo</span>: <span class="hljs-keyword">readonly</span> <span class="hljs-title class_">DeckCardUpdate</span>[];
+}&gt;;</code></pre><p>Repository expectations:</p>
+<ul>
+<li>list/create/load/save/delete;</li>
+<li>optimistic revision check;</li>
+<li>atomic deck + bounded history write;</li>
+<li>last-opened deck ID read/write/clear;</li>
+<li>independent per-deck history;</li>
+<li>exact-key validation;</li>
+<li>no current duel snapshot-store mutation.</li>
+</ul>
+<h2>9. Required UI states</h2>
+<p>Fixture switcher or deterministic action must expose:</p>
+<table>
+<thead>
+<tr>
+<th>Area</th>
+<th>States</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Entry</td>
+<td>last-opened ready, no last-opened, stale/deleted last-opened</td>
+</tr>
+<tr>
+<td>Library</td>
+<td>loading, populated, empty, load error</td>
+</tr>
+<tr>
+<td>Editor</td>
+<td>empty, 40 cards, 41 cards, 60 cards, invalid overflow</td>
+</tr>
+<tr>
+<td>Save</td>
+<td>saving, saved, failed, retrying, revision conflict</td>
+</tr>
+<tr>
+<td>History</td>
+<td>empty, partial, 50 retained, Undo, Redo, branched edit</td>
+</tr>
+<tr>
+<td>Catalog</td>
+<td>loading, results, filtered, no results, load error</td>
+</tr>
+<tr>
+<td>Details</td>
+<td>no selection, selected, long text, missing art/text/card</td>
+</tr>
+<tr>
+<td>Drag</td>
+<td>idle, picked up, valid target, invalid target, dropped, cancelled</td>
+</tr>
+<tr>
+<td>Validation</td>
+<td>valid, warnings, errors, stale ruleset</td>
+</tr>
+<tr>
+<td>Import</td>
+<td>idle, preview, malformed, unknown cards, success</td>
+</tr>
+<tr>
+<td>Export</td>
+<td>ready, invalid warning, success, failure</td>
+</tr>
+<tr>
+<td>Delete</td>
+<td>confirm, pending, success, failure</td>
+</tr>
+<tr>
+<td>Resolver</td>
+<td>ready, missing, invalid</td>
+</tr>
+</tbody></table>
+<p>Loading states preserve panel dimensions. No spinner-only blank workspace.</p>
+<h2>10. Desktop support</h2>
+<p>Supported prototype viewport: 1280–1920 px.</p>
+<p>Required:</p>
+<ul>
+<li>full three-region workspace;</li>
+<li>pinned details;</li>
+<li>10 × 4 plus 12 × 5 Main grid modes;</li>
+<li>no horizontal page overflow at 1280 px;</li>
+<li>browser zoom remains readable at 200% with desktop viewport adjustment;</li>
+<li>dialogs remain usable within viewport.</li>
+</ul>
+<p>Below 1024 px:</p>
+<ul>
+<li>show clear desktop-required notice;</li>
+<li>preserve access back to Library/export where practical;</li>
+<li>no mobile/tablet redesign;</li>
+<li>no mobile acceptance testing.</li>
+</ul>
+<h2>11. Accessibility coverage</h2>
+<ul>
+<li>semantic regions: Catalog, Main, Extra, Side, Details, Validation;</li>
+<li>labels for name/filter inputs;</li>
+<li>top-left badges receive accessible quantity status;</li>
+<li>card selection, drag pickup, target, drop, cancel announced;</li>
+<li>keyboard drag equivalent for every pointer drag;</li>
+<li>no color-only state;</li>
+<li>validation issue associated with card/zone;</li>
+<li>visible focus;</li>
+<li>focus restored after dialogs;</li>
+<li>full effect text readable at zoom;</li>
+<li>reduced-motion behavior;</li>
+<li>WCAG AA contrast target;</li>
+<li>deterministic DOM order independent from visual auto-pack animation.</li>
+</ul>
+<h2>12. Visual direction</h2>
+<p>Scene: player sits at desktop in low evening light, compares many card images quickly, expects quiet focus plus immediate rule feedback.</p>
+<p>Direction:</p>
+<ul>
+<li>existing dark navy theme;</li>
+<li>Restrained color strategy;</li>
+<li>teal primary accent;</li>
+<li>amber warning;</li>
+<li>rose danger;</li>
+<li>one familiar sans family;</li>
+<li>card art carries most color;</li>
+<li>state color carries meaning only;</li>
+<li>150–250 ms state transitions;</li>
+<li>no decorative load motion;</li>
+<li>no nested-card maze, glassmorphism, gradient text, ornamental rarity effects.</li>
+</ul>
+<p>Reference roles:</p>
+<ul>
+<li>EDOPro: deck zones, vocabulary, dense expectations;</li>
+<li>Moxfield/Archidekt: lookup, inspection, validation readability;</li>
+<li>Linear/Raycast: keyboard speed, restrained chrome, state feedback.</li>
+</ul>
+<p>References guide behavior only. No brand/layout cloning.</p>
+<h2>13. Prototype boundaries</h2>
+<p>Allowed:</p>
+<ul>
+<li>isolated deck-builder route/mode;</li>
+<li>Svelte components;</li>
+<li>prototype-only IndexedDB database;</li>
+<li><code>fake-indexeddb</code> tests;</li>
+<li>actual generated catalog/text adapters;</li>
+<li>safe representative current card art or placeholders;</li>
+<li>simulated failures;</li>
+<li>fixture switcher behind prototype-only control;</li>
+<li>production-shaped deck contracts where approved.</li>
+</ul>
+<p>Forbidden:</p>
+<ul>
+<li>arbitrary deck dispatch to Duel Worker;</li>
+<li>current preset duel edits;</li>
+<li>current snapshot IndexedDB store changes;</li>
+<li>VN UI implementation;</li>
+<li>fake production legality claims;</li>
+<li>silent import repair;</li>
+<li>network dependency;</li>
+<li>public redistribution of unapproved art;</li>
+<li>collection/reward/shop/pack ownership systems;</li>
+<li>treating prototype UI as final production UI.</li>
+</ul>
+<h2>14. Out of scope</h2>
+<ul>
+<li>mobile/tablet UX;</li>
+<li>template decks;</li>
+<li>deck selection inside module;</li>
+<li>duel start/simulation;</li>
+<li>strategic recommendations;</li>
+<li>AI deck generation;</li>
+<li>opening-hand simulator;</li>
+<li>combo testing;</li>
+<li>side-deck match flow;</li>
+<li>accounts/cloud sync;</li>
+<li>sharing URLs;</li>
+<li>collection ownership;</li>
+<li>reward unlocks;</li>
+<li>shops/packs/economy;</li>
+<li>advanced analytics;</li>
+<li>format/banlist selector;</li>
+<li>effect-text/card-code/stat/archetype filters;</li>
+<li>manual card ordering;</li>
+<li>compact list view;</li>
+<li>localization impl;</li>
+<li>final production migration;</li>
+<li>full-catalog virtualization tuning.</li>
+</ul>
+<h2>15. Review scenarios</h2>
+<p>Reviewer should complete without guidance:</p>
+<ol>
+<li>Open route with saved last-opened deck → editor opens directly.</li>
+<li>Clear last-opened pointer → Library opens.</li>
+<li>Create blank <code>Prototype Control</code> deck.</li>
+<li>Filter Monster + DARK + Dragon.</li>
+<li>Inspect long effect text in pinned details.</li>
+<li>Drag three Main cards from catalog to Main.</li>
+<li>Drag Extra card from catalog to Extra.</li>
+<li>Drag Main/Extra card to Side, then return to canonical zone.</li>
+<li>Remove tile through Remove drop target.</li>
+<li>Undo/Redo card update.</li>
+<li>Create 51 updates → only latest 50 retained.</li>
+<li>Reload → deck plus retained history restored.</li>
+<li>Observe 40-slot 10 × 4 grid.</li>
+<li>Add card 41 → grid becomes 60-slot 12 × 5.</li>
+<li>Fill 60 → all tiles visible.</li>
+<li>Diagnose under-40 Main error after each edit.</li>
+<li>Observe 0/1/2/3 top-left quantity badges.</li>
+<li>Import valid YDK.</li>
+<li>Import malformed YDK → exact bad line.</li>
+<li>Import unknown code → persistent error placeholder.</li>
+<li>Export invalid draft despite warning.</li>
+<li>Duplicate, rename, delete copy.</li>
+<li>Recover simulated autosave failure.</li>
+<li>Resolve simulated revision conflict.</li>
+<li>Call resolver with valid, invalid, missing IDs.</li>
+<li>Complete drag flows keyboard-only.</li>
+</ol>
+<h2>16. Acceptance criteria</h2>
+<p>Prototype is review-ready when:</p>
+<ul>
+<li>every screen/state in sections 6 and 9 is reachable;</li>
+<li>scenarios in section 15 pass;</li>
+<li>last-opened deck opens by default;</li>
+<li>blank-first creation works;</li>
+<li>every mutation autosaves;</li>
+<li>exactly 50 card updates retained per deck;</li>
+<li>invalid drafts survive reload;</li>
+<li>VN resolver returns ready/missing/invalid by deck ID;</li>
+<li>no deck selection UI exists;</li>
+<li>Side Deck editing works;</li>
+<li>desktop topology remains Catalog / Deck / Details;</li>
+<li>card-art grid is only deck view;</li>
+<li>Main switches 10 × 4 → 12 × 5 after card 40;</li>
+<li>repeated copies remain repeated tiles;</li>
+<li>no manual ordering exists;</li>
+<li>only approved filters exist;</li>
+<li>full effect text stays in pinned details;</li>
+<li>validation recomputes after every edit;</li>
+<li>quantity badges appear top-left with non-color semantics;</li>
+<li>unknown cards remain removable error placeholders;</li>
+<li>one pinned ruleset exists without selector;</li>
+<li>OCG data mapping tests prove bitmask/type correctness;</li>
+<li>drag/drop has keyboard parity;</li>
+<li>no mobile layout work lands;</li>
+<li>no current duel behavior changes.</li>
+</ul>
+<h2>17. Source references</h2>
+<ul>
+<li><code>docs/card-game-vn-handoff/01-product-scope.md</code></li>
+<li><code>docs/card-game-vn-handoff/03-modules-and-contracts.md</code></li>
+<li><code>docs/card-game-vn-handoff/07-technical-decisions.md</code></li>
+<li><code>docs/card-game-vn-handoff/08-phased-implementation-plan.md</code></li>
+<li><code>src/duel/presets/deck-parser.ts</code></li>
+<li><code>src/worker/engine/OcgCoreAdapter.ts</code></li>
+<li><code>src/worker/assets/active-duel-dependencies.ts</code></li>
+<li><code>vendor/ocgcore-wasm/0.1.2/dist/index.d.ts</code></li>
+<li><code>src/styles/app.css</code></li>
+</ul>
+
+<footer class="artifact-footer">source: C:\Users\Natha\coding\ygo-story-duel-simulator</footer>
+</article>
+
+<script>
+(function () {
+  var slug = "deck-builder-prototype-scope";
+  var es = new EventSource("/events");
+  es.addEventListener("reload", function (e) {
+    try { if (e.data === slug || e.data === "*") location.reload(); } catch (_) {}
+  });
+})();
+</script>
+</body>
+</html>

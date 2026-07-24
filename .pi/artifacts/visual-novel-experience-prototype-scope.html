@@ -1,0 +1,810 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="artifact-kind" content="markdown">
+<meta name="artifact-generated" content="1784905121929">
+<meta name="artifact-project" content="C:\Users\Natha\coding\ygo-story-duel-simulator">
+<title>Visual Novel Experience Prototype Scope</title>
+<style data-base>:root { color-scheme: light dark;
+  --bg: #ffffff;
+  --fg: #1c1c1a;
+  --muted: #6b6862;
+  --border: #e7e5e0;
+  --code-bg: #f7f6f4;
+  --accent: #b95730;
+  --add-bg: #e9f7ee;
+  --add-word-bg: #c8ecd3;
+  --add-fg: #1a7f37;
+  --del-bg: #feeff1;
+  --del-word-bg: #f8d2d7;
+  --del-fg: #c93c4c;
+  --hl-comment: #6e7781;
+  --hl-keyword: #cf222e;
+  --hl-string: #0a3069;
+  --hl-number: #0550ae;
+  --hl-title: #8250df;
+  --hl-type: #953800;
+  --hl-attr: #0550ae;
+}
+@media (prefers-color-scheme: dark) { :root {
+  --bg: #171614;
+  --fg: #e6e3de;
+  --muted: #94918a;
+  --border: #2e2d29;
+  --code-bg: #201f1c;
+  --accent: #d67858;
+  --add-bg: #1d2a20;
+  --add-word-bg: #2b4232;
+  --add-fg: #85c793;
+  --del-bg: #2e1c1e;
+  --del-word-bg: #4a292c;
+  --del-fg: #e28a91;
+  --hl-comment: #8b949e;
+  --hl-keyword: #ff7b72;
+  --hl-string: #a5d6ff;
+  --hl-number: #79c0ff;
+  --hl-title: #d2a8ff;
+  --hl-type: #ffa657;
+  --hl-attr: #79c0ff;
+} }
+
+* { box-sizing: border-box; }
+html { font-size: 15px; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+article { max-width: 860px; margin: 0 auto; padding: 2.75rem 1.5rem 4rem; }
+h1, h2, h3, h4 { line-height: 1.3; letter-spacing: -0.01em; color: var(--fg); }
+h1 { font-size: 1.45rem; font-weight: 650; margin: 0 0 1rem; }
+h2 { font-size: 1.15rem; font-weight: 650; margin: 2.2em 0 .7em; padding-bottom: .35em; border-bottom: 1px solid var(--border); }
+h3 { font-size: 1rem; font-weight: 600; margin: 1.8em 0 .5em; }
+h4 { font-size: .9rem; font-weight: 600; margin: 1.5em 0 .4em; }
+p { margin: .8em 0; }
+a { color: var(--accent); text-decoration: underline; text-decoration-color: color-mix(in srgb, var(--accent) 35%, transparent); text-underline-offset: 2px; }
+a:hover { text-decoration-color: var(--accent); }
+strong { font-weight: 600; }
+ul, ol { margin: .8em 0; padding-left: 1.5em; }
+li { margin: .3em 0; }
+li > ul, li > ol { margin: .2em 0; }
+hr { border: none; border-top: 1px solid var(--border); margin: 2.5em 0; }
+img, svg, video { max-width: 100%; }
+::selection { background: color-mix(in srgb, var(--accent) 25%, transparent); }
+
+blockquote {
+  margin: 1.2em 0;
+  padding: .1em 1.1em;
+  border-left: 3px solid color-mix(in srgb, var(--accent) 55%, transparent);
+  color: var(--muted);
+}
+blockquote > :first-child { margin-top: .4em; }
+blockquote > :last-child { margin-bottom: .4em; }
+
+table { border-collapse: collapse; width: 100%; margin: 1.2em 0; font-size: .9rem; }
+th {
+  text-align: left; font-weight: 600; font-size: .74rem;
+  text-transform: uppercase; letter-spacing: .06em; color: var(--muted);
+  padding: .5em .75em; border-bottom: 1px solid var(--border);
+}
+td { padding: .55em .75em; border-bottom: 1px solid var(--border); vertical-align: top; }
+tr:last-child td { border-bottom: none; }
+
+code, kbd, samp { font-family: ui-monospace, "SF Mono", "JetBrains Mono", "Cascadia Code", Menlo, Consolas, "Liberation Mono", monospace; }
+code { font-size: .85em; background: var(--code-bg); padding: .15em .4em; border-radius: 4px; }
+pre {
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 1em 1.2em;
+  overflow-x: auto;
+  font-size: .82rem;
+  line-height: 1.55;
+  margin: 1.2em 0;
+}
+pre code { background: transparent; padding: 0; font-size: inherit; }
+
+input[type="checkbox"] { accent-color: var(--accent); margin-right: .4em; }
+
+
+.artifact-header {
+  display: flex; align-items: baseline; gap: .75rem; flex-wrap: wrap;
+  margin-bottom: 2rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border);
+}
+.artifact-header h1 { margin: 0; }
+.artifact-badge {
+  font-family: ui-monospace, "SF Mono", "JetBrains Mono", "Cascadia Code", Menlo, Consolas, "Liberation Mono", monospace; font-size: .66rem; text-transform: uppercase;
+  letter-spacing: .08em; color: var(--accent);
+  border: 1px solid color-mix(in srgb, var(--accent) 35%, transparent);
+  border-radius: 999px; padding: .2em .7em; white-space: nowrap;
+}
+.artifact-meta { margin-left: auto; color: var(--muted); font-size: .72rem; font-family: ui-monospace, "SF Mono", "JetBrains Mono", "Cascadia Code", Menlo, Consolas, "Liberation Mono", monospace; }
+.artifact-footer {
+  margin-top: 4rem; padding-top: 1rem; border-top: 1px solid var(--border);
+  color: var(--muted); font-size: .72rem; font-family: ui-monospace, "SF Mono", "JetBrains Mono", "Cascadia Code", Menlo, Consolas, "Liberation Mono", monospace;
+}
+.artifact-mermaid { text-align: center; margin: 1.5rem 0; }
+</style>
+<style data-hljs>
+.hljs { color: var(--fg); background: transparent; }
+.hljs-comment, .hljs-quote { color: var(--hl-comment); font-style: italic; }
+.hljs-keyword, .hljs-selector-tag, .hljs-literal, .hljs-deletion { color: var(--hl-keyword); }
+.hljs-string, .hljs-regexp, .hljs-addition { color: var(--hl-string); }
+.hljs-number, .hljs-symbol, .hljs-bullet, .hljs-meta, .hljs-link { color: var(--hl-number); }
+.hljs-title, .hljs-section, .hljs-function .hljs-title { color: var(--hl-title); }
+.hljs-type, .hljs-class .hljs-title, .hljs-built_in { color: var(--hl-type); }
+.hljs-variable, .hljs-template-variable, .hljs-attr, .hljs-attribute, .hljs-property { color: var(--hl-attr); }
+.hljs-emphasis { font-style: italic; }
+.hljs-strong { font-weight: 600; }
+</style>
+</head>
+<body>
+<article>
+<header class="artifact-header">
+<h1>Visual Novel Experience Prototype Scope</h1>
+<span class="artifact-badge">markdown</span>
+<span class="artifact-meta">2026-07-24 14:58:41</span>
+</header>
+<h1>Visual Novel Experience Prototype Scope</h1>
+<blockquote>
+<p>Status: draft for review<br>Purpose: decide what game should feel like before production implementation<br>Related target: <a href="01-product-scope.md"><code>01-product-scope.md</code></a> and <a href="04-narrative-and-map-design.md"><code>04-narrative-and-map-design.md</code></a><br>TDD plan: <a href="10-experience-prototype-implementation-plan.md"><code>10-experience-prototype-implementation-plan.md</code></a></p>
+</blockquote>
+<h2>1. Prototype goal</h2>
+<p>Build a disposable, interactive visual-novel prototype around the existing duel product. It should make intended player experience concrete enough to review, compare, reject, or refine before campaign architecture is implemented.</p>
+<p>Prototype must answer:</p>
+<ol>
+<li>Does moving among narrative, map, and battle feel like one game?</li>
+<li>Is dialogue presentation readable, expressive, and fast enough?</li>
+<li>Does player choice feel meaningful without implying unsupported branching depth?</li>
+<li>Does illustrated map hub make location, access, objective, and progression state clear?</li>
+<li>Which navigation and quality-of-life controls feel essential?</li>
+<li>How much progression feedback should appear between story beats?</li>
+<li>Does experience work on desktop, mobile, keyboard, touch, and reduced motion?</li>
+<li>Which visual direction should guide production UI?</li>
+</ol>
+<p>This prototype validates experience, information architecture, visual direction, pacing, and interaction. It does not validate production campaign, content-pack, save-migration, PWA, or duel-engine architecture.</p>
+<h2>2. Proposed prototype shape</h2>
+<table>
+<thead>
+<tr>
+<th>Dimension</th>
+<th>Scope</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Fidelity</td>
+<td>Mid-fidelity interactive flow with polished key screens</td>
+</tr>
+<tr>
+<td>Breadth</td>
+<td>One short prologue covering complete narrative → map → battle → outcome loop</td>
+</tr>
+<tr>
+<td>Runtime</td>
+<td>Isolated prototype entry; existing direct-duel app remains unchanged</td>
+</tr>
+<tr>
+<td>Data</td>
+<td>Local mocked content and state</td>
+</tr>
+<tr>
+<td>Persistence</td>
+<td>Lightweight local prototype state only; no production save schema</td>
+</tr>
+<tr>
+<td>Battle</td>
+<td>Battle handoff mock with explicit outcome selector; existing duel UI is not redesigned</td>
+</tr>
+<tr>
+<td>Platforms</td>
+<td>Desktop web plus 375px mobile treatment</td>
+</tr>
+<tr>
+<td>Review intent</td>
+<td>Fast iteration; prototype code may be discarded</td>
+</tr>
+</tbody></table>
+<h3>Isolation proposal</h3>
+<p>Use a separate prototype entry rather than modifying current direct-duel flow. Proposed URL: <code>/prototype.html</code>.</p>
+<p>Prototype may reuse existing colors, typography, button rules, and card imagery where useful. It must not import Worker internals, alter duel contracts, create production campaign abstractions, or become an accidental first implementation of future architecture.</p>
+<h2>3. Representative player flow</h2>
+<pre><code class="hljs language-text">Prototype launcher
+→ Title screen
+→ New Game or Load mock save
+→ Prologue narrative
+→ Meaningful choice
+→ Choice consequence acknowledgment
+→ Illustrated map hub
+→ Inspect locked location
+→ Select available story location
+→ Pre-battle briefing
+→ Battle handoff mock
+→ Select simulated player win or player loss
+→ Matching outcome scene
+→ Reward / progression feedback
+→ Updated map state
+→ Save confirmation
+→ Prototype end / replay / jump to review state</code></pre><p>Both win and loss branches must be reviewable without replaying full flow.</p>
+<h2>4. Screens and surfaces</h2>
+<h3>4.1 Prototype launcher</h3>
+<p>Purpose: explain prototype status and make review efficient.</p>
+<p>Cover:</p>
+<ul>
+<li>short notice that content, names, art, and state are provisional;</li>
+<li>Start Full Flow;</li>
+<li>Jump to Screen/State;</li>
+<li>Reset Prototype;</li>
+<li>viewport hint for desktop/mobile review;</li>
+<li>direct access to visual-direction comparisons.</li>
+</ul>
+<h3>4.2 Title screen</h3>
+<p>Cover:</p>
+<ul>
+<li>game title treatment;</li>
+<li>New Game as primary action;</li>
+<li>Continue when mock progress exists;</li>
+<li>Load;</li>
+<li>Settings;</li>
+<li>clear private/prototype marker;</li>
+<li>version/build label kept visually secondary;</li>
+<li>keyboard focus entering on primary action.</li>
+</ul>
+<p>Questions to validate:</p>
+<ul>
+<li>cinematic title screen vs compact game menu;</li>
+<li>amount of Yu-Gi-Oh!-specific visual language;</li>
+<li>whether chapter context belongs on Continue.</li>
+</ul>
+<h3>4.3 New Game entry</h3>
+<p>Cover:</p>
+<ul>
+<li>immediate start vs prologue summary/confirmation;</li>
+<li>optional player-name placeholder only if naming is being considered;</li>
+<li>clear transition into first story beat;</li>
+<li>return to title before progress is created.</li>
+</ul>
+<p>Default: start immediately. Character creation, difficulty, deck selection, and campaign selection remain absent.</p>
+<h3>4.4 Load screen</h3>
+<p>Cover:</p>
+<ul>
+<li>one occupied manual slot;</li>
+<li>one autosave;</li>
+<li>one empty slot;</li>
+<li>chapter/location, playtime, timestamp, and small preview image;</li>
+<li>Load, Delete, and Back actions;</li>
+<li>overwrite/delete confirmation treatment;</li>
+<li>no-save empty state;</li>
+<li>incompatible/corrupt save example reachable from review launcher.</li>
+</ul>
+<p>This validates save UX only. Data may use <code>localStorage</code>; no production persistence contract.</p>
+<h3>4.5 Narrative screen</h3>
+<p>Required layers:</p>
+<pre><code class="hljs language-text">NarrativeScreen
+├── Background
+├── Character sprites
+├── optional foreground/effect layer
+├── speaker name
+├── dialogue or narration box
+├── advance affordance
+├── choice area when paused
+└── utility controls</code></pre><p>Cover:</p>
+<ul>
+<li>narration with no speaker;</li>
+<li>named speaker dialogue;</li>
+<li>protagonist/internal thought treatment;</li>
+<li>one character, then two-character composition;</li>
+<li>speaker change;</li>
+<li>two expressions for one character;</li>
+<li>character enter, expression change, and exit;</li>
+<li>background change;</li>
+<li>long line, short line, and multi-line text;</li>
+<li>click/tap/keyboard advance;</li>
+<li>visible end-of-line advance cue;</li>
+<li>deterministic missing-background and missing-sprite fallback;</li>
+<li>dialogue UI hidden/revealed without losing place.</li>
+</ul>
+<p>Utility controls to prototype:</p>
+<ul>
+<li>History;</li>
+<li>Auto;</li>
+<li>Skip;</li>
+<li>Hide UI;</li>
+<li>Save;</li>
+<li>Load;</li>
+<li>Settings;</li>
+<li>Return to Title.</li>
+</ul>
+<p>Only History, Hide UI, Save, Load, Settings, and Return need complete shallow interactions. Auto and Skip may be visibly marked experimental; prototype should test whether players expect them before production scope is expanded.</p>
+<h3>4.6 Choice state</h3>
+<p>Cover:</p>
+<ul>
+<li>one choice with 2–3 concise options;</li>
+<li>keyboard and touch selection;</li>
+<li>obvious selected/focus state;</li>
+<li>no accidental selection from dialogue advance input;</li>
+<li>one immediate reaction line per option;</li>
+<li>one later acknowledgment or map-state difference proving choice was retained;</li>
+<li>revisiting choice through review launcher.</li>
+</ul>
+<p>Choice should test tone or relationship—not imply a large story branch. Branches reconverge before map.</p>
+<h3>4.7 Dialogue history</h3>
+<p>Cover:</p>
+<ul>
+<li>current-scene entries only;</li>
+<li>speaker + text;</li>
+<li>clear newest/oldest order;</li>
+<li>keyboard-close and focus return;</li>
+<li>empty history state;</li>
+<li>no replay/voice controls unless audio becomes approved scope.</li>
+</ul>
+<p>Goal: decide whether history is essential for first production slice.</p>
+<h3>4.8 Settings overlay/screen</h3>
+<p>Cover only settings relevant to experience review:</p>
+<ul>
+<li>text speed;</li>
+<li>auto-advance speed;</li>
+<li>transitions on/off or reduced;</li>
+<li>music volume placeholder;</li>
+<li>sound volume placeholder;</li>
+<li>fullscreen when browser supports it;</li>
+<li>reset to defaults;</li>
+<li>Back with unsaved-change behavior made explicit.</li>
+</ul>
+<p>Audio controls may be disabled with “Audio not included in this prototype.” No audio implementation required.</p>
+<h3>4.9 Illustrated map hub</h3>
+<p>Required structure:</p>
+<pre><code class="hljs language-text">MapScreen
+├── illustrated map background
+├── objective
+├── hotspot layer
+├── marker/status layer
+├── always-present location list
+└── navigation/help</code></pre><p>Cover exactly two main locations plus one hidden-state example available through review launcher:</p>
+<ol>
+<li>available required story/battle location;</li>
+<li>visible locked location with reason;</li>
+<li>hidden location state for review only;</li>
+<li>completed state after outcome;</li>
+<li>available-completed state to prove completion and access are independent.</li>
+</ol>
+<p>Interactions:</p>
+<ul>
+<li>hotspot hover/focus/select;</li>
+<li>list hover/focus/select;</li>
+<li>hotspot and list synchronize selection;</li>
+<li>locked location explains requirement;</li>
+<li>objective remains visible;</li>
+<li>location details appear before navigation;</li>
+<li>Back exists only where story context allows it;</li>
+<li>mobile uses same map plus usable list, not map-only interaction.</li>
+</ul>
+<p>Approved direction:</p>
+<ul>
+<li>illustrated map is primary chapter-navigation surface;</li>
+<li>chapter menu is not a competing primary-navigation option;</li>
+<li>always-present accessible location list remains equivalent selection surface.</li>
+</ul>
+<p>Questions to validate:</p>
+<ul>
+<li>marker style and density;</li>
+<li>whether location preview needs character, reward, battle, or difficulty info;</li>
+<li>whether locked locations should remain visible.</li>
+</ul>
+<h3>4.10 Pre-battle briefing</h3>
+<p>Cover:</p>
+<ul>
+<li>opponent identity;</li>
+<li>short narrative stakes;</li>
+<li>player and opponent deck labels without deck editing;</li>
+<li>objective/format summary;</li>
+<li>Start Duel;</li>
+<li>Return to Map when allowed;</li>
+<li>mock pre-battle save confirmation;</li>
+<li>transition language connecting VN presentation to existing duel UI.</li>
+</ul>
+<p>No deck editor, deck selection, card ownership, or rules configuration.</p>
+<h3>4.11 Battle handoff mock</h3>
+<p>Purpose: validate transition and return contract without duplicating or embedding duel runtime.</p>
+<p>Cover:</p>
+<ul>
+<li>transition into battle;</li>
+<li>framed placeholder referencing existing duel experience;</li>
+<li>Simulate Player Win;</li>
+<li>Simulate Player Loss;</li>
+<li>Simulate Abort;</li>
+<li>Simulate Technical Failure;</li>
+<li>transition back to narrative;</li>
+<li>technical failure recovery kept separate from authored loss.</li>
+</ul>
+<p>Mock controls belong only to prototype/reviewer mode. They must not resemble player-facing production actions.</p>
+<p>Optional later experiment: launch current real duel from prototype after story direction is approved. Not required for prototype acceptance.</p>
+<h3>4.12 Outcome scenes</h3>
+<p>Cover separate authored beats for:</p>
+<ul>
+<li>player win;</li>
+<li>player loss;</li>
+<li>aborted battle recovery;</li>
+<li>technical failure recovery.</li>
+</ul>
+<p>Requirements:</p>
+<ul>
+<li>win and loss produce different dialogue;</li>
+<li>neither branch dead-ends;</li>
+<li>abort offers retry or return without progression;</li>
+<li>technical failure offers retry/return and never presents as story defeat;</li>
+<li>branch label remains visible in reviewer tooling, not player UI.</li>
+</ul>
+<h3>4.13 Reward and progression feedback</h3>
+<p>Cover one reward or persistent flag:</p>
+<ul>
+<li>compact reveal after resolved battle;</li>
+<li>plain-language explanation of what changed;</li>
+<li>Continue action;</li>
+<li>map marker/state update;</li>
+<li>chapter objective update;</li>
+<li>reward does not imply card-ownership restrictions.</li>
+</ul>
+<p>Questions to validate:</p>
+<ul>
+<li>modal reveal vs inline narrative acknowledgment;</li>
+<li>amount of celebration;</li>
+<li>whether objective and reward should appear together.</li>
+</ul>
+<h3>4.14 Save feedback</h3>
+<p>Cover:</p>
+<ul>
+<li>autosave indicator at stable story boundary;</li>
+<li>manual Save action;</li>
+<li>successful confirmation that does not interrupt flow;</li>
+<li>overwrite confirmation;</li>
+<li>simulated storage failure with Retry and Continue Without Saving;</li>
+<li>pre-battle checkpoint explanation in player language, not architecture terms.</li>
+</ul>
+<h3>4.15 Pause/return flow</h3>
+<p>Cover:</p>
+<ul>
+<li>pause/utility menu reachable from narrative and map;</li>
+<li>resume;</li>
+<li>save/load;</li>
+<li>settings;</li>
+<li>return to title confirmation when progress since last save exists;</li>
+<li>predictable focus return to invoking control.</li>
+</ul>
+<h2>5. Sample content inventory</h2>
+<p>Prototype needs enough authored content to judge pacing, not final canon.</p>
+<h3>Story content</h3>
+<ul>
+<li>5–8 minute prologue;</li>
+<li>25–40 dialogue/narration beats;</li>
+<li>2 speaking characters plus protagonist voice;</li>
+<li>1 meaningful 2–3 option choice;</li>
+<li>1 immediate choice reaction;</li>
+<li>1 later choice acknowledgment;</li>
+<li>1 map objective;</li>
+<li>2 map locations;</li>
+<li>1 pre-battle briefing;</li>
+<li>1 win scene;</li>
+<li>1 loss scene;</li>
+<li>1 abort recovery message;</li>
+<li>1 technical-failure recovery message;</li>
+<li>1 reward/progression beat.</li>
+</ul>
+<h3>Visual assets</h3>
+<p>Use replaceable project-local placeholders with source notes.</p>
+<ul>
+<li>1 title/key-art composition;</li>
+<li>3–4 backgrounds: arrival, interior, map, arena/duel transition;</li>
+<li>1 illustrated map;</li>
+<li>2 character sprites;</li>
+<li>2–3 expressions for primary speaking character;</li>
+<li>marker icons for story, battle, locked, and completed;</li>
+<li>1 reward icon;</li>
+<li>deterministic missing-asset placeholders;</li>
+<li>optional card-back motif or existing approved local card assets.</li>
+</ul>
+<p>No asset should imply redistribution approval. Prototype remains private.</p>
+<h3>Audio</h3>
+<p>No audio required. Prototype should reserve visual space for music/sound controls without sourcing unapproved media. One later audio experiment may be added only after visual/pacing review shows it is needed.</p>
+<h2>6. Visual-direction exploration</h2>
+<p>Before one direction is treated as preferred, prototype should compare three small direction boards using same title, dialogue beat, and map state.</p>
+<h3>Direction A — Existing client continuity</h3>
+<ul>
+<li>dark navy base;</li>
+<li>teal interaction accent;</li>
+<li>restrained product UI around art-led story layers;</li>
+<li>strongest continuity with current duel client.</li>
+</ul>
+<h3>Direction B — Duel-anime broadcast</h3>
+<ul>
+<li>stronger framing, status motifs, and scene transitions;</li>
+<li>more visible chapter/objective energy;</li>
+<li>risk: noisy, generic anime-game UI.</li>
+</ul>
+<h3>Direction C — Cinematic visual novel</h3>
+<ul>
+<li>image-dominant composition;</li>
+<li>quieter chrome;</li>
+<li>dialogue typography and character staging carry mood;</li>
+<li>risk: transition into dense duel UI may feel abrupt.</li>
+</ul>
+<p>Review should select one direction or a specific hybrid. Palette swaps alone do not count as distinct directions.</p>
+<h3>Physical scene</h3>
+<p>Player sits at a desktop or holds a phone in a dim room, exploring story at an unhurried pace before shifting into a focused, information-dense duel. Dark-first treatment is proposed because it supports both ambient context and continuity with current client.</p>
+<h2>7. Interaction requirements</h2>
+<h3>Input</h3>
+<ul>
+<li>Mouse, keyboard, and touch complete core flow.</li>
+<li><code>Enter</code>/<code>Space</code>: advance dialogue when focus is not on another actionable control.</li>
+<li>Choice options use normal buttons and arrow/tab navigation.</li>
+<li><code>Escape</code>: close top overlay, then restore invoking control.</li>
+<li>No global shortcut triggers while typing or while confirmation dialog is open.</li>
+<li>Double activation cannot advance twice or dispatch duplicate transitions.</li>
+</ul>
+<h3>Feedback</h3>
+<ul>
+<li>Every action gets immediate visual response.</li>
+<li>Current speaker and active selection remain obvious.</li>
+<li>Transitions explain mode changes; they never hide loading indefinitely.</li>
+<li>Save, load, choice, map selection, and battle result show explicit completion.</li>
+<li>Reviewer-only state controls remain visually separate from player UI.</li>
+</ul>
+<h3>Motion</h3>
+<ul>
+<li>150–300 ms for UI state transitions;</li>
+<li>restrained fades/slides for character and background changes;</li>
+<li>one stronger transition entering battle;</li>
+<li>no bounce/elastic motion;</li>
+<li><code>prefers-reduced-motion</code> replaces movement with crossfade or instant change;</li>
+<li>content visible without waiting for entrance animation.</li>
+</ul>
+<h2>8. Responsive requirements</h2>
+<p>Review at minimum:</p>
+<ul>
+<li>1280 × 720 desktop;</li>
+<li>768 × 1024 tablet portrait;</li>
+<li>375 × 667 mobile portrait;</li>
+<li>667 × 375 mobile landscape.</li>
+</ul>
+<p>Required behavior:</p>
+<ul>
+<li>dialogue never covers speaker identity or choice controls;</li>
+<li>text remains readable without horizontal scrolling;</li>
+<li>map stays contained;</li>
+<li>location list remains available;</li>
+<li>touch targets are at least 44 × 44 CSS pixels;</li>
+<li>overlays fit viewport and scroll internally when necessary;</li>
+<li>safe-area insets do not hide controls;</li>
+<li>long location names and dialogue wrap without clipping;</li>
+<li>mobile does not become compressed desktop chrome.</li>
+</ul>
+<h2>9. Accessibility requirements</h2>
+<p>Target WCAG 2.2 AA behavior for prototype surfaces.</p>
+<p>Cover:</p>
+<ul>
+<li>semantic headings, buttons, lists, and dialogs;</li>
+<li>visible focus;</li>
+<li>logical focus order;</li>
+<li>focus placement after screen transitions;</li>
+<li>focus restoration after overlays;</li>
+<li>labels independent of icon/color;</li>
+<li>dialogue, choices, objective, map state, save status, and errors available to screen readers;</li>
+<li>no automatic live-region reading of every animated text fragment;</li>
+<li>full dialogue line exposed once, with user-controlled advance;</li>
+<li>map hotspots paired with always-present location list;</li>
+<li>locked/completed states conveyed through text and semantics, not color alone;</li>
+<li>4.5:1 normal-text contrast;</li>
+<li>reduced-motion support;</li>
+<li>text scaling to 200% without loss of core actions;</li>
+<li>deterministic alt/fallback treatment for missing art.</li>
+</ul>
+<h2>10. State coverage matrix</h2>
+<table>
+<thead>
+<tr>
+<th>Surface</th>
+<th>States prototype must expose</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Launcher</td>
+<td>fresh, progress exists</td>
+</tr>
+<tr>
+<td>Title</td>
+<td>new player, continue available</td>
+</tr>
+<tr>
+<td>Load</td>
+<td>occupied, autosave, empty, incompatible/corrupt example</td>
+</tr>
+<tr>
+<td>Narrative</td>
+<td>narration, speaker dialogue, thought, one sprite, two sprites, long text, missing asset</td>
+</tr>
+<tr>
+<td>Choice</td>
+<td>default, focus/selected, resolved</td>
+</tr>
+<tr>
+<td>History</td>
+<td>entries, empty</td>
+</tr>
+<tr>
+<td>Settings</td>
+<td>unchanged, changed, reset, audio unavailable</td>
+</tr>
+<tr>
+<td>Map</td>
+<td>available, locked, hidden, completed, available-completed</td>
+</tr>
+<tr>
+<td>Pre-battle</td>
+<td>ready, return allowed, save warning</td>
+</tr>
+<tr>
+<td>Battle handoff</td>
+<td>ready, win, loss, abort, technical failure</td>
+</tr>
+<tr>
+<td>Outcome</td>
+<td>win branch, loss branch, recovery branch</td>
+</tr>
+<tr>
+<td>Reward</td>
+<td>new reward/flag, acknowledged</td>
+</tr>
+<tr>
+<td>Save</td>
+<td>idle, saving, success, overwrite, failure</td>
+</tr>
+<tr>
+<td>Responsive</td>
+<td>desktop, tablet, mobile portrait, mobile landscape</td>
+</tr>
+<tr>
+<td>Motion</td>
+<td>default, reduced motion</td>
+</tr>
+</tbody></table>
+<p>Review launcher must make every state reachable in at most two actions.</p>
+<h2>11. Reviewer tooling</h2>
+<p>Prototype should include a clearly labeled review drawer or launcher, excluded from any future production path.</p>
+<p>Functions:</p>
+<ul>
+<li>jump to screen;</li>
+<li>set choice result;</li>
+<li>set map access/completion state;</li>
+<li>simulate battle result;</li>
+<li>toggle missing assets;</li>
+<li>toggle save/storage failure;</li>
+<li>toggle reduced-motion preview;</li>
+<li>reset all state;</li>
+<li>show current prototype state as readable JSON;</li>
+<li>copy current review-state link when practical.</li>
+</ul>
+<p>Goal: reviewers compare states without replaying 5–8 minute flow.</p>
+<h2>12. Explicit non-goals</h2>
+<p>Prototype will not include:</p>
+<ul>
+<li>production campaign reducer/interpreter;</li>
+<li>validated content packs or migration logic;</li>
+<li>real save envelopes, autosave rotation, or IndexedDB schema;</li>
+<li>service worker, installation, offline guarantees, or update coordination;</li>
+<li>real duel Worker integration;</li>
+<li>duel UI redesign;</li>
+<li>deck editor, deck selection, YDK import/export, or card ownership;</li>
+<li>multiple chapters;</li>
+<li>shops, quests, relationships, tournaments, or free movement;</li>
+<li>chapter menu as primary navigation;</li>
+<li>localization system;</li>
+<li>voice acting, final music, cinematics, or final artwork;</li>
+<li>public deployment;</li>
+<li>final story canon;</li>
+<li>architecture changes under <code>src/duel</code>, <code>src/worker</code>, <code>src/field</code>, or <code>src/storage</code>.</li>
+</ul>
+<h2>13. Prototype deliverables</h2>
+<ol>
+<li>Isolated interactive web prototype.</li>
+<li>Full representative flow.</li>
+<li>Review launcher covering state matrix.</li>
+<li>Three visual-direction boards.</li>
+<li>Desktop and mobile layouts.</li>
+<li>Replaceable mock content/assets with provenance notes.</li>
+<li>Short README containing launch command, prototype URL, reset method, and known limitations.</li>
+<li>Review notes file recording accepted, rejected, and unresolved decisions.</li>
+</ol>
+<h2>14. Acceptance criteria</h2>
+<p>Prototype is ready for review when:</p>
+<ul>
+<li>full representative flow completes without dead ends;</li>
+<li>New Game and Load both reach narrative;</li>
+<li>choice creates immediate and later visible acknowledgment;</li>
+<li>map hotspot and list select same location;</li>
+<li>locked, hidden, completed, and available-completed states are inspectable;</li>
+<li>win and loss return to distinct outcome scenes;</li>
+<li>abort and technical failure never masquerade as loss;</li>
+<li>reward/progression updates visible map or objective state;</li>
+<li>save success and failure treatments are inspectable;</li>
+<li>all state-matrix entries are reachable through reviewer tooling;</li>
+<li>core flow works by keyboard, mouse, and touch;</li>
+<li>desktop and required mobile viewports remain usable;</li>
+<li>reduced-motion mode remains understandable;</li>
+<li>current direct-duel entry and runtime remain unchanged;</li>
+<li>no prototype mock is represented as production architecture.</li>
+</ul>
+<h2>15. Review checklist</h2>
+<p>Reviewer should record answers, not only visual preferences.</p>
+<h3>Product</h3>
+<ul>
+<li><input disabled="" type="checkbox"> Core narrative → map → duel loop feels coherent.</li>
+<li><input disabled="" type="checkbox"> Prologue pacing is too short / right / too long.</li>
+<li><input disabled="" type="checkbox"> Choice consequence feels sufficient for first slice.</li>
+<li><input disabled="" type="checkbox"> Illustrated map makes location access, objective, and progression state clear.</li>
+<li><input disabled="" type="checkbox"> Reward/progression feedback is understandable.</li>
+<li><input disabled="" type="checkbox"> Win and loss both encourage continuation.</li>
+</ul>
+<h3>Visual direction</h3>
+<ul>
+<li><input disabled="" type="checkbox"> Preferred direction: A / B / C / hybrid.</li>
+<li><input disabled="" type="checkbox"> Story UI and duel UI feel related enough.</li>
+<li><input disabled="" type="checkbox"> Dialogue box density is comfortable.</li>
+<li><input disabled="" type="checkbox"> Character/background framing supports story focus.</li>
+<li><input disabled="" type="checkbox"> Map markers and state language are clear.</li>
+<li><input disabled="" type="checkbox"> Motion energy is too low / right / too high.</li>
+</ul>
+<h3>Controls</h3>
+<ul>
+<li><input disabled="" type="checkbox"> History needed in first production slice.</li>
+<li><input disabled="" type="checkbox"> Auto needed in first production slice.</li>
+<li><input disabled="" type="checkbox"> Skip needed in first production slice.</li>
+<li><input disabled="" type="checkbox"> Hide UI needed in first production slice.</li>
+<li><input disabled="" type="checkbox"> Save access belongs in narrative controls / pause menu / both.</li>
+<li><input disabled="" type="checkbox"> Settings scope is sufficient.</li>
+</ul>
+<h3>Scope decisions</h3>
+<ul>
+<li><input disabled="" type="checkbox"> Real duel integration needed in next prototype round.</li>
+<li><input disabled="" type="checkbox"> Audio experiment needed before implementation.</li>
+<li><input disabled="" type="checkbox"> Mobile layout acceptable for first production slice.</li>
+<li><input disabled="" type="checkbox"> Prototype direction ready to convert into implementation plan.</li>
+</ul>
+<h2>16. Decisions and assumptions</h2>
+<p>Approved decision:</p>
+<ul>
+<li>illustrated map is primary chapter-navigation surface; accessible location list provides equivalent selection, not a competing chapter menu.</li>
+</ul>
+<p>Remaining proposed defaults:</p>
+<ul>
+<li>interactive mid-fidelity prototype;</li>
+<li>one 5–8 minute prologue;</li>
+<li>isolated <code>/prototype.html</code> entry;</li>
+<li>mocked state and persistence;</li>
+<li>mocked battle boundary with win/loss/abort/failure selector;</li>
+<li>three visual directions, dark-first;</li>
+<li>desktop plus mobile coverage;</li>
+<li>English-only;</li>
+<li>no audio;</li>
+<li>existing direct-duel runtime untouched.</li>
+</ul>
+<p>Review may approve, replace, or remove any assumption before prototype implementation starts.</p>
+
+<footer class="artifact-footer">source: C:\Users\Natha\coding\ygo-story-duel-simulator</footer>
+</article>
+
+<script>
+(function () {
+  var slug = "visual-novel-experience-prototype-scope";
+  var es = new EventSource("/events");
+  es.addEventListener("reload", function (e) {
+    try { if (e.data === slug || e.data === "*") location.reload(); } catch (_) {}
+  });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,1092 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="artifact-kind" content="markdown">
+<meta name="artifact-generated" content="1784905220083">
+<meta name="artifact-project" content="C:\Users\Natha\coding\ygo-story-duel-simulator">
+<title>Deck Builder Prototype Implementation Plan</title>
+<style data-base>:root { color-scheme: light dark;
+  --bg: #ffffff;
+  --fg: #1c1c1a;
+  --muted: #6b6862;
+  --border: #e7e5e0;
+  --code-bg: #f7f6f4;
+  --accent: #b95730;
+  --add-bg: #e9f7ee;
+  --add-word-bg: #c8ecd3;
+  --add-fg: #1a7f37;
+  --del-bg: #feeff1;
+  --del-word-bg: #f8d2d7;
+  --del-fg: #c93c4c;
+  --hl-comment: #6e7781;
+  --hl-keyword: #cf222e;
+  --hl-string: #0a3069;
+  --hl-number: #0550ae;
+  --hl-title: #8250df;
+  --hl-type: #953800;
+  --hl-attr: #0550ae;
+}
+@media (prefers-color-scheme: dark) { :root {
+  --bg: #171614;
+  --fg: #e6e3de;
+  --muted: #94918a;
+  --border: #2e2d29;
+  --code-bg: #201f1c;
+  --accent: #d67858;
+  --add-bg: #1d2a20;
+  --add-word-bg: #2b4232;
+  --add-fg: #85c793;
+  --del-bg: #2e1c1e;
+  --del-word-bg: #4a292c;
+  --del-fg: #e28a91;
+  --hl-comment: #8b949e;
+  --hl-keyword: #ff7b72;
+  --hl-string: #a5d6ff;
+  --hl-number: #79c0ff;
+  --hl-title: #d2a8ff;
+  --hl-type: #ffa657;
+  --hl-attr: #79c0ff;
+} }
+
+* { box-sizing: border-box; }
+html { font-size: 15px; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+article { max-width: 860px; margin: 0 auto; padding: 2.75rem 1.5rem 4rem; }
+h1, h2, h3, h4 { line-height: 1.3; letter-spacing: -0.01em; color: var(--fg); }
+h1 { font-size: 1.45rem; font-weight: 650; margin: 0 0 1rem; }
+h2 { font-size: 1.15rem; font-weight: 650; margin: 2.2em 0 .7em; padding-bottom: .35em; border-bottom: 1px solid var(--border); }
+h3 { font-size: 1rem; font-weight: 600; margin: 1.8em 0 .5em; }
+h4 { font-size: .9rem; font-weight: 600; margin: 1.5em 0 .4em; }
+p { margin: .8em 0; }
+a { color: var(--accent); text-decoration: underline; text-decoration-color: color-mix(in srgb, var(--accent) 35%, transparent); text-underline-offset: 2px; }
+a:hover { text-decoration-color: var(--accent); }
+strong { font-weight: 600; }
+ul, ol { margin: .8em 0; padding-left: 1.5em; }
+li { margin: .3em 0; }
+li > ul, li > ol { margin: .2em 0; }
+hr { border: none; border-top: 1px solid var(--border); margin: 2.5em 0; }
+img, svg, video { max-width: 100%; }
+::selection { background: color-mix(in srgb, var(--accent) 25%, transparent); }
+
+blockquote {
+  margin: 1.2em 0;
+  padding: .1em 1.1em;
+  border-left: 3px solid color-mix(in srgb, var(--accent) 55%, transparent);
+  color: var(--muted);
+}
+blockquote > :first-child { margin-top: .4em; }
+blockquote > :last-child { margin-bottom: .4em; }
+
+table { border-collapse: collapse; width: 100%; margin: 1.2em 0; font-size: .9rem; }
+th {
+  text-align: left; font-weight: 600; font-size: .74rem;
+  text-transform: uppercase; letter-spacing: .06em; color: var(--muted);
+  padding: .5em .75em; border-bottom: 1px solid var(--border);
+}
+td { padding: .55em .75em; border-bottom: 1px solid var(--border); vertical-align: top; }
+tr:last-child td { border-bottom: none; }
+
+code, kbd, samp { font-family: ui-monospace, "SF Mono", "JetBrains Mono", "Cascadia Code", Menlo, Consolas, "Liberation Mono", monospace; }
+code { font-size: .85em; background: var(--code-bg); padding: .15em .4em; border-radius: 4px; }
+pre {
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 1em 1.2em;
+  overflow-x: auto;
+  font-size: .82rem;
+  line-height: 1.55;
+  margin: 1.2em 0;
+}
+pre code { background: transparent; padding: 0; font-size: inherit; }
+
+input[type="checkbox"] { accent-color: var(--accent); margin-right: .4em; }
+
+
+.artifact-header {
+  display: flex; align-items: baseline; gap: .75rem; flex-wrap: wrap;
+  margin-bottom: 2rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border);
+}
+.artifact-header h1 { margin: 0; }
+.artifact-badge {
+  font-family: ui-monospace, "SF Mono", "JetBrains Mono", "Cascadia Code", Menlo, Consolas, "Liberation Mono", monospace; font-size: .66rem; text-transform: uppercase;
+  letter-spacing: .08em; color: var(--accent);
+  border: 1px solid color-mix(in srgb, var(--accent) 35%, transparent);
+  border-radius: 999px; padding: .2em .7em; white-space: nowrap;
+}
+.artifact-meta { margin-left: auto; color: var(--muted); font-size: .72rem; font-family: ui-monospace, "SF Mono", "JetBrains Mono", "Cascadia Code", Menlo, Consolas, "Liberation Mono", monospace; }
+.artifact-footer {
+  margin-top: 4rem; padding-top: 1rem; border-top: 1px solid var(--border);
+  color: var(--muted); font-size: .72rem; font-family: ui-monospace, "SF Mono", "JetBrains Mono", "Cascadia Code", Menlo, Consolas, "Liberation Mono", monospace;
+}
+.artifact-mermaid { text-align: center; margin: 1.5rem 0; }
+</style>
+<style data-hljs>
+.hljs { color: var(--fg); background: transparent; }
+.hljs-comment, .hljs-quote { color: var(--hl-comment); font-style: italic; }
+.hljs-keyword, .hljs-selector-tag, .hljs-literal, .hljs-deletion { color: var(--hl-keyword); }
+.hljs-string, .hljs-regexp, .hljs-addition { color: var(--hl-string); }
+.hljs-number, .hljs-symbol, .hljs-bullet, .hljs-meta, .hljs-link { color: var(--hl-number); }
+.hljs-title, .hljs-section, .hljs-function .hljs-title { color: var(--hl-title); }
+.hljs-type, .hljs-class .hljs-title, .hljs-built_in { color: var(--hl-type); }
+.hljs-variable, .hljs-template-variable, .hljs-attr, .hljs-attribute, .hljs-property { color: var(--hl-attr); }
+.hljs-emphasis { font-style: italic; }
+.hljs-strong { font-weight: 600; }
+</style>
+</head>
+<body>
+<article>
+<header class="artifact-header">
+<h1>Deck Builder Prototype Implementation Plan</h1>
+<span class="artifact-badge">markdown</span>
+<span class="artifact-meta">2026-07-24 15:00:20</span>
+</header>
+<h1>Deck Builder Prototype — TDD Implementation Plan</h1>
+<blockquote>
+<p>Status: plan draft; no implementation started<br>Scope authority: <code>docs/DECK_BUILDER_PROTOTYPE_SCOPE.md</code><br>Delivery model: green, independently committable sections<br>Final output: isolated desktop deck-builder prototype plus tested deck-module boundary</p>
+</blockquote>
+<h2>1. Success contract</h2>
+<p>Implementation is complete when:</p>
+<ul>
+<li>last-opened deck route works;</li>
+<li>blank-first CRUD works;</li>
+<li>invalid drafts autosave;</li>
+<li>each deck retains latest 50 card-content updates;</li>
+<li>OCG data adapters drive card semantics;</li>
+<li>card-art grid supports Main/Extra/Side drag flows;</li>
+<li>Main grid switches 10 × 4 → 12 × 5 after card 40;</li>
+<li>validation runs after every edit;</li>
+<li>quantity badges, error placeholders, pinned details work;</li>
+<li>VN-facing <code>resolveDeck(deckId)</code> returns ready/missing/invalid;</li>
+<li>mobile UI is absent;</li>
+<li>current duel flow remains unchanged;</li>
+<li>full project gate passes.</li>
+</ul>
+<h2>2. Non-negotiable TDD loop</h2>
+<p>Every committable section follows same sequence:</p>
+<ul>
+<li><input disabled="" type="checkbox"> Write focused test for next behavior.</li>
+<li><input disabled="" type="checkbox"> Run focused test → confirm expected failure.</li>
+<li><input disabled="" type="checkbox"> Record failure reason in working notes; test must fail for missing behavior, not broken setup.</li>
+<li><input disabled="" type="checkbox"> Implement minimum code needed.</li>
+<li><input disabled="" type="checkbox"> Run focused test → green.</li>
+<li><input disabled="" type="checkbox"> Refactor only changed code while tests stay green.</li>
+<li><input disabled="" type="checkbox"> Run section validation gate.</li>
+<li><input disabled="" type="checkbox"> Review diff → every changed line maps to section.</li>
+<li><input disabled="" type="checkbox"> Commit only after all section checkboxes pass.</li>
+</ul>
+<p>No production behavior code before red test. No section commit with skipped/focused tests, type errors, lint errors, format drift.</p>
+<h2>3. Proposed file boundaries</h2>
+<p>Exact names may shift if existing convention demands. Responsibilities must stay separate.</p>
+<pre><code class="hljs language-text">src/
+├── decks/
+│   ├── index.ts                         # VN/public deck-module API only
+│   ├── deck-contracts.ts                # Deck IDs, records, validation/results
+│   ├── deck-model.ts                    # Pure card mutations + deterministic packing
+│   ├── deck-history.ts                  # 50-update Undo/Redo state
+│   ├── deck-validation.ts               # Pinned-rule validation
+│   ├── deck-resolver.ts                 # deck ID → ready/missing/invalid
+│   ├── deck-repository.ts               # Port/interface
+│   ├── indexeddb-deck-repository.ts     # Prototype-isolated IndexedDB impl
+│   ├── ydk-adapter.ts                    # Import/export
+│   └── catalog/
+│       ├── ocg-card-mapper.ts            # OcgCardData → UI view
+│       ├── ocg-mask.ts                   # Client-safe mask constants
+│       ├── deck-catalog.ts               # Search/filter source
+│       └── pinned-ruleset.ts             # One quantity map, no selector
+├── prototypes/deck-builder/
+│   ├── DeckBuilderPrototype.svelte       # Composition only
+│   ├── deck-builder-store.ts             # UI orchestration/autosave
+│   ├── prototype-entry.ts                # Last-opened routing
+│   ├── fixtures/
+│   │   ├── catalog.ts                    # OCG-shaped review fixture
+│   │   └── states.ts                     # Deterministic failure/edge states
+│   └── components/
+│       ├── DeckLibrary.svelte
+│       ├── DeckEditor.svelte
+│       ├── CardCatalog.svelte
+│       ├── CardDetails.svelte
+│       ├── DeckWorkspace.svelte
+│       ├── DeckZoneGrid.svelte
+│       ├── ValidationIssues.svelte
+│       ├── YdkImport.svelte
+│       └── YdkExport.svelte
+└── main.ts                               # Hash-route switch; default duel unchanged
+
+tests/
+├── unit/decks/
+├── component/deck-builder/
+└── fixtures/decks/
+
+e2e/
+└── deck-builder-prototype.spec.ts</code></pre><p>Avoid catch-all utils/types files. Keep prototype state fixtures outside production deck domain.</p>
+<h2>4. App isolation decision</h2>
+<p>Prototype URL:</p>
+<pre><code class="hljs language-text">#/prototype/deck-builder</code></pre><p>Default URL still mounts current duel app. Hash route avoids static-host rewrite requirements, preserves non-root Vite base.</p>
+<p>Prototype dynamic import prevents initial execution on duel route. Build may still contain prototype chunk; private build policy remains unchanged.</p>
+<hr>
+<h1>Section 0 — Baseline capture</h1>
+<p><strong>Commit:</strong> none. Baseline evidence only.</p>
+<h2>Red/green setup</h2>
+<ul>
+<li><input disabled="" type="checkbox"> Record <code>git status --short</code>; identify pre-existing changes.</li>
+<li><input disabled="" type="checkbox"> Run <code>npm run format:check</code>.</li>
+<li><input disabled="" type="checkbox"> Run <code>npm run lint</code>.</li>
+<li><input disabled="" type="checkbox"> Run <code>npm run typecheck</code>.</li>
+<li><input disabled="" type="checkbox"> Run <code>npm test</code>.</li>
+<li><input disabled="" type="checkbox"> Run <code>npm run build</code>.</li>
+<li><input disabled="" type="checkbox"> Record existing test counts, build result, snapshot ID.</li>
+<li><input disabled="" type="checkbox"> Stop if baseline red; do not mix baseline repair with prototype work.</li>
+</ul>
+<h2>Validation</h2>
+<ul>
+<li><input disabled="" type="checkbox"> Existing direct duel opens.</li>
+<li><input disabled="" type="checkbox"> Existing Chromium smoke passes.</li>
+<li><input disabled="" type="checkbox"> No source file changed during baseline.</li>
+</ul>
+<p><strong>Section valid when:</strong> every baseline gate green or pre-existing failure explicitly isolated before feature branch work.</p>
+<hr>
+<h1>Section 1 — Isolated route plus empty prototype shell</h1>
+<p><strong>Commit:</strong> <code>feat: add isolated deck builder prototype route</code></p>
+<h2>Test first</h2>
+<ul>
+<li><input disabled="" type="checkbox"> Add unit test for route classifier:<ul>
+<li>default/unknown hash → duel;</li>
+<li><code>#/prototype/deck-builder</code> → prototype.</li>
+</ul>
+</li>
+<li><input disabled="" type="checkbox"> Add component smoke test for empty prototype shell heading.</li>
+<li><input disabled="" type="checkbox"> Add regression assertion: default route still mounts current app contract.</li>
+<li><input disabled="" type="checkbox"> Run tests → confirm red from missing route/shell.</li>
+</ul>
+<h2>Implement</h2>
+<ul>
+<li><input disabled="" type="checkbox"> Extract pure <code>selectAppEntry(hash)</code> fn.</li>
+<li><input disabled="" type="checkbox"> Add dynamic prototype import in <code>src/main.ts</code>.</li>
+<li><input disabled="" type="checkbox"> Add minimal <code>DeckBuilderPrototype.svelte</code> shell.</li>
+<li><input disabled="" type="checkbox"> Set prototype document title.</li>
+<li><input disabled="" type="checkbox"> Keep default <code>App.svelte</code> path behavior unchanged.</li>
+<li><input disabled="" type="checkbox"> Add no deck logic yet.</li>
+</ul>
+<h2>Gate</h2>
+<ul>
+<li><input disabled="" type="checkbox"> <code>npx vitest run tests/unit/app-entry-route.test.ts</code></li>
+<li><input disabled="" type="checkbox"> <code>npx vitest run tests/component/deck-builder/prototype-shell.test.ts</code></li>
+<li><input disabled="" type="checkbox"> <code>npm run typecheck</code></li>
+<li><input disabled="" type="checkbox"> <code>npm run lint</code></li>
+<li><input disabled="" type="checkbox"> <code>npm run format:check</code></li>
+<li><input disabled="" type="checkbox"> <code>npm run build</code></li>
+<li><input disabled="" type="checkbox"> Manually open default route → direct duel unchanged.</li>
+<li><input disabled="" type="checkbox"> Manually open prototype hash → empty prototype shell.</li>
+</ul>
+<p><strong>Section valid when:</strong> both routes build, default duel regression stays green.</p>
+<hr>
+<h1>Section 2 — OCG card contract, mapper, review fixture</h1>
+<p><strong>Commit:</strong> <code>feat: map ocg card data for deck builder</code></p>
+<h2>Test first</h2>
+<ul>
+<li><input disabled="" type="checkbox"> Add mapper tests using <code>OcgCardData</code>-shaped records.</li>
+<li><input disabled="" type="checkbox"> Cover Monster/Spell/Trap family masks.</li>
+<li><input disabled="" type="checkbox"> Cover Fusion/Synchro/Xyz/Link → Extra.</li>
+<li><input disabled="" type="checkbox"> Cover Ritual/Pendulum/Tuner/Normal/Effect → Main unless Extra bit exists.</li>
+<li><input disabled="" type="checkbox"> Cover Quick-Play/Continuous/Equip/Field/Counter subtype labels.</li>
+<li><input disabled="" type="checkbox"> Cover <code>OcgAttribute</code> label mapping.</li>
+<li><input disabled="" type="checkbox"> Cover <code>OcgRace</code> bigint label mapping.</li>
+<li><input disabled="" type="checkbox"> Cover Level/Rank/Link interpretation.</li>
+<li><input disabled="" type="checkbox"> Cover Pendulum scales, Link markers, unknown future mask preservation.</li>
+<li><input disabled="" type="checkbox"> Add Node-only parity test: local client-safe masks equal vendored runtime exports.</li>
+<li><input disabled="" type="checkbox"> Add fixture integrity test: 24–40 records, unique codes, text per card, major families represented.</li>
+<li><input disabled="" type="checkbox"> Run tests → confirm red.</li>
+</ul>
+<h2>Implement</h2>
+<ul>
+<li><input disabled="" type="checkbox"> Type-import <code>OcgCardData</code>, <code>OcgType</code>, <code>OcgAttribute</code>, <code>OcgRace</code>, <code>OcgScope</code> from vendored package.</li>
+<li><input disabled="" type="checkbox"> Add client-safe mask constants without runtime core import.</li>
+<li><input disabled="" type="checkbox"> Add asset-record adapter:<ul>
+<li><code>linkMarker</code> → <code>link_marker</code>;</li>
+<li>race string → bigint;</li>
+<li><code>ot</code> → scope;</li>
+<li>text/image joins.</li>
+</ul>
+</li>
+<li><input disabled="" type="checkbox"> Add immutable <code>DeckBuilderCardView</code> mapper.</li>
+<li><input disabled="" type="checkbox"> Add representative OCG-shaped fixture, preferably extracted from current generated snapshot.</li>
+<li><input disabled="" type="checkbox"> Use placeholders for unapproved/missing art.</li>
+<li><input disabled="" type="checkbox"> Keep ruleset quantity separate from OCG scope.</li>
+<li><input disabled="" type="checkbox"> Export only deck-domain/public card types needed by prototype.</li>
+</ul>
+<h2>Gate</h2>
+<ul>
+<li><input disabled="" type="checkbox"> <code>npx vitest run tests/unit/decks/ocg-card-mapper.test.ts</code></li>
+<li><input disabled="" type="checkbox"> <code>npx vitest run tests/unit/decks/ocg-mask-parity.test.ts</code></li>
+<li><input disabled="" type="checkbox"> <code>npx vitest run tests/unit/decks/prototype-catalog-fixture.test.ts</code></li>
+<li><input disabled="" type="checkbox"> <code>npm run typecheck</code></li>
+<li><input disabled="" type="checkbox"> <code>npm run lint</code></li>
+<li><input disabled="" type="checkbox"> <code>npm run format:check</code></li>
+<li><input disabled="" type="checkbox"> Inspect built client graph → no WASM/core initializer pulled solely by card mapper.</li>
+</ul>
+<p><strong>Section valid when:</strong> OCG semantics map correctly, fixture coverage green, client boundary clean.</p>
+<hr>
+<h1>Section 3 — Pure deck model plus deterministic grid packing</h1>
+<p><strong>Commit:</strong> <code>feat: add pure deck editing model</code></p>
+<h2>Test first</h2>
+<ul>
+<li><input disabled="" type="checkbox"> Add tests for blank deck.</li>
+<li><input disabled="" type="checkbox"> Add Catalog → canonical Main add.</li>
+<li><input disabled="" type="checkbox"> Add Catalog → canonical Extra add.</li>
+<li><input disabled="" type="checkbox"> Add Main/Extra → Side move.</li>
+<li><input disabled="" type="checkbox"> Add Side → canonical zone move.</li>
+<li><input disabled="" type="checkbox"> Add Remove operation.</li>
+<li><input disabled="" type="checkbox"> Prove one mutation changes one repeated tile only.</li>
+<li><input disabled="" type="checkbox"> Prove duplicate copies remain repeated card codes.</li>
+<li><input disabled="" type="checkbox"> Prove no manual reorder command exists.</li>
+<li><input disabled="" type="checkbox"> Prove deterministic auto-pack:<ul>
+<li>Main Monster → Spell → Trap, name/code;</li>
+<li>Extra Fusion → Synchro → Xyz → Link, name/code;</li>
+<li>Side canonical class, name/code.</li>
+</ul>
+</li>
+<li><input disabled="" type="checkbox"> Prove grid plan:<ul>
+<li>0–40 → 40 slots, 10 × 4;</li>
+<li>41–60 → 60 slots, 12 × 5;</li>
+<li>overflow cards remain represented for error fixture.</li>
+</ul>
+</li>
+<li><input disabled="" type="checkbox"> Prove unknown card placeholder preserves code/zone.</li>
+<li><input disabled="" type="checkbox"> Run tests → confirm red.</li>
+</ul>
+<h2>Implement</h2>
+<ul>
+<li><input disabled="" type="checkbox"> Define immutable deck draft/card-zone contracts.</li>
+<li><input disabled="" type="checkbox"> Implement pure add/remove/move commands.</li>
+<li><input disabled="" type="checkbox"> Derive canonical zone from mapper output.</li>
+<li><input disabled="" type="checkbox"> Implement deterministic pack comparator.</li>
+<li><input disabled="" type="checkbox"> Implement grid-plan fn independent from Svelte.</li>
+<li><input disabled="" type="checkbox"> Preserve invalid imported placements until explicit user action.</li>
+<li><input disabled="" type="checkbox"> Return typed mutation rejection for invalid drag target/copy cap—not thrown UI errors.</li>
+</ul>
+<h2>Gate</h2>
+<ul>
+<li><input disabled="" type="checkbox"> <code>npx vitest run tests/unit/decks/deck-model.test.ts</code></li>
+<li><input disabled="" type="checkbox"> <code>npx vitest run tests/unit/decks/deck-grid-plan.test.ts</code></li>
+<li><input disabled="" type="checkbox"> <code>npm run typecheck</code></li>
+<li><input disabled="" type="checkbox"> <code>npm run lint</code></li>
+<li><input disabled="" type="checkbox"> <code>npm run format:check</code></li>
+</ul>
+<p><strong>Section valid when:</strong> pure model covers every accepted card mutation, deterministic packing stays green.</p>
+<hr>
+<h1>Section 4 — Pinned ruleset, edit-time validation, VN resolver</h1>
+<p><strong>Commit:</strong> <code>feat: validate and resolve local decks</code></p>
+<h2>Test first</h2>
+<ul>
+<li><input disabled="" type="checkbox"> Add validation tests for:<ul>
+<li>Main below 40;</li>
+<li>Main above 60;</li>
+<li>Extra above 15;</li>
+<li>Side above 15;</li>
+<li>copy limit 0/1/2/3;</li>
+<li>Extra card in Main;</li>
+<li>Main card in Extra;</li>
+<li>missing/stale code;</li>
+<li>unsupported illegal/token card;</li>
+<li>empty Extra/Side warnings;</li>
+<li>missing art warning;</li>
+<li>stale ruleset warning.</li>
+</ul>
+</li>
+<li><input disabled="" type="checkbox"> Assert every accepted edit returns recomputed validation summary.</li>
+<li><input disabled="" type="checkbox"> Assert errors/warnings use stable IDs plus zone/card refs.</li>
+<li><input disabled="" type="checkbox"> Add resolver tests:<ul>
+<li>valid ID → <code>ready</code> + immutable <code>ValidatedDeckSnapshot</code>;</li>
+<li>invalid ID → <code>invalid</code> + issues;</li>
+<li>absent/deleted ID → <code>missing</code>.</li>
+</ul>
+</li>
+<li><input disabled="" type="checkbox"> Assert resolver accepts deck ID only; no selected-deck state.</li>
+<li><input disabled="" type="checkbox"> Run tests → confirm red.</li>
+</ul>
+<h2>Implement</h2>
+<ul>
+<li><input disabled="" type="checkbox"> Define one pinned <code>PinnedDeckRuleset</code> fixture.</li>
+<li><input disabled="" type="checkbox"> Implement pure <code>validateDeckDraft</code>.</li>
+<li><input disabled="" type="checkbox"> Recompute validation inside card-mutation transaction result.</li>
+<li><input disabled="" type="checkbox"> Keep invalid drafts representable.</li>
+<li><input disabled="" type="checkbox"> Define <code>DeckReader</code> port for resolver.</li>
+<li><input disabled="" type="checkbox"> Implement <code>resolveDeck(deckId)</code> over reader + catalog + ruleset.</li>
+<li><input disabled="" type="checkbox"> Export resolver contract from <code>src/decks/index.ts</code>.</li>
+<li><input disabled="" type="checkbox"> Do not integrate VN or Worker.</li>
+</ul>
+<h2>Gate</h2>
+<ul>
+<li><input disabled="" type="checkbox"> <code>npx vitest run tests/unit/decks/deck-validation.test.ts</code></li>
+<li><input disabled="" type="checkbox"> <code>npx vitest run tests/unit/decks/deck-resolver.test.ts</code></li>
+<li><input disabled="" type="checkbox"> <code>npm run typecheck</code></li>
+<li><input disabled="" type="checkbox"> <code>npm run lint</code></li>
+<li><input disabled="" type="checkbox"> <code>npm run format:check</code></li>
+</ul>
+<p><strong>Section valid when:</strong> validation updates per edit, resolver contract matches ready/missing/invalid.</p>
+<hr>
+<h1>Section 5 — Bounded 50-update history</h1>
+<p><strong>Commit:</strong> <code>feat: retain bounded deck edit history</code></p>
+<h2>Test first</h2>
+<ul>
+<li><input disabled="" type="checkbox"> Add test: card add creates one update.</li>
+<li><input disabled="" type="checkbox"> Add test: card remove creates one update.</li>
+<li><input disabled="" type="checkbox"> Add test: zone move creates one update.</li>
+<li><input disabled="" type="checkbox"> Add test: bulk import creates one update.</li>
+<li><input disabled="" type="checkbox"> Add test: rename creates no card update.</li>
+<li><input disabled="" type="checkbox"> Add test: Undo restores before snapshot.</li>
+<li><input disabled="" type="checkbox"> Add test: Redo restores after snapshot.</li>
+<li><input disabled="" type="checkbox"> Add test: new edit after Undo clears Redo.</li>
+<li><input disabled="" type="checkbox"> Add test: update 51 evicts update 1.</li>
+<li><input disabled="" type="checkbox"> Add test: histories remain independent per deck.</li>
+<li><input disabled="" type="checkbox"> Add test: rejected/no-op drag creates no update.</li>
+<li><input disabled="" type="checkbox"> Run tests → confirm red.</li>
+</ul>
+<h2>Implement</h2>
+<ul>
+<li><input disabled="" type="checkbox"> Define immutable <code>DeckCardUpdate</code>, <code>DeckHistory</code>.</li>
+<li><input disabled="" type="checkbox"> Implement push/undo/redo pure fns.</li>
+<li><input disabled="" type="checkbox"> Enforce exact max 50.</li>
+<li><input disabled="" type="checkbox"> Keep sequence monotonic despite eviction.</li>
+<li><input disabled="" type="checkbox"> Treat one accepted drag/import transaction as one history update.</li>
+<li><input disabled="" type="checkbox"> Keep validation snapshots derived, not duplicated inside history.</li>
+</ul>
+<h2>Gate</h2>
+<ul>
+<li><input disabled="" type="checkbox"> <code>npx vitest run tests/unit/decks/deck-history.test.ts</code></li>
+<li><input disabled="" type="checkbox"> <code>npm run typecheck</code></li>
+<li><input disabled="" type="checkbox"> <code>npm run lint</code></li>
+<li><input disabled="" type="checkbox"> <code>npm run format:check</code></li>
+</ul>
+<p><strong>Section valid when:</strong> update 51 eviction, Undo/Redo branching, per-deck isolation proven.</p>
+<hr>
+<h1>Section 6 — Prototype-isolated IndexedDB repo plus autosave transaction</h1>
+<p><strong>Commit:</strong> <code>feat: persist prototype decks and history</code></p>
+<h2>Test first</h2>
+<p>Use <code>fake-indexeddb</code>.</p>
+<ul>
+<li><input disabled="" type="checkbox"> Add create/list/load tests.</li>
+<li><input disabled="" type="checkbox"> Add name-only save test.</li>
+<li><input disabled="" type="checkbox"> Add atomic deck + history save test.</li>
+<li><input disabled="" type="checkbox"> Add invalid-draft persistence test.</li>
+<li><input disabled="" type="checkbox"> Add reload restoration test for latest 50 history entries.</li>
+<li><input disabled="" type="checkbox"> Add optimistic revision-conflict test.</li>
+<li><input disabled="" type="checkbox"> Add delete test.</li>
+<li><input disabled="" type="checkbox"> Add last-opened read/write/clear test.</li>
+<li><input disabled="" type="checkbox"> Add stale last-opened fallback test.</li>
+<li><input disabled="" type="checkbox"> Add transaction failure test → old deck/history remain intact.</li>
+<li><input disabled="" type="checkbox"> Assert DB name/stores do not overlap current snapshot DB.</li>
+<li><input disabled="" type="checkbox"> Run tests → confirm red.</li>
+</ul>
+<h2>Implement</h2>
+<ul>
+<li><input disabled="" type="checkbox"> Define <code>DeckRepository</code> port.</li>
+<li><input disabled="" type="checkbox"> Create dedicated prototype DB name/version.</li>
+<li><input disabled="" type="checkbox"> Store deck + bounded history atomically.</li>
+<li><input disabled="" type="checkbox"> Implement optimistic expected revision.</li>
+<li><input disabled="" type="checkbox"> Store last-opened ID separately.</li>
+<li><input disabled="" type="checkbox"> Clear stale pointer after missing deck detection.</li>
+<li><input disabled="" type="checkbox"> Preserve exact deck ID/revision semantics.</li>
+<li><input disabled="" type="checkbox"> Add structured errors: unavailable, conflict, transaction failure.</li>
+<li><input disabled="" type="checkbox"> Wire resolver tests against real repo adapter.</li>
+</ul>
+<h2>Gate</h2>
+<ul>
+<li><input disabled="" type="checkbox"> <code>npx vitest run tests/unit/decks/indexeddb-deck-repository.test.ts</code></li>
+<li><input disabled="" type="checkbox"> <code>npx vitest run tests/unit/decks/deck-resolver-integration.test.ts</code></li>
+<li><input disabled="" type="checkbox"> <code>npm run typecheck</code></li>
+<li><input disabled="" type="checkbox"> <code>npm run lint</code></li>
+<li><input disabled="" type="checkbox"> <code>npm run format:check</code></li>
+</ul>
+<p><strong>Section valid when:</strong> reload, atomicity, conflict, last-opened behavior green under fake IndexedDB.</p>
+<hr>
+<h1>Section 7 — YDK domain adapter</h1>
+<p><strong>Commit:</strong> <code>feat: add ydk deck import and export</code></p>
+<h2>Test first</h2>
+<ul>
+<li><input disabled="" type="checkbox"> Port/extend current parser fixtures for comments, CRLF, sections, duplicates.</li>
+<li><input disabled="" type="checkbox"> Add malformed line test with exact line number.</li>
+<li><input disabled="" type="checkbox"> Add unknown card-code preservation test.</li>
+<li><input disabled="" type="checkbox"> Add illegal placement preservation test.</li>
+<li><input disabled="" type="checkbox"> Add Main/Extra/Side round-trip test.</li>
+<li><input disabled="" type="checkbox"> Add invalid draft export test.</li>
+<li><input disabled="" type="checkbox"> Add deterministic filename sanitizer test.</li>
+<li><input disabled="" type="checkbox"> Add bulk import → one history update integration test.</li>
+<li><input disabled="" type="checkbox"> Assert no silent repair/reordering/truncation.</li>
+<li><input disabled="" type="checkbox"> Run tests → confirm red.</li>
+</ul>
+<h2>Implement</h2>
+<ul>
+<li><input disabled="" type="checkbox"> Create deck-domain <code>YdkAdapter</code>; reuse/extend parser logic, avoid copy-paste.</li>
+<li><input disabled="" type="checkbox"> Return typed parse result with line errors/warnings.</li>
+<li><input disabled="" type="checkbox"> Preserve unknown codes in draft.</li>
+<li><input disabled="" type="checkbox"> Preserve section placement.</li>
+<li><input disabled="" type="checkbox"> Export invalid drafts.</li>
+<li><input disabled="" type="checkbox"> Normalize only YDK syntax/line endings.</li>
+<li><input disabled="" type="checkbox"> Keep current preset parser behavior unchanged.</li>
+</ul>
+<h2>Gate</h2>
+<ul>
+<li><input disabled="" type="checkbox"> <code>npx vitest run tests/unit/decks/ydk-adapter.test.ts</code></li>
+<li><input disabled="" type="checkbox"> <code>npx vitest run tests/unit/decks/ydk-history.test.ts</code></li>
+<li><input disabled="" type="checkbox"> <code>npx vitest run tests/unit/deck-parser.test.ts</code></li>
+<li><input disabled="" type="checkbox"> <code>npm run typecheck</code></li>
+<li><input disabled="" type="checkbox"> <code>npm run lint</code></li>
+<li><input disabled="" type="checkbox"> <code>npm run format:check</code></li>
+</ul>
+<p><strong>Section valid when:</strong> valid/invalid YDK paths round-trip, current preset parser regression green.</p>
+<hr>
+<h1>Section 8 — Editor shell, fixed desktop topology, pinned details</h1>
+<p><strong>Commit:</strong> <code>feat: build deck editor workspace shell</code></p>
+<h2>Test first</h2>
+<ul>
+<li><input disabled="" type="checkbox"> Add component test for Catalog / Deck / Details landmark order.</li>
+<li><input disabled="" type="checkbox"> Add test for pinned details presence at 1280-supported state.</li>
+<li><input disabled="" type="checkbox"> Add header counts/status/save state rendering.</li>
+<li><input disabled="" type="checkbox"> Add test proving no Select/Use Deck action exists.</li>
+<li><input disabled="" type="checkbox"> Add test proving no compact-list toggle exists.</li>
+<li><input disabled="" type="checkbox"> Add desktop-required notice test below 1024 mode.</li>
+<li><input disabled="" type="checkbox"> Run tests → confirm red.</li>
+</ul>
+<h2>Implement</h2>
+<ul>
+<li><input disabled="" type="checkbox"> Build composition-only <code>DeckEditor.svelte</code>.</li>
+<li><input disabled="" type="checkbox"> Build three-region desktop layout.</li>
+<li><input disabled="" type="checkbox"> Add deck-name input.</li>
+<li><input disabled="" type="checkbox"> Add separate save plus validity status.</li>
+<li><input disabled="" type="checkbox"> Add Main/Extra/Side counts.</li>
+<li><input disabled="" type="checkbox"> Add Undo/Redo controls disabled until history exists.</li>
+<li><input disabled="" type="checkbox"> Add Import/Export triggers.</li>
+<li><input disabled="" type="checkbox"> Add Library navigation.</li>
+<li><input disabled="" type="checkbox"> Add pinned empty Card Details state.</li>
+<li><input disabled="" type="checkbox"> Add desktop-required guard; no mobile redesign.</li>
+<li><input disabled="" type="checkbox"> Match existing dark theme tokens where usable.</li>
+</ul>
+<h2>Gate</h2>
+<ul>
+<li><input disabled="" type="checkbox"> <code>npx vitest run tests/component/deck-builder/deck-editor-shell.test.ts</code></li>
+<li><input disabled="" type="checkbox"> <code>npm run typecheck</code></li>
+<li><input disabled="" type="checkbox"> <code>npm run lint</code></li>
+<li><input disabled="" type="checkbox"> <code>npm run format:check</code></li>
+<li><input disabled="" type="checkbox"> <code>npm run build</code></li>
+</ul>
+<p><strong>Section valid when:</strong> fixed topology renders, excluded UI absent, build green.</p>
+<hr>
+<h1>Section 9 — Catalog filters plus pinned card details</h1>
+<p><strong>Commit:</strong> <code>feat: add deck builder card catalog</code></p>
+<h2>Test first</h2>
+<ul>
+<li><input disabled="" type="checkbox"> Add name-filter test.</li>
+<li><input disabled="" type="checkbox"> Add family-filter test.</li>
+<li><input disabled="" type="checkbox"> Add subtype-filter test.</li>
+<li><input disabled="" type="checkbox"> Add Attribute-filter test.</li>
+<li><input disabled="" type="checkbox"> Add race-filter test.</li>
+<li><input disabled="" type="checkbox"> Add combined-filter intersection test.</li>
+<li><input disabled="" type="checkbox"> Add Clear all test.</li>
+<li><input disabled="" type="checkbox"> Add no-results recovery test.</li>
+<li><input disabled="" type="checkbox"> Assert no excluded filters render.</li>
+<li><input disabled="" type="checkbox"> Add tile selection → pinned details update test.</li>
+<li><input disabled="" type="checkbox"> Add long effect text only in details test.</li>
+<li><input disabled="" type="checkbox"> Add missing art/text fallback test.</li>
+<li><input disabled="" type="checkbox"> Run tests → confirm red.</li>
+</ul>
+<h2>Implement</h2>
+<ul>
+<li><input disabled="" type="checkbox"> Build pure catalog query fn.</li>
+<li><input disabled="" type="checkbox"> Build <code>CardCatalog.svelte</code> using approved filters only.</li>
+<li><input disabled="" type="checkbox"> Render art tiles, concise labels, current count.</li>
+<li><input disabled="" type="checkbox"> Build <code>CardDetails.svelte</code> with full OCG-derived metadata.</li>
+<li><input disabled="" type="checkbox"> Keep details pinned.</li>
+<li><input disabled="" type="checkbox"> Add loading/no-results/error states.</li>
+<li><input disabled="" type="checkbox"> Add filter chips plus Clear all.</li>
+<li><input disabled="" type="checkbox"> Do not add Add button/double-click behavior.</li>
+</ul>
+<h2>Gate</h2>
+<ul>
+<li><input disabled="" type="checkbox"> <code>npx vitest run tests/unit/decks/deck-catalog.test.ts</code></li>
+<li><input disabled="" type="checkbox"> <code>npx vitest run tests/component/deck-builder/card-catalog.test.ts</code></li>
+<li><input disabled="" type="checkbox"> <code>npx vitest run tests/component/deck-builder/card-details.test.ts</code></li>
+<li><input disabled="" type="checkbox"> <code>npm run typecheck</code></li>
+<li><input disabled="" type="checkbox"> <code>npm run lint</code></li>
+<li><input disabled="" type="checkbox"> <code>npm run format:check</code></li>
+</ul>
+<p><strong>Section valid when:</strong> approved filters work, details own long text, excluded filters absent.</p>
+<hr>
+<h1>Section 10 — Card-art grids plus pointer drag/drop</h1>
+<p><strong>Commit:</strong> <code>feat: add deck grid drag and drop editing</code></p>
+<h2>Test first</h2>
+<ul>
+<li><input disabled="" type="checkbox"> Add component test: blank Main renders 40 slots, 10 × 4 metadata/class.</li>
+<li><input disabled="" type="checkbox"> Add test: card 40 keeps 40-slot mode.</li>
+<li><input disabled="" type="checkbox"> Add test: card 41 switches to 60 slots, 12 × 5.</li>
+<li><input disabled="" type="checkbox"> Add test: card 60 visible.</li>
+<li><input disabled="" type="checkbox"> Add Extra/Side 15-slot tests.</li>
+<li><input disabled="" type="checkbox"> Add repeated copies repeated-tile test.</li>
+<li><input disabled="" type="checkbox"> Add Catalog → Main drag test.</li>
+<li><input disabled="" type="checkbox"> Add Catalog → Extra drag test.</li>
+<li><input disabled="" type="checkbox"> Add Main/Extra → Side drag test.</li>
+<li><input disabled="" type="checkbox"> Add Side → canonical zone drag test.</li>
+<li><input disabled="" type="checkbox"> Add tile → Remove target test.</li>
+<li><input disabled="" type="checkbox"> Add invalid target/rejected drop test.</li>
+<li><input disabled="" type="checkbox"> Add focus retention test across 40→41 layout transition.</li>
+<li><input disabled="" type="checkbox"> Assert no reorder path/handle exists.</li>
+<li><input disabled="" type="checkbox"> Run tests → confirm red.</li>
+</ul>
+<h2>Implement</h2>
+<ul>
+<li><input disabled="" type="checkbox"> Build <code>DeckZoneGrid.svelte</code> from pure grid plan.</li>
+<li><input disabled="" type="checkbox"> Render explicit empty slots.</li>
+<li><input disabled="" type="checkbox"> Render one tile per copy.</li>
+<li><input disabled="" type="checkbox"> Add pointer drag state owned by editor/store.</li>
+<li><input disabled="" type="checkbox"> Expose only legal targets.</li>
+<li><input disabled="" type="checkbox"> Add visible Remove target during deck-tile drag.</li>
+<li><input disabled="" type="checkbox"> Dispatch one pure mutation per successful drop.</li>
+<li><input disabled="" type="checkbox"> Cancel rejected/outside drop without history/save mutation.</li>
+<li><input disabled="" type="checkbox"> Avoid layout-property animation during 40→41 switch.</li>
+</ul>
+<h2>Gate</h2>
+<ul>
+<li><input disabled="" type="checkbox"> <code>npx vitest run tests/component/deck-builder/deck-zone-grid.test.ts</code></li>
+<li><input disabled="" type="checkbox"> <code>npx vitest run tests/component/deck-builder/pointer-drag.test.ts</code></li>
+<li><input disabled="" type="checkbox"> <code>npm run typecheck</code></li>
+<li><input disabled="" type="checkbox"> <code>npm run lint</code></li>
+<li><input disabled="" type="checkbox"> <code>npm run format:check</code></li>
+</ul>
+<p><strong>Section valid when:</strong> all pointer drag paths mutate one card, grids match exact geometry.</p>
+<hr>
+<h1>Section 11 — Keyboard drag parity plus focus semantics</h1>
+<p><strong>Commit:</strong> <code>feat: make deck drag editing keyboard accessible</code></p>
+<h2>Test first</h2>
+<ul>
+<li><input disabled="" type="checkbox"> Add keyboard pickup test with Space/Enter.</li>
+<li><input disabled="" type="checkbox"> Add legal-target navigation test.</li>
+<li><input disabled="" type="checkbox"> Add keyboard drop test.</li>
+<li><input disabled="" type="checkbox"> Add Escape cancel test.</li>
+<li><input disabled="" type="checkbox"> Add invalid-target announcement test.</li>
+<li><input disabled="" type="checkbox"> Add remove-target keyboard test.</li>
+<li><input disabled="" type="checkbox"> Add focus restoration after drop/cancel.</li>
+<li><input disabled="" type="checkbox"> Add live-region announcement assertions.</li>
+<li><input disabled="" type="checkbox"> Add accessible names for every card tile, empty slot, target.</li>
+<li><input disabled="" type="checkbox"> Add no-color-only quantity/validation state assertion.</li>
+<li><input disabled="" type="checkbox"> Run tests → confirm red.</li>
+</ul>
+<h2>Implement</h2>
+<ul>
+<li><input disabled="" type="checkbox"> Model keyboard pickup/drop as same drag transaction used by pointer.</li>
+<li><input disabled="" type="checkbox"> Add roving focus only where it reduces tab count without hiding controls.</li>
+<li><input disabled="" type="checkbox"> Add bounded polite live region.</li>
+<li><input disabled="" type="checkbox"> Add <code>aria-grabbed</code>-equivalent current semantics through labels/state; do not rely on obsolete ARIA alone.</li>
+<li><input disabled="" type="checkbox"> Add discoverable keyboard hint.</li>
+<li><input disabled="" type="checkbox"> Keep deterministic DOM order after auto-pack.</li>
+<li><input disabled="" type="checkbox"> Respect reduced motion.</li>
+</ul>
+<h2>Gate</h2>
+<ul>
+<li><input disabled="" type="checkbox"> <code>npx vitest run tests/component/deck-builder/keyboard-drag.test.ts</code></li>
+<li><input disabled="" type="checkbox"> <code>npx vitest run tests/component/deck-builder/deck-builder-a11y.test.ts</code></li>
+<li><input disabled="" type="checkbox"> <code>npm run typecheck</code></li>
+<li><input disabled="" type="checkbox"> <code>npm run lint</code></li>
+<li><input disabled="" type="checkbox"> <code>npm run format:check</code></li>
+</ul>
+<p><strong>Section valid when:</strong> every pointer drag has keyboard path, focus/announcements proven.</p>
+<hr>
+<h1>Section 12 — Validation UI, quantity badges, missing-card placeholders</h1>
+<p><strong>Commit:</strong> <code>feat: surface deck validation and card limits</code></p>
+<h2>Test first</h2>
+<ul>
+<li><input disabled="" type="checkbox"> Add header counts/status update-after-edit test.</li>
+<li><input disabled="" type="checkbox"> Add valid state test: no expanded issue panel.</li>
+<li><input disabled="" type="checkbox"> Add warning/error state test: issue panel appears.</li>
+<li><input disabled="" type="checkbox"> Add issue → affected card/zone focus test.</li>
+<li><input disabled="" type="checkbox"> Add 0/1/2/3 top-left badge tests.</li>
+<li><input disabled="" type="checkbox"> Add badge accessible-label test.</li>
+<li><input disabled="" type="checkbox"> Add copy-limit blocked drag reason test.</li>
+<li><input disabled="" type="checkbox"> Add one-placeholder-per-missing-copy test.</li>
+<li><input disabled="" type="checkbox"> Add missing-code Remove-only test.</li>
+<li><input disabled="" type="checkbox"> Add invalid draft remains editable test.</li>
+<li><input disabled="" type="checkbox"> Run tests → confirm red.</li>
+</ul>
+<h2>Implement</h2>
+<ul>
+<li><input disabled="" type="checkbox"> Build compact always-visible validation summary.</li>
+<li><input disabled="" type="checkbox"> Build conditional <code>ValidationIssues.svelte</code>.</li>
+<li><input disabled="" type="checkbox"> Add stable issue anchors.</li>
+<li><input disabled="" type="checkbox"> Add top-left quantity badge with shape/icon/number.</li>
+<li><input disabled="" type="checkbox"> Add missing-card error tile.</li>
+<li><input disabled="" type="checkbox"> Disable illegal catalog drag with explicit reason.</li>
+<li><input disabled="" type="checkbox"> Preserve invalid imported placements.</li>
+<li><input disabled="" type="checkbox"> Keep autosave state visually separate.</li>
+</ul>
+<h2>Gate</h2>
+<ul>
+<li><input disabled="" type="checkbox"> <code>npx vitest run tests/component/deck-builder/deck-validation-ui.test.ts</code></li>
+<li><input disabled="" type="checkbox"> <code>npx vitest run tests/component/deck-builder/quantity-badge.test.ts</code></li>
+<li><input disabled="" type="checkbox"> <code>npx vitest run tests/component/deck-builder/missing-card-placeholder.test.ts</code></li>
+<li><input disabled="" type="checkbox"> <code>npm run typecheck</code></li>
+<li><input disabled="" type="checkbox"> <code>npm run lint</code></li>
+<li><input disabled="" type="checkbox"> <code>npm run format:check</code></li>
+</ul>
+<p><strong>Section valid when:</strong> validation is immediate/actionable, badges/placeholders meet accepted UX.</p>
+<hr>
+<h1>Section 13 — Editor autosave, 50-history Undo/Redo, failure/conflict recovery</h1>
+<p><strong>Commit:</strong> <code>feat: wire deck autosave and edit recovery</code></p>
+<h2>Test first</h2>
+<ul>
+<li><input disabled="" type="checkbox"> Add edit → Saving → Saved state test.</li>
+<li><input disabled="" type="checkbox"> Add invalid edit autosaves test.</li>
+<li><input disabled="" type="checkbox"> Add rapid edits serialized/coalesced without lost mutation test.</li>
+<li><input disabled="" type="checkbox"> Add exactly-once history transaction per drag test.</li>
+<li><input disabled="" type="checkbox"> Add Undo autosave test.</li>
+<li><input disabled="" type="checkbox"> Add Redo autosave test.</li>
+<li><input disabled="" type="checkbox"> Add reload restores deck/history test.</li>
+<li><input disabled="" type="checkbox"> Add 50 retained indicator/boundary test.</li>
+<li><input disabled="" type="checkbox"> Add save failure plus Retry test.</li>
+<li><input disabled="" type="checkbox"> Add optimistic conflict state test:<ul>
+<li>Reload remote revision;</li>
+<li>Preserve local as copy.</li>
+</ul>
+</li>
+<li><input disabled="" type="checkbox"> Add stale async save result cannot overwrite newer UI state test.</li>
+<li><input disabled="" type="checkbox"> Run tests → confirm red.</li>
+</ul>
+<h2>Implement</h2>
+<ul>
+<li><input disabled="" type="checkbox"> Build store/controller around pure model + repo.</li>
+<li><input disabled="" type="checkbox"> Serialize writes per deck.</li>
+<li><input disabled="" type="checkbox"> Use expected revision on every save.</li>
+<li><input disabled="" type="checkbox"> Keep submit/edit lock only where mutation would conflict; normal rapid drags queue safely.</li>
+<li><input disabled="" type="checkbox"> Add request generation guard for stale saves.</li>
+<li><input disabled="" type="checkbox"> Wire Undo/Redo through same autosave path.</li>
+<li><input disabled="" type="checkbox"> Add Retry.</li>
+<li><input disabled="" type="checkbox"> Add conflict recovery actions.</li>
+<li><input disabled="" type="checkbox"> Never roll valid UI state backward from late save completion.</li>
+</ul>
+<h2>Gate</h2>
+<ul>
+<li><input disabled="" type="checkbox"> <code>npx vitest run tests/component/deck-builder/deck-autosave.test.ts</code></li>
+<li><input disabled="" type="checkbox"> <code>npx vitest run tests/component/deck-builder/deck-history-ui.test.ts</code></li>
+<li><input disabled="" type="checkbox"> <code>npx vitest run tests/component/deck-builder/deck-save-conflict.test.ts</code></li>
+<li><input disabled="" type="checkbox"> <code>npm run typecheck</code></li>
+<li><input disabled="" type="checkbox"> <code>npm run lint</code></li>
+<li><input disabled="" type="checkbox"> <code>npm run format:check</code></li>
+</ul>
+<p><strong>Section valid when:</strong> every mutation persists, last 50 survive reload, failures recover safely.</p>
+<hr>
+<h1>Section 14 — Deck Library CRUD plus last-opened entry</h1>
+<p><strong>Commit:</strong> <code>feat: add deck library and last opened routing</code></p>
+<h2>Test first</h2>
+<ul>
+<li><input disabled="" type="checkbox"> Add no last-opened → Library test.</li>
+<li><input disabled="" type="checkbox"> Add valid last-opened → Editor test.</li>
+<li><input disabled="" type="checkbox"> Add stale last-opened → pointer clear + Library test.</li>
+<li><input disabled="" type="checkbox"> Add blank-first Create test.</li>
+<li><input disabled="" type="checkbox"> Assert no template UI.</li>
+<li><input disabled="" type="checkbox"> Add name search/sort tests.</li>
+<li><input disabled="" type="checkbox"> Add Open updates last-opened test.</li>
+<li><input disabled="" type="checkbox"> Add Rename autosave/no card-history test.</li>
+<li><input disabled="" type="checkbox"> Add Duplicate independent ID/fresh history/opens editor test.</li>
+<li><input disabled="" type="checkbox"> Add named Delete confirmation test.</li>
+<li><input disabled="" type="checkbox"> Add deleting last-opened → Library test.</li>
+<li><input disabled="" type="checkbox"> Add empty/loading/error/retry state tests.</li>
+<li><input disabled="" type="checkbox"> Assert no selected-deck marker/action.</li>
+<li><input disabled="" type="checkbox"> Run tests → confirm red.</li>
+</ul>
+<h2>Implement</h2>
+<ul>
+<li><input disabled="" type="checkbox"> Build entry resolver from repo last-opened pointer.</li>
+<li><input disabled="" type="checkbox"> Build <code>DeckLibrary.svelte</code>.</li>
+<li><input disabled="" type="checkbox"> Build blank creation flow.</li>
+<li><input disabled="" type="checkbox"> Add name search + name/modified sort.</li>
+<li><input disabled="" type="checkbox"> Add Open/Rename/Duplicate/Delete.</li>
+<li><input disabled="" type="checkbox"> Duplicate card state into fresh baseline, no inherited history.</li>
+<li><input disabled="" type="checkbox"> Add destructive confirmation/focus restoration.</li>
+<li><input disabled="" type="checkbox"> Keep VN selection absent.</li>
+</ul>
+<h2>Gate</h2>
+<ul>
+<li><input disabled="" type="checkbox"> <code>npx vitest run tests/component/deck-builder/prototype-entry.test.ts</code></li>
+<li><input disabled="" type="checkbox"> <code>npx vitest run tests/component/deck-builder/deck-library.test.ts</code></li>
+<li><input disabled="" type="checkbox"> <code>npx vitest run tests/component/deck-builder/deck-crud.test.ts</code></li>
+<li><input disabled="" type="checkbox"> <code>npm run typecheck</code></li>
+<li><input disabled="" type="checkbox"> <code>npm run lint</code></li>
+<li><input disabled="" type="checkbox"> <code>npm run format:check</code></li>
+</ul>
+<p><strong>Section valid when:</strong> last-opened-first route plus blank CRUD complete, selection UI absent.</p>
+<hr>
+<h1>Section 15 — YDK import/export UI</h1>
+<p><strong>Commit:</strong> <code>feat: add deck builder ydk workflows</code></p>
+<h2>Test first</h2>
+<ul>
+<li><input disabled="" type="checkbox"> Add pasted YDK preview test.</li>
+<li><input disabled="" type="checkbox"> Add file-input preview test.</li>
+<li><input disabled="" type="checkbox"> Add exact malformed-line display test.</li>
+<li><input disabled="" type="checkbox"> Add unknown-code placeholder import test.</li>
+<li><input disabled="" type="checkbox"> Add duplicate-name warning test.</li>
+<li><input disabled="" type="checkbox"> Add editor replacement confirmation test.</li>
+<li><input disabled="" type="checkbox"> Add Cancel no-mutation test.</li>
+<li><input disabled="" type="checkbox"> Add import creates one history update test.</li>
+<li><input disabled="" type="checkbox"> Add invalid export warning + continue test.</li>
+<li><input disabled="" type="checkbox"> Add copy-text success/failure test.</li>
+<li><input disabled="" type="checkbox"> Add download success/failure test.</li>
+<li><input disabled="" type="checkbox"> Run tests → confirm red.</li>
+</ul>
+<h2>Implement</h2>
+<ul>
+<li><input disabled="" type="checkbox"> Build import surface with paste/file paths.</li>
+<li><input disabled="" type="checkbox"> Show counts, errors, warnings before commit.</li>
+<li><input disabled="" type="checkbox"> Preserve invalid codes/placements.</li>
+<li><input disabled="" type="checkbox"> Require explicit replacement confirmation in editor.</li>
+<li><input disabled="" type="checkbox"> Build export surface.</li>
+<li><input disabled="" type="checkbox"> Allow invalid export after warning.</li>
+<li><input disabled="" type="checkbox"> Add deterministic filename.</li>
+<li><input disabled="" type="checkbox"> Restore focus after close/success/failure.</li>
+</ul>
+<h2>Gate</h2>
+<ul>
+<li><input disabled="" type="checkbox"> <code>npx vitest run tests/component/deck-builder/ydk-import.test.ts</code></li>
+<li><input disabled="" type="checkbox"> <code>npx vitest run tests/component/deck-builder/ydk-export.test.ts</code></li>
+<li><input disabled="" type="checkbox"> <code>npx vitest run tests/unit/decks/ydk-adapter.test.ts</code></li>
+<li><input disabled="" type="checkbox"> <code>npm run typecheck</code></li>
+<li><input disabled="" type="checkbox"> <code>npm run lint</code></li>
+<li><input disabled="" type="checkbox"> <code>npm run format:check</code></li>
+</ul>
+<p><strong>Section valid when:</strong> import/export success/failure paths work, invalid data remains honest.</p>
+<hr>
+<h1>Section 16 — Deterministic state harness plus desktop UX polish</h1>
+<p><strong>Commit:</strong> <code>test: expose deck builder prototype review states</code></p>
+<h2>Test first</h2>
+<ul>
+<li><input disabled="" type="checkbox"> Add fixture-switcher classification test covering every scope state.</li>
+<li><input disabled="" type="checkbox"> Add state reset isolation test.</li>
+<li><input disabled="" type="checkbox"> Add loading skeleton dimension/landmark test.</li>
+<li><input disabled="" type="checkbox"> Add no horizontal page overflow assertion at 1280 px through browser test helper.</li>
+<li><input disabled="" type="checkbox"> Add desktop-required notice assertion below 1024 px.</li>
+<li><input disabled="" type="checkbox"> Add reduced-motion style assertion.</li>
+<li><input disabled="" type="checkbox"> Add focus trap/restoration tests for confirmations/import/export.</li>
+<li><input disabled="" type="checkbox"> Run tests → confirm red.</li>
+</ul>
+<h2>Implement</h2>
+<ul>
+<li><input disabled="" type="checkbox"> Add prototype-only fixture switcher.</li>
+<li><input disabled="" type="checkbox"> Expose all states from scope section 9.</li>
+<li><input disabled="" type="checkbox"> Add deterministic simulated latency/failure controls.</li>
+<li><input disabled="" type="checkbox"> Add skeletons preserving three-panel layout.</li>
+<li><input disabled="" type="checkbox"> Tune 1280/1440/1920 desktop spacing.</li>
+<li><input disabled="" type="checkbox"> Add below-1024 desktop-required notice.</li>
+<li><input disabled="" type="checkbox"> Remove accidental mobile breakpoints from prototype CSS.</li>
+<li><input disabled="" type="checkbox"> Ensure card art remains primary color source.</li>
+<li><input disabled="" type="checkbox"> Keep motion state-only, reduced-motion safe.</li>
+</ul>
+<h2>Gate</h2>
+<ul>
+<li><input disabled="" type="checkbox"> <code>npx vitest run tests/component/deck-builder/prototype-state-harness.test.ts</code></li>
+<li><input disabled="" type="checkbox"> <code>npx vitest run tests/component/deck-builder/deck-builder-a11y.test.ts</code></li>
+<li><input disabled="" type="checkbox"> <code>npm run typecheck</code></li>
+<li><input disabled="" type="checkbox"> <code>npm run lint</code></li>
+<li><input disabled="" type="checkbox"> <code>npm run format:check</code></li>
+<li><input disabled="" type="checkbox"> <code>npm run build</code></li>
+</ul>
+<p><strong>Section valid when:</strong> every review state deterministic, desktop UX stable, mobile scope absent.</p>
+<hr>
+<h1>Section 17 — E2E acceptance, regression, docs handoff</h1>
+<p><strong>Commit:</strong> <code>test: verify deck builder prototype flow</code></p>
+<h2>Test first</h2>
+<ul>
+<li><input disabled="" type="checkbox"> Add Playwright test before final wiring fixes.</li>
+<li><input disabled="" type="checkbox"> Confirm E2E initially fails at first missing acceptance behavior.</li>
+</ul>
+<h2>E2E coverage</h2>
+<ul>
+<li><input disabled="" type="checkbox"> Default route still starts current duel.</li>
+<li><input disabled="" type="checkbox"> Prototype route opens last-opened deck.</li>
+<li><input disabled="" type="checkbox"> No last-opened route opens Library.</li>
+<li><input disabled="" type="checkbox"> Create blank deck.</li>
+<li><input disabled="" type="checkbox"> Filter Monster + DARK + Dragon.</li>
+<li><input disabled="" type="checkbox"> Inspect long effect text in pinned details.</li>
+<li><input disabled="" type="checkbox"> Pointer drag Catalog → Main/Extra.</li>
+<li><input disabled="" type="checkbox"> Pointer drag Main/Extra ↔ Side.</li>
+<li><input disabled="" type="checkbox"> Remove tile.</li>
+<li><input disabled="" type="checkbox"> Undo/Redo.</li>
+<li><input disabled="" type="checkbox"> Reload → deck/history restored.</li>
+<li><input disabled="" type="checkbox"> 40-slot grid visible.</li>
+<li><input disabled="" type="checkbox"> Card 41 switches to 60-slot grid.</li>
+<li><input disabled="" type="checkbox"> Quantity badges visible/accessibly named.</li>
+<li><input disabled="" type="checkbox"> Invalid draft autosaves.</li>
+<li><input disabled="" type="checkbox"> Unknown import code remains placeholder.</li>
+<li><input disabled="" type="checkbox"> Invalid export allowed after warning.</li>
+<li><input disabled="" type="checkbox"> Rename/Duplicate/Delete.</li>
+<li><input disabled="" type="checkbox"> Resolver integration fixture returns ready/invalid/missing.</li>
+<li><input disabled="" type="checkbox"> Keyboard drag core path.</li>
+<li><input disabled="" type="checkbox"> Save failure Retry.</li>
+<li><input disabled="" type="checkbox"> Revision conflict recovery.</li>
+<li><input disabled="" type="checkbox"> Below-1024 desktop-required notice.</li>
+<li><input disabled="" type="checkbox"> No mobile layout claim/test.</li>
+</ul>
+<h2>Final review gates</h2>
+<ul>
+<li><input disabled="" type="checkbox"> <code>npm run format</code></li>
+<li><input disabled="" type="checkbox"> <code>npm run format:check</code></li>
+<li><input disabled="" type="checkbox"> <code>npm run lint</code></li>
+<li><input disabled="" type="checkbox"> <code>npm run typecheck</code></li>
+<li><input disabled="" type="checkbox"> <code>npm test</code></li>
+<li><input disabled="" type="checkbox"> <code>npm run build</code></li>
+<li><input disabled="" type="checkbox"> <code>npm run build:reproducible</code></li>
+<li><input disabled="" type="checkbox"> <code>npx playwright test e2e/deck-builder-prototype.spec.ts --project=chromium</code></li>
+<li><input disabled="" type="checkbox"> <code>npm run test:e2e</code></li>
+<li><input disabled="" type="checkbox"> <code>npm run check</code></li>
+<li><input disabled="" type="checkbox"> Run changed-files code review.</li>
+<li><input disabled="" type="checkbox"> Run changed-files a11y review.</li>
+<li><input disabled="" type="checkbox"> Run client-bundle review for vendored-core leakage.</li>
+<li><input disabled="" type="checkbox"> Run concurrency review for autosave/revision races.</li>
+<li><input disabled="" type="checkbox"> Run contract review for resolver/repository/UI boundaries.</li>
+<li><input disabled="" type="checkbox"> Run data-integrity review for prototype IndexedDB/history.</li>
+<li><input disabled="" type="checkbox"> Run test-quality review.</li>
+<li><input disabled="" type="checkbox"> Fix all critical/high findings; rerun affected gates.</li>
+</ul>
+<h2>Docs/handoff</h2>
+<ul>
+<li><input disabled="" type="checkbox"> Update scope status to <code>prototype implemented; review pending</code>.</li>
+<li><input disabled="" type="checkbox"> Record actual route.</li>
+<li><input disabled="" type="checkbox"> Record prototype DB name/version.</li>
+<li><input disabled="" type="checkbox"> Record test commands/results.</li>
+<li><input disabled="" type="checkbox"> Add prototype review notes doc only after reviewer uses prototype.</li>
+<li><input disabled="" type="checkbox"> Do not mark production deck editor implemented.</li>
+<li><input disabled="" type="checkbox"> Do not update future architecture to shipped status.</li>
+</ul>
+<p><strong>Section valid when:</strong> full project check green, review scenarios pass, current duel unchanged.</p>
+<hr>
+<h2>5. Commit sequence summary</h2>
+<table>
+<thead>
+<tr>
+<th align="right">#</th>
+<th>Commit</th>
+<th>Required green proof</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="right">1</td>
+<td><code>feat: add isolated deck builder prototype route</code></td>
+<td>route unit + shell component + build</td>
+</tr>
+<tr>
+<td align="right">2</td>
+<td><code>feat: map ocg card data for deck builder</code></td>
+<td>OCG mapper/parity/fixture tests</td>
+</tr>
+<tr>
+<td align="right">3</td>
+<td><code>feat: add pure deck editing model</code></td>
+<td>model + grid-plan tests</td>
+</tr>
+<tr>
+<td align="right">4</td>
+<td><code>feat: validate and resolve local decks</code></td>
+<td>validation + resolver tests</td>
+</tr>
+<tr>
+<td align="right">5</td>
+<td><code>feat: retain bounded deck edit history</code></td>
+<td>50-entry history tests</td>
+</tr>
+<tr>
+<td align="right">6</td>
+<td><code>feat: persist prototype decks and history</code></td>
+<td>fake-IDB + resolver integration tests</td>
+</tr>
+<tr>
+<td align="right">7</td>
+<td><code>feat: add ydk deck import and export</code></td>
+<td>YDK + preset-parser regression tests</td>
+</tr>
+<tr>
+<td align="right">8</td>
+<td><code>feat: build deck editor workspace shell</code></td>
+<td>shell component + build</td>
+</tr>
+<tr>
+<td align="right">9</td>
+<td><code>feat: add deck builder card catalog</code></td>
+<td>catalog/details tests</td>
+</tr>
+<tr>
+<td align="right">10</td>
+<td><code>feat: add deck grid drag and drop editing</code></td>
+<td>grid + pointer drag tests</td>
+</tr>
+<tr>
+<td align="right">11</td>
+<td><code>feat: make deck drag editing keyboard accessible</code></td>
+<td>keyboard + a11y tests</td>
+</tr>
+<tr>
+<td align="right">12</td>
+<td><code>feat: surface deck validation and card limits</code></td>
+<td>validation/badge/placeholder tests</td>
+</tr>
+<tr>
+<td align="right">13</td>
+<td><code>feat: wire deck autosave and edit recovery</code></td>
+<td>autosave/history/conflict tests</td>
+</tr>
+<tr>
+<td align="right">14</td>
+<td><code>feat: add deck library and last opened routing</code></td>
+<td>entry/library/CRUD tests</td>
+</tr>
+<tr>
+<td align="right">15</td>
+<td><code>feat: add deck builder ydk workflows</code></td>
+<td>import/export component tests</td>
+</tr>
+<tr>
+<td align="right">16</td>
+<td><code>test: expose deck builder prototype review states</code></td>
+<td>state harness + a11y + build</td>
+</tr>
+<tr>
+<td align="right">17</td>
+<td><code>test: verify deck builder prototype flow</code></td>
+<td>E2E + full <code>npm run check</code></td>
+</tr>
+</tbody></table>
+<h2>6. Deferred after prototype review</h2>
+<ul>
+<li>production DB migration;</li>
+<li>VN screen/selection UI;</li>
+<li>campaign integration;</li>
+<li>arbitrary deck Worker dispatch;</li>
+<li>format/banlist management;</li>
+<li>mobile/tablet UX;</li>
+<li>full catalog packaging/indexing;</li>
+<li>virtualization/perf tuning;</li>
+<li>public distribution review;</li>
+<li>production visual polish.</li>
+</ul>
+<p>No deferred item should leak into prototype commits unless review changes scope first.</p>
+
+<footer class="artifact-footer">source: C:\Users\Natha\coding\ygo-story-duel-simulator</footer>
+</article>
+
+<script>
+(function () {
+  var slug = "deck-builder-prototype-implementation-plan";
+  var es = new EventSource("/events");
+  es.addEventListener("reload", function (e) {
+    try { if (e.data === slug || e.data === "*") location.reload(); } catch (_) {}
+  });
+})();
+</script>
+</body>
+</html>

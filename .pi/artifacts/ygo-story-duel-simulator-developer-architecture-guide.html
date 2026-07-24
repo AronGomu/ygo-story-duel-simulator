@@ -1,0 +1,1153 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Developer guide and visual architecture overview for YGO Story Duel Simulator.">
+  <title>Developer Guide · YGO Story Duel Simulator</title>
+  <style>
+:root {
+  color-scheme: dark;
+  --bg: #08101f;
+  --surface: #101a2d;
+  --surface-2: #17243a;
+  --surface-3: #20304a;
+  --ink: #eef3fc;
+  --muted: #b8c3d6;
+  --faint: #8291aa;
+  --border: #50617e;
+  --accent: #73daca;
+  --accent-2: #ffd580;
+  --danger: #ff9aaa;
+  --success: #8be0b1;
+  --info: #99c7ff;
+  --radius: 12px;
+  --shadow: 0 20px 50px rgb(0 0 0 / 0.2);
+  --content: 1180px;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+}
+
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; overflow-x: clip; }
+body {
+  min-width: 320px;
+  margin: 0;
+  overflow-x: clip;
+  color: var(--ink);
+  background: var(--bg);
+  line-height: 1.6;
+}
+body::before {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background-image:
+    linear-gradient(rgb(115 218 202 / 0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(115 218 202 / 0.025) 1px, transparent 1px);
+  background-size: 32px 32px;
+  content: "";
+}
+
+a { color: var(--accent); text-underline-offset: 0.18em; }
+a:hover { color: #a2eee3; }
+a:focus-visible, button:focus-visible, summary:focus-visible {
+  outline: 3px solid var(--accent-2);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+code, pre, .mono {
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+}
+code {
+  padding: 0.1em 0.35em;
+  border: 1px solid rgb(80 97 126 / 0.65);
+  border-radius: 5px;
+  color: #dffaf5;
+  background: #0b1425;
+  font-size: 0.9em;
+}
+pre {
+  max-width: 100%;
+  overflow: auto;
+  padding: 1rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: #dce6f7;
+  background: #070d18;
+  line-height: 1.5;
+}
+pre code { padding: 0; border: 0; background: none; }
+
+h1, h2, h3, h4 {
+  margin: 0;
+  line-height: 1.18;
+  text-wrap: balance;
+}
+h1 { max-width: 18ch; font-size: 2.7rem; letter-spacing: -0.035em; }
+h2 { margin-top: 3.5rem; font-size: 1.75rem; letter-spacing: -0.02em; }
+h3 { margin-top: 2rem; font-size: 1.18rem; }
+h4 { margin-top: 1.4rem; font-size: 1rem; }
+p, li { text-wrap: pretty; }
+p { max-width: 75ch; }
+
+.skip-link {
+  position: fixed;
+  top: 0.5rem;
+  left: 0.5rem;
+  z-index: 100;
+  padding: 0.65rem 0.85rem;
+  color: #08101f;
+  background: var(--accent-2);
+  transform: translateY(-180%);
+}
+.skip-link:focus { transform: translateY(0); }
+
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  border-bottom: 1px solid var(--border);
+  background: rgb(8 16 31 / 0.96);
+}
+.header-inner {
+  display: flex;
+  width: min(var(--content), calc(100% - 2rem));
+  min-height: 4rem;
+  margin-inline: auto;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  color: var(--ink);
+  font-weight: 760;
+  text-decoration: none;
+}
+.brand-mark {
+  display: grid;
+  width: 2rem;
+  height: 2rem;
+  border: 1px solid var(--accent);
+  border-radius: 8px;
+  place-items: center;
+  color: var(--accent);
+  font-size: 0.72rem;
+}
+nav { display: flex; flex-wrap: wrap; gap: 0.25rem; }
+nav a {
+  padding: 0.45rem 0.65rem;
+  border-radius: 7px;
+  color: var(--muted);
+  font-size: 0.86rem;
+  text-decoration: none;
+}
+nav a:hover, nav a[aria-current="page"] { color: var(--ink); background: var(--surface-2); }
+nav a[aria-current="page"] { box-shadow: inset 0 -2px var(--accent); }
+
+main, footer {
+  width: min(var(--content), calc(100% - 2rem));
+  margin-inline: auto;
+}
+.hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(18rem, 0.65fr);
+  gap: 2.5rem;
+  padding-block: 4.5rem 2.5rem;
+  align-items: end;
+}
+.hero-copy > p { color: var(--muted); font-size: 1.06rem; }
+.kicker {
+  margin: 0 0 0.75rem;
+  color: var(--accent);
+  font-weight: 740;
+}
+.meta-stack {
+  display: grid;
+  gap: 0.65rem;
+  margin: 0;
+}
+.meta-stack div {
+  display: grid;
+  grid-template-columns: 8rem 1fr;
+  gap: 0.7rem;
+  padding-block: 0.5rem;
+  border-bottom: 1px solid var(--border);
+}
+.meta-stack dt { color: var(--faint); }
+.meta-stack dd { margin: 0; font-weight: 650; }
+
+.notice {
+  margin: 1.5rem 0;
+  padding: 1rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+.notice strong { color: var(--accent-2); }
+.notice.danger strong { color: var(--danger); }
+.notice.success strong { color: var(--success); }
+
+.stat-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0;
+  margin: 1.5rem 0 2.5rem;
+  border-block: 1px solid var(--border);
+}
+.stat {
+  min-width: 10rem;
+  flex: 1;
+  padding: 1rem;
+  border-right: 1px solid var(--border);
+}
+.stat:last-child { border-right: 0; }
+.stat strong { display: block; color: var(--accent-2); font-size: 1.55rem; line-height: 1.2; }
+.stat span { color: var(--muted); font-size: 0.85rem; }
+
+.grid-2, .grid-3, .file-grid {
+  display: grid;
+  gap: 1rem;
+}
+.grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.grid-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.grid-2 > *, .grid-3 > * { min-width: 0; }
+.file-grid { grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
+.panel {
+  min-width: 0;
+  padding: 1.1rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+.panel h3, .panel h4 { margin-top: 0; }
+.panel p:last-child, .panel ul:last-child { margin-bottom: 0; }
+.panel .tag { margin-bottom: 0.6rem; }
+.panel.accent { border-color: #4b9f94; background: #10292b; }
+.panel.warning { border-color: #8f7637; background: #2a2518; }
+.panel.danger { border-color: #944b5b; background: #2b1921; }
+
+.tag, .pill {
+  display: inline-flex;
+  align-items: center;
+  min-height: 1.65rem;
+  padding: 0.18rem 0.55rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  color: var(--muted);
+  background: #0b1425;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+.tag.accent { color: var(--accent); border-color: #397f76; }
+.tag.gold { color: var(--accent-2); border-color: #806a34; }
+.tag.red { color: var(--danger); border-color: #824251; }
+
+.diagram {
+  margin: 1.5rem 0;
+  overflow: auto;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: #091323;
+  box-shadow: var(--shadow);
+}
+.diagram > header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.85rem 1rem;
+  border-bottom: 1px solid var(--border);
+}
+.diagram > header h3 { margin: 0; font-size: 1rem; }
+.diagram > header p { margin: 0; color: var(--faint); font-size: 0.78rem; }
+.diagram svg { display: block; min-width: 760px; width: 100%; height: auto; }
+.diagram text { font-family: Inter, ui-sans-serif, system-ui, sans-serif; }
+.diagram .box { fill: #111d31; stroke: #657692; stroke-width: 1.5; }
+.diagram .box-accent { fill: #123236; stroke: #73daca; stroke-width: 2; }
+.diagram .box-gold { fill: #2a2518; stroke: #ffd580; stroke-width: 1.5; }
+.diagram .box-danger { fill: #2c1921; stroke: #ff9aaa; stroke-width: 1.5; }
+.diagram .lane { fill: #0d1728; stroke: #3e506d; stroke-width: 1; }
+.diagram .label { fill: #eef3fc; font-size: 15px; font-weight: 700; }
+.diagram .small { fill: #b8c3d6; font-size: 12px; }
+.diagram .tiny { fill: #8f9db3; font-size: 10px; }
+.diagram .arrow { fill: none; stroke: #73daca; stroke-width: 2; marker-end: url(#arrow); }
+.diagram .arrow-gold { fill: none; stroke: #ffd580; stroke-width: 2; marker-end: url(#arrow-gold); }
+.diagram .arrow-muted { fill: none; stroke: #7f90aa; stroke-width: 1.5; marker-end: url(#arrow-muted); }
+.diagram .dash { stroke-dasharray: 7 6; }
+
+.legend { display: flex; flex-wrap: wrap; gap: 0.75rem 1rem; margin: 0.75rem 0; color: var(--muted); font-size: 0.82rem; }
+.legend span { display: inline-flex; align-items: center; gap: 0.4rem; }
+.swatch { width: 0.8rem; height: 0.8rem; border: 1px solid var(--border); border-radius: 3px; background: var(--surface-2); }
+.swatch.accent { border-color: var(--accent); background: #123236; }
+.swatch.gold { border-color: var(--accent-2); background: #2a2518; }
+.swatch.red { border-color: var(--danger); background: #2c1921; }
+
+table { width: 100%; border-collapse: collapse; margin: 1rem 0 1.5rem; font-size: 0.92rem; }
+th, td { padding: 0.7rem; border-bottom: 1px solid var(--border); text-align: left; vertical-align: top; overflow-wrap: anywhere; }
+th { color: var(--accent); background: #0b1425; font-size: 0.8rem; }
+tbody tr:hover { background: rgb(115 218 202 / 0.04); }
+
+.flow-list { margin: 1rem 0; padding: 0; list-style: none; counter-reset: flow; }
+.flow-list li {
+  position: relative;
+  max-width: 76ch;
+  margin: 0 0 0.7rem;
+  padding: 0.85rem 1rem 0.85rem 3.3rem;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  counter-increment: flow;
+}
+.flow-list li::before {
+  position: absolute;
+  top: 0.7rem;
+  left: 0.8rem;
+  display: grid;
+  width: 1.8rem;
+  height: 1.8rem;
+  border: 1px solid var(--accent);
+  border-radius: 50%;
+  place-items: center;
+  color: var(--accent);
+  content: counter(flow);
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+details { margin: 0.75rem 0; border: 1px solid var(--border); border-radius: 10px; background: var(--surface); }
+summary { padding: 0.85rem 1rem; cursor: pointer; color: var(--ink); font-weight: 700; }
+details > div { padding: 0 1rem 1rem; }
+
+.toc {
+  padding: 1rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+.toc h2 { margin-top: 0; font-size: 1rem; }
+.toc ol { margin: 0; padding-left: 1.25rem; columns: 2; }
+.toc li { margin: 0.25rem 1rem 0.25rem 0; break-inside: avoid; }
+
+.path { color: #d8e5fa; font-family: "SFMono-Regular", Consolas, monospace; font-size: 0.87em; overflow-wrap: anywhere; }
+.source-ref { color: var(--faint); font-size: 0.8rem; }
+.check { color: var(--success); font-weight: 800; }
+.warn { color: var(--accent-2); font-weight: 800; }
+.stop { color: var(--danger); font-weight: 800; }
+
+footer { margin-top: 5rem; padding-block: 1.5rem 3rem; border-top: 1px solid var(--border); color: var(--faint); font-size: 0.85rem; }
+footer p { max-width: none; }
+
+@media (max-width: 900px) {
+  .header-inner { align-items: flex-start; flex-direction: column; padding-block: 0.75rem; }
+  nav { width: 100%; overflow-x: auto; flex-wrap: nowrap; padding-bottom: 0.2rem; }
+  nav a { white-space: nowrap; }
+  .hero, .grid-2, .grid-3 { grid-template-columns: 1fr; }
+  .hero { gap: 1.5rem; padding-top: 3rem; }
+  .toc ol { columns: 1; }
+}
+
+@media (max-width: 600px) {
+  h1 { font-size: 2.1rem; }
+  h2 { font-size: 1.5rem; }
+  .stat { min-width: 50%; border-bottom: 1px solid var(--border); }
+  .meta-stack div { grid-template-columns: 1fr; gap: 0.1rem; }
+  table { display: block; width: 100%; max-width: 100%; overflow-x: auto; contain: inline-size; }
+}
+
+@media print {
+  :root { color-scheme: light; --bg: #fff; --surface: #fff; --surface-2: #f3f5f8; --ink: #111827; --muted: #374151; --faint: #4b5563; --border: #9ca3af; --accent: #00695c; --accent-2: #8a5b00; }
+  body::before, .site-header { display: none; }
+  body { background: #fff; }
+  main, footer { width: 100%; }
+  .diagram { box-shadow: none; break-inside: avoid; }
+  .diagram svg { min-width: 0; }
+  .panel, table, pre, details { break-inside: avoid; }
+  a { color: inherit; text-decoration: underline; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { scroll-behavior: auto !important; transition: none !important; }
+}
+
+.page-section { display: none; padding-bottom: 3rem; }
+.page-section.is-active { display: block; }
+nav a.is-active { color: var(--ink); background: var(--surface-2); box-shadow: inset 0 -2px var(--accent); }
+
+  </style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <defs>
+    <marker id="arrow" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 Z" fill="#73daca"/></marker>
+    <marker id="arrow-gold" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 Z" fill="#ffd580"/></marker>
+    <marker id="arrow-muted" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 Z" fill="#7f90aa"/></marker>
+  </defs>
+</svg>
+
+<a class="skip-link" href="#overview">Skip to content</a>
+<header class="site-header">
+  <div class="header-inner">
+    <a class="brand" href="#overview"><span class="brand-mark">YGO</span><span>Developer Guide</span></a>
+    <nav aria-label="Developer guide">
+      <a href="#overview" data-nav="overview">Overview</a>
+      <a href="#architecture" data-nav="architecture">Architecture</a>
+      <a href="#runtime-flows" data-nav="runtime-flows">Runtime flows</a>
+      <a href="#data-quality" data-nav="data-quality">Data & quality</a>
+      <a href="#onboarding" data-nav="onboarding">Onboarding</a>
+    </nav>
+  </div>
+</header>
+<main id="content">
+<section class="page-section" id="overview" data-page="overview" hidden>
+
+  <section class="hero">
+    <div class="hero-copy">
+      <p class="kicker">Browser-first · offline · Worker-isolated</p>
+      <h1>Understand simulator before changing it.</h1>
+      <p>Visual guide to current working-tree architecture: browser shell, structured Worker boundary, synchronous WASM engine, privacy-safe public state, immutable runtime assets, local rollback, presentation, tests, release gates.</p>
+    </div>
+    <dl class="meta-stack">
+      <div><dt>Runtime</dt><dd>Svelte 5 + Phaser 4 + Web Worker</dd></div>
+      <div><dt>Engine</dt><dd>ocgcore-wasm 0.1.2 / core 11.0</dd></div>
+      <div><dt>Language</dt><dd>Strict TypeScript / Node 24+</dd></div>
+      <div><dt>Deployment</dt><dd>Private static build only</dd></div>
+    </dl>
+  </section>
+
+  <div class="notice warning">
+    <strong>Working-tree snapshot.</strong> Guide reflects current uncommitted code, not only <code>main</code>. Existing <code>context.md</code> still says “Step 00”; root <code>README.md</code>, implementation, current architecture docs, tests are newer. Use this guide for orientation; use code + tests for final truth.
+  </div>
+
+  <section class="stat-row" aria-label="Codebase metrics">
+    <div class="stat"><strong>149</strong><span>TS/Svelte/CSS files across source, tooling, tests</span></div>
+    <div class="stat"><strong>27.8k</strong><span>lines in measured implementation/test scope</span></div>
+    <div class="stat"><strong>206</strong><span>relative source import edges</span></div>
+    <div class="stat"><strong>39</strong><span>unit + integration + component suites</span></div>
+    <div class="stat"><strong>1</strong><span>production browser E2E flow suite</span></div>
+  </section>
+
+  <aside class="toc" aria-labelledby="overview--toc-title">
+    <h2 id="overview--toc-title">Read by intent</h2>
+    <ol>
+      <li><a href="#overview/system">System in one diagram</a></li>
+      <li><a href="#overview/principles">Non-negotiable rules</a></li>
+      <li><a href="#overview/domains">Domain map</a></li>
+      <li><a href="#overview/start">Where execution starts</a></li>
+      <li><a href="#overview/risk">High-attention areas</a></li>
+      <li><a href="#overview/documents">Guide map</a></li>
+    </ol>
+  </aside>
+
+  <section id="overview--system">
+    <h2>System in one diagram</h2>
+    <p>App is static browser software. Main thread coordinates UI, local storage, image preparation. Dedicated Worker owns duel truth. Worker loads verified runtime closure, initializes synchronous WASM, translates raw engine protocol into clone-safe domain contracts. Phaser renders projections only.</p>
+    <figure class="diagram">
+      <header><h3>Container topology</h3><p>solid arrows = runtime calls/data · dashed = verified asset load</p></header>
+      <svg viewBox="0 0 1160 620" role="img" aria-labelledby="overview--topology-title overview--topology-desc">
+        <title id="overview--topology-title">YGO Story Duel Simulator container topology</title>
+        <desc id="overview--topology-desc">User interacts with Svelte and Phaser. Svelte communicates through typed Worker client to a dedicated Worker. Worker owns controller, projector, prompt registry, opponent policy and WASM engine. Browser storage holds snapshot pointers and verified caches.</desc>
+        <defs>
+          </defs>
+        <rect class="lane" x="25" y="25" width="1110" height="265" rx="16"/>
+        <text class="small" x="45" y="53">BROWSER MAIN THREAD</text>
+        <rect class="box-accent" x="55" y="85" width="160" height="95" rx="12"/>
+        <text class="label" x="135" y="120" text-anchor="middle">User</text>
+        <text class="small" x="135" y="145" text-anchor="middle">keyboard · pointer</text>
+        <rect class="box" x="280" y="75" width="225" height="115" rx="12"/>
+        <text class="label" x="392" y="108" text-anchor="middle">Svelte app</text>
+        <text class="small" x="392" y="132" text-anchor="middle">App.svelte · PromptControls</text>
+        <text class="small" x="392" y="151" text-anchor="middle">duel store · semantic UI</text>
+        <text class="small" x="392" y="170" text-anchor="middle">snapshot/image coordinator</text>
+        <rect class="box" x="570" y="75" width="215" height="115" rx="12"/>
+        <text class="label" x="677" y="108" text-anchor="middle">DuelWorkerClient</text>
+        <text class="small" x="677" y="132" text-anchor="middle">command/event validation</text>
+        <text class="small" x="677" y="151" text-anchor="middle">timeouts · generations</text>
+        <text class="small" x="677" y="170" text-anchor="middle">terminate + replace</text>
+        <rect class="box" x="865" y="75" width="220" height="115" rx="12"/>
+        <text class="label" x="975" y="108" text-anchor="middle">Phaser field</text>
+        <text class="small" x="975" y="132" text-anchor="middle">lazy presentation chunk</text>
+        <text class="small" x="975" y="151" text-anchor="middle">sprites · highlights</text>
+        <text class="small" x="975" y="170" text-anchor="middle">never duel authority</text>
+        <path class="arrow" d="M215 132 H280"/><path class="arrow" d="M505 132 H570"/>
+        <path class="arrow-muted" d="M505 165 C650 230 810 230 865 165"/>
+        <path class="arrow-muted" d="M865 105 C790 40 580 40 505 105"/>
+
+        <rect class="lane" x="25" y="325" width="1110" height="270" rx="16"/>
+        <text class="small" x="45" y="353">DEDICATED DUEL WORKER</text>
+        <rect class="box-accent" x="70" y="385" width="200" height="145" rx="12"/>
+        <text class="label" x="170" y="418" text-anchor="middle">Worker runtime</text>
+        <text class="small" x="170" y="445" text-anchor="middle">serialized command queue</text>
+        <text class="small" x="170" y="465" text-anchor="middle">resource initialization</text>
+        <text class="small" x="170" y="485" text-anchor="middle">session lifecycle</text>
+        <text class="small" x="170" y="505" text-anchor="middle">bounded diagnostics</text>
+        <rect class="box" x="330" y="385" width="225" height="145" rx="12"/>
+        <text class="label" x="442" y="418" text-anchor="middle">Headless controller</text>
+        <text class="small" x="442" y="445" text-anchor="middle">PromptRegistry</text>
+        <text class="small" x="442" y="465" text-anchor="middle">DuelStateProjector</text>
+        <text class="small" x="442" y="485" text-anchor="middle">BasicOpponentPolicy</text>
+        <text class="small" x="442" y="505" text-anchor="middle">advance until boundary</text>
+        <rect class="box-gold" x="620" y="385" width="205" height="145" rx="12"/>
+        <text class="label" x="722" y="418" text-anchor="middle">DuelSession</text>
+        <text class="small" x="722" y="445" text-anchor="middle">handle owner</text>
+        <text class="small" x="722" y="465" text-anchor="middle">sync callbacks</text>
+        <text class="small" x="722" y="485" text-anchor="middle">process guards</text>
+        <text class="small" x="722" y="505" text-anchor="middle">response dispatch</text>
+        <rect class="box-gold" x="890" y="385" width="190" height="145" rx="12"/>
+        <text class="label" x="985" y="418" text-anchor="middle">ocgcore WASM</text>
+        <text class="small" x="985" y="445" text-anchor="middle">rules authority</text>
+        <text class="small" x="985" y="465" text-anchor="middle">raw messages</text>
+        <text class="small" x="985" y="485" text-anchor="middle">Lua effects</text>
+        <text class="small" x="985" y="505" text-anchor="middle">core 11.0</text>
+        <path class="arrow" d="M677 190 V250 C677 295 170 300 170 385"/>
+        <path class="arrow" d="M270 457 H330"/><path class="arrow-gold" d="M555 457 H620"/><path class="arrow-gold" d="M825 457 H890"/>
+        <path class="arrow-muted dash" d="M985 385 V310 H780"/>
+        <text class="tiny" x="800" y="300">verified WASM + active data closure</text>
+      </svg>
+    </figure>
+    <div class="legend"><span><i class="swatch accent"></i> app orchestration/boundary</span><span><i class="swatch gold"></i> engine authority</span><span><i class="swatch"></i> presentation/domain support</span></div>
+  </section>
+
+  <section id="overview--principles">
+    <h2>Non-negotiable architecture rules</h2>
+    <div class="grid-2">
+      <div class="panel accent"><span class="tag accent">Authority</span><h3>Engine decides duel truth</h3><p><code>ocgcore</code> alone determines legality, effects, responses, results. UI, store, Phaser can validate UX constraints but cannot invent legal actions.</p></div>
+      <div class="panel accent"><span class="tag accent">Isolation</span><h3>Raw engine stays in Worker</h3><p>Main thread never imports engine. Handles, raw protocol indexes, Lua/script maps, production seed remain Worker-owned.</p></div>
+      <div class="panel"><span class="tag">Contracts</span><h3>Only clone-safe domain data crosses</h3><p>Commands/events use strict discriminated unions. Both sides parse, exact-key validate, bound payloads. Prompt/choice IDs are opaque.</p></div>
+      <div class="panel"><span class="tag">Privacy</span><h3>Hidden identities are absent</h3><p>Opponent hand exposes count, not card objects. Face-down identity redaction occurs before main-thread boundary, not only in rendering.</p></div>
+      <div class="panel"><span class="tag gold">Assets</span><h3>Runtime data activates atomically</h3><p>Engine, catalog, scripts, strings, images are one verified revision set. Runtime + image receipts must match before local activation.</p></div>
+      <div class="panel"><span class="tag gold">Reliability</span><h3>Failure is bounded, replaceable</h3><p>Initialization, command, disposal, process loops have guards. Uncertain cleanup causes Worker termination/replacement, not reuse.</p></div>
+    </div>
+  </section>
+
+  <section id="overview--domains">
+    <h2>Domain map</h2>
+    <table>
+      <thead><tr><th>Area</th><th>Responsibility</th><th>Primary paths</th><th>Change risk</th></tr></thead>
+      <tbody>
+        <tr><td>App shell</td><td>Lifecycle, status/error/result UI, local snapshot/image coordination</td><td class="path">src/app/App.svelte</td><td><span class="tag red">high coupling</span></td></tr>
+        <tr><td>Typed client/store</td><td>Worker lifecycle, watchdogs, event reduction, stale-context rejection</td><td class="path">src/app/DuelWorkerClient.ts<br>src/app/stores/duel-store.ts</td><td><span class="tag gold">boundary</span></td></tr>
+        <tr><td>Domain contracts</td><td>Clone-safe public commands, events, state, prompts, diagnostics</td><td class="path">src/duel/contracts/</td><td><span class="tag gold">cross-cutting</span></td></tr>
+        <tr><td>Worker orchestration</td><td>Command queue, init, session/controller ownership, result/error dispatch</td><td class="path">src/worker/DuelWorkerRuntime.ts<br>src/worker/duel.worker.ts</td><td><span class="tag red">critical</span></td></tr>
+        <tr><td>Engine/protocol</td><td>WASM adapter, duel handle, message→prompt/response mapping</td><td class="path">src/worker/engine/<br>src/worker/protocol/</td><td><span class="tag red">critical</span></td></tr>
+        <tr><td>Projection/opponent</td><td>Privacy-safe immutable state; deterministic legal-action policy</td><td class="path">src/worker/projection/<br>src/worker/opponent/</td><td><span class="tag red">privacy</span></td></tr>
+        <tr><td>Presentation</td><td>Svelte semantic controls; lazy Phaser visual field</td><td class="path">src/app/prompts/<br>src/field/</td><td><span class="tag">contained</span></td></tr>
+        <tr><td>Storage/assets</td><td>Verified runtime fetch/cache, image cache, IndexedDB activation/rollback</td><td class="path">src/storage/<br>src/worker/assets/<br>src/app/images/</td><td><span class="tag gold">integrity</span></td></tr>
+        <tr><td>Build/tooling</td><td>Asset sync, snapshot generation, Vite packaging, independent verification</td><td class="path">scripts/<br>vite.config.ts</td><td><span class="tag gold">release</span></td></tr>
+        <tr><td>Quality</td><td>Unit, component, real-WASM, Worker-thread, production browser gates</td><td class="path">tests/<br>e2e/<br>.github/workflows/ci.yml</td><td><span class="tag">broad</span></td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section id="overview--start">
+    <h2>Where execution starts</h2>
+    <ol class="flow-list">
+      <li><strong>Browser mount.</strong> <span class="path">src/main.ts</span> mounts <code>App.svelte</code>.</li>
+      <li><strong>Parallel preparation.</strong> App initializes Worker, opens IndexedDB snapshot store, preloads/validates active images.</li>
+      <li><strong>Worker initialization.</strong> Browser Worker loads manifest, active runtime closure, fallback cache if needed, then initializes vendored synchronous core.</li>
+      <li><strong>Automatic duel start.</strong> <code>ready</code> reduces store to idle; reactive app starts fixed MVP preset once per Worker generation.</li>
+      <li><strong>Engine loop.</strong> Worker creates production seed/session, processes core messages, projects state, auto-answers opponent prompts, pauses on human prompt or result.</li>
+      <li><strong>Dual presentation.</strong> Svelte renders authoritative semantic state/control surface; lazy Phaser bridge mirrors immutable snapshots/events.</li>
+    </ol>
+    <p><a href="#runtime-flows">Open detailed sequence diagrams →</a></p>
+  </section>
+
+  <section id="overview--risk">
+    <h2>High-attention areas</h2>
+    <div class="grid-3">
+      <div class="panel danger"><h3>Large boundary files</h3><p><code>App.svelte</code> 1,286 lines; <code>PromptRegistry.ts</code> 1,245; Worker event parser 1,077. Changes can affect many states. Require focused tests.</p></div>
+      <div class="panel warning"><h3>Generated prerequisites</h3><p>Vite config reads generated runtime manifest at config load. Fresh checkout needs <code>npm run assets:mvp</code> before dev/build.</p></div>
+      <div class="panel warning"><h3>Private deployment</h3><p>Image redistribution remains unapproved. Normal production packaging refuses artwork. Approved command uses explicit private mode and writes marker.</p></div>
+      <div class="panel"><h3>Two runtime hosts</h3><p>Browser Worker and Node Worker use shared runtime with separate asset loaders/bridges. Keep contracts host-neutral; test both boundaries.</p></div>
+      <div class="panel"><h3>Fallback complexity</h3><p>Runtime + image fallbacks depend on synchronized snapshot metadata, digest receipts, cache namespaces, active/previous pointers.</p></div>
+      <div class="panel"><h3>Docs drift</h3><p>Architecture docs are strong but status text differs. Verify statements against current tests/config before relying on historical plan docs.</p></div>
+    </div>
+  </section>
+
+  <section id="overview--documents">
+    <h2>Guide map</h2>
+    <div class="file-grid">
+      <a class="panel" href="#architecture"><span class="tag accent">Deep map</span><h3>Architecture</h3><p>Layers, modules, import direction, contracts, state machines, ownership, source landmarks.</p></a>
+      <a class="panel" href="#runtime-flows"><span class="tag accent">Sequences</span><h3>Runtime flows</h3><p>Startup, human response, opponent automation, projection, diagnostics, restart, failure replacement.</p></a>
+      <a class="panel" href="#data-quality"><span class="tag gold">Supply chain</span><h3>Data &amp; quality</h3><p>Asset ingestion, atomic snapshots, storage, build package, test pyramid, CI, budgets, licensing.</p></a>
+      <a class="panel" href="#onboarding"><span class="tag">Playbook</span><h3>Onboarding</h3><p>Setup, repository tour, task routing, safe change recipes, debugging, glossary, first-week path.</p></a>
+    </div>
+  </section>
+
+</section>
+<section class="page-section" id="architecture" data-page="architecture" hidden>
+
+  <section class="hero">
+    <div class="hero-copy"><p class="kicker">Module boundaries · ownership · contracts</p><h1>Architecture map</h1><p>Code organized around one hard boundary: browser main thread requests duel work; dedicated Worker owns engine, protocol, hidden data, replay evidence. Everything else supports this separation.</p></div>
+    <dl class="meta-stack"><div><dt>Source files</dt><dd>65 implementation files</dd></div><div><dt>Largest area</dt><dd>Worker · 6,334 lines</dd></div><div><dt>Core pattern</dt><dd>Ports/adapters + state projection</dd></div><div><dt>Boundary style</dt><dd>Validated discriminated unions</dd></div></dl>
+  </section>
+
+  <aside class="toc" aria-labelledby="architecture--toc-title"><h2 id="architecture--toc-title">Contents</h2><ol><li><a href="#architecture/layers">Layer graph</a></li><li><a href="#architecture/ownership">Ownership matrix</a></li><li><a href="#architecture/modules">Module inventory</a></li><li><a href="#architecture/contracts">Worker contracts</a></li><li><a href="#architecture/states">State machines</a></li><li><a href="#architecture/privacy">Privacy path</a></li><li><a href="#architecture/direction">Dependency direction</a></li><li><a href="#architecture/landmarks">Source landmarks</a></li></ol></aside>
+
+  <section id="architecture--layers">
+    <h2>Layer graph</h2>
+    <p>Dependencies point inward toward domain contracts, then downward toward Worker engine adapters. Reverse callbacks use interfaces/events, not direct imports. Phaser is lateral presentation, never authoritative.</p>
+    <figure class="diagram">
+      <header><h3>Logical layers and permitted flow</h3><p>top = user-facing · bottom = authority/infrastructure</p></header>
+      <svg viewBox="0 0 1160 760" role="img" aria-labelledby="architecture--layers-title architecture--layers-desc">
+        <title id="architecture--layers-title">Logical architecture layers</title><desc id="architecture--layers-desc">Svelte and Phaser presentation use app orchestration and shared duel contracts. Worker boundary validates communication. Worker application layer uses protocol, projection, opponent, engine session, adapter and verified assets.</desc>
+        <defs></defs>
+        <rect class="box" x="60" y="50" width="470" height="95" rx="12"/><text class="label" x="295" y="83" text-anchor="middle">Semantic presentation · Svelte</text><text class="small" x="295" y="108" text-anchor="middle">App · PromptControls · DuelField shell · focus/a11y</text><text class="tiny" x="295" y="128" text-anchor="middle">src/app/</text>
+        <rect class="box" x="630" y="50" width="470" height="95" rx="12"/><text class="label" x="865" y="83" text-anchor="middle">Spatial presentation · Phaser</text><text class="small" x="865" y="108" text-anchor="middle">DuelScene · card mapping · presentation bridge</text><text class="tiny" x="865" y="128" text-anchor="middle">src/field/</text>
+        <rect class="box-accent" x="60" y="195" width="470" height="100" rx="12"/><text class="label" x="295" y="229" text-anchor="middle">Main-thread application</text><text class="small" x="295" y="254" text-anchor="middle">DuelWorkerClient · duel store · image/snapshot coordination</text><text class="tiny" x="295" y="276" text-anchor="middle">watchdogs · context generations · recovery</text>
+        <rect class="box" x="630" y="195" width="470" height="100" rx="12"/><text class="label" x="865" y="229" text-anchor="middle">Shared domain contracts</text><text class="small" x="865" y="254" text-anchor="middle">commands · events · prompts · public state · errors · IDs</text><text class="tiny" x="865" y="276" text-anchor="middle">src/duel/contracts/ · structured-clone validation</text>
+        <rect class="box-accent" x="60" y="345" width="1040" height="95" rx="12"/><text class="label" x="580" y="378" text-anchor="middle">Worker boundary + application runtime</text><text class="small" x="580" y="403" text-anchor="middle">attachDuelWorker → serialized DuelWorkerRuntime → HeadlessDuelController</text><text class="tiny" x="580" y="423" text-anchor="middle">src/worker/duel.worker.ts · DuelWorkerRuntime.ts · HeadlessDuelController.ts</text>
+        <rect class="box" x="60" y="495" width="225" height="105" rx="12"/><text class="label" x="172" y="528" text-anchor="middle">Protocol</text><text class="small" x="172" y="551" text-anchor="middle">PromptRegistry</text><text class="small" x="172" y="570" text-anchor="middle">sum selection · classification</text><text class="tiny" x="172" y="589" text-anchor="middle">raw ↔ domain</text>
+        <rect class="box" x="330" y="495" width="225" height="105" rx="12"/><text class="label" x="442" y="528" text-anchor="middle">Projection</text><text class="small" x="442" y="551" text-anchor="middle">DuelStateProjector</text><text class="small" x="442" y="570" text-anchor="middle">immutable public snapshots</text><text class="tiny" x="442" y="589" text-anchor="middle">privacy redaction</text>
+        <rect class="box" x="605" y="495" width="225" height="105" rx="12"/><text class="label" x="717" y="528" text-anchor="middle">Opponent</text><text class="small" x="717" y="551" text-anchor="middle">BasicOpponentPolicy</text><text class="small" x="717" y="570" text-anchor="middle">legal deterministic priorities</text><text class="tiny" x="717" y="589" text-anchor="middle">visible state only</text>
+        <rect class="box-gold" x="875" y="495" width="225" height="105" rx="12"/><text class="label" x="987" y="528" text-anchor="middle">Session owner</text><text class="small" x="987" y="551" text-anchor="middle">DuelSession</text><text class="small" x="987" y="570" text-anchor="middle">process/respond/dispose</text><text class="tiny" x="987" y="589" text-anchor="middle">one live handle</text>
+        <rect class="box-gold" x="60" y="655" width="500" height="70" rx="12"/><text class="label" x="310" y="685" text-anchor="middle">OcgCoreAdapter → vendored sync WASM</text><text class="small" x="310" y="708" text-anchor="middle">only engine import in app source</text>
+        <rect class="box-gold" x="600" y="655" width="500" height="70" rx="12"/><text class="label" x="850" y="685" text-anchor="middle">Verified runtime assets</text><text class="small" x="850" y="708" text-anchor="middle">catalog · texts · Lua · strings · images · manifests</text>
+        <path class="arrow-muted" d="M295 145 V195"/><path class="arrow-muted" d="M865 145 V195"/><path class="arrow-muted" d="M630 245 H530"/><path class="arrow" d="M295 295 V345"/><path class="arrow" d="M865 295 V345"/>
+        <path class="arrow-muted" d="M580 440 C500 465 172 465 172 495"/><path class="arrow-muted" d="M580 440 C520 470 442 470 442 495"/><path class="arrow-muted" d="M580 440 C650 470 717 470 717 495"/><path class="arrow-gold" d="M580 440 C750 460 987 460 987 495"/>
+        <path class="arrow-gold" d="M987 600 C850 630 520 620 310 655"/><path class="arrow-gold dash" d="M850 655 C850 620 800 620 800 600"/>
+      </svg>
+    </figure>
+  </section>
+
+  <section id="architecture--ownership">
+    <h2>Ownership matrix</h2>
+    <table><thead><tr><th>Concern</th><th>Main thread</th><th>Worker</th><th>Engine</th></tr></thead><tbody>
+      <tr><td>App lifecycle/UI</td><td><span class="check">owns</span></td><td>receives cmds</td><td>none</td></tr>
+      <tr><td>Current immutable public snapshot</td><td>stores/renders</td><td><span class="check">projects</span></td><td>source messages/queries</td></tr>
+      <tr><td>Legal actions</td><td>renders supplied choices</td><td>maps opaque choice IDs</td><td><span class="check">authoritative</span></td></tr>
+      <tr><td>Raw protocol indexes/bytes</td><td><span class="stop">forbidden</span></td><td><span class="check">owns</span></td><td>emits/consumes</td></tr>
+      <tr><td>WASM handle</td><td><span class="stop">forbidden</span></td><td><span class="check">single owner</span></td><td>creates/destroys</td></tr>
+      <tr><td>Production seed/replay order</td><td>diagnostic download only after duel</td><td><span class="check">owns</span></td><td>seed input</td></tr>
+      <tr><td>Opponent choice</td><td>none</td><td><span class="check">policy + legal prompt</span></td><td>validates response</td></tr>
+      <tr><td>Card images</td><td><span class="check">preloads/cache/object URLs</span></td><td>manifest digest only</td><td>none</td></tr>
+      <tr><td>Runtime data/scripts</td><td>snapshot metadata/cache coordination</td><td><span class="check">loads into memory</span></td><td>sync callbacks consume</td></tr>
+      <tr><td>Phaser visuals</td><td><span class="check">owns</span></td><td>emits presentation events</td><td>none</td></tr>
+    </tbody></table>
+  </section>
+
+  <section id="architecture--modules">
+    <h2>Module inventory</h2>
+    <div class="grid-2">
+      <div class="panel"><h3><code>src/app/</code> · 12 files / 4,369 lines</h3><ul><li><strong>App.svelte:</strong> root composition, storage/image lifecycle, diagnostics, UI states.</li><li><strong>DuelWorkerClient:</strong> Worker port, command guards, watchdogs, replacement.</li><li><strong>duel-store:</strong> pure event reducer + user action facade.</li><li><strong>PromptControls:</strong> exhaustive prompt-family controls and focus.</li><li><strong>DuelField:</strong> lazy Phaser boundary and semantic fallback.</li></ul></div>
+      <div class="panel"><h3><code>src/duel/</code> · 16 files / 2,105 lines</h3><ul><li><strong>contracts:</strong> runtime-validated command/event/state/prompt/result/error.</li><li><strong>presets:</strong> fixed deck parsing and MVP preset construction.</li><li><strong>card visibility:</strong> one policy for hidden identity.</li><li><strong>prompt sum:</strong> shared contribution-selection rules.</li></ul></div>
+      <div class="panel"><h3><code>src/worker/</code> · 28 files / 6,334 lines</h3><ul><li><strong>runtime:</strong> serialized cmd queue, init, session lifecycle.</li><li><strong>engine:</strong> adapter, handle owner, constants, production seed.</li><li><strong>protocol:</strong> all supported core prompt families.</li><li><strong>projection:</strong> engine message→public snapshot/event.</li><li><strong>assets:</strong> browser/Node runtime loaders and manifest validation.</li><li><strong>diagnostics:</strong> bounded trace + safe structured logging.</li></ul></div>
+      <div class="panel"><h3><code>src/field/</code> · 4 files / 929 lines</h3><ul><li><strong>DuelScene:</strong> Phaser scene, textures, card/stack reconciliation.</li><li><strong>card-mapping:</strong> immutable state→field view model; intent targets.</li><li><strong>bridge:</strong> lazy game startup, scheduler, reduced motion, disposal.</li><li><strong>layout:</strong> desktop field geometry.</li></ul></div>
+      <div class="panel"><h3><code>src/storage/</code> · 2 files / 768 lines</h3><ul><li><strong>SnapshotStore:</strong> IndexedDB schema, staging, receipt verification, CAS activation, rollback, debug-run retention.</li><li><strong>revision cleanup:</strong> Web Lock and Cache Storage namespace pruning.</li></ul></div>
+      <div class="panel"><h3><code>scripts/</code> · 29 files / 3,595 lines</h3><ul><li>Acquire pinned engine/upstream data/images.</li><li>Transform deterministic shards/manifests.</li><li>Generate runtime root snapshot.</li><li>Package active closure through Vite plugin.</li><li>Independently verify dist, hashes, licenses, budgets, reproducibility.</li></ul></div>
+    </div>
+  </section>
+
+  <section id="architecture--contracts">
+    <h2>Worker contracts</h2>
+    <p>Public protocol intentionally small. High-cardinality game protocol never crosses boundary directly.</p>
+    <div class="grid-2">
+      <div><h3>Commands: main → Worker</h3><pre><code>type DuelCommand =
+  | { type: "initialize" }
+  | { type: "startDuel"; duelId: DuelId }
+  | { type: "respond"; promptId: PromptId;
+      choiceIds: readonly ChoiceId[] }
+  | { type: "surrender" }
+  | { type: "requestDiagnostics" }
+  | { type: "dispose" };</code></pre><p class="source-ref">Source: src/duel/contracts/duel-command.ts</p></div>
+      <div><h3>Events: Worker → main</h3><pre><code>type DuelWorkerEvent =
+  | Ready | Loading | State
+  | PresentationEvent | Prompt
+  | Result | Diagnostics | Error
+  | Disposed;</code></pre><p>Every event parsed by <code>parseDuelWorkerEvent</code> before store. Parser enforces clone bounds, exact keys, dense arrays, prompt player, public-state privacy.</p><p class="source-ref">Source: src/duel/contracts/duel-worker-event.ts</p></div>
+    </div>
+    <h3>Boundary defense layers</h3>
+    <ol class="flow-list"><li><strong>Sender validation.</strong> Client passes every command through <code>parseDuelCommand</code> before <code>postMessage</code>.</li><li><strong>Receiver validation.</strong> Worker parses untrusted message again before queueing.</li><li><strong>Session validation.</strong> Runtime checks initialized/active state and preset ID.</li><li><strong>Prompt validation.</strong> Only current prompt ID resolves; selection count/order/sum/place rules checked.</li><li><strong>Engine validation.</strong> Encoded response goes through vendored core.</li><li><strong>Outbound validation.</strong> Client parses every event; malformed/privacy-breaking event terminates Worker.</li><li><strong>Context validation.</strong> Store rejects events from old Worker/session generations.</li></ol>
+  </section>
+
+  <section id="architecture--states">
+    <h2>State machines</h2>
+    <figure class="diagram"><header><h3>Main-thread duel view state</h3><p>reducer in src/app/stores/duel-store.ts</p></header>
+      <svg viewBox="0 0 1160 420" role="img" aria-labelledby="architecture--state-title"><title id="architecture--state-title">Duel view state machine</title><defs></defs>
+      <rect class="box" x="55" y="80" width="135" height="65" rx="32"/><text class="label" x="122" y="118" text-anchor="middle">idle</text>
+      <rect class="box" x="250" y="80" width="160" height="65" rx="32"/><text class="label" x="330" y="118" text-anchor="middle">initializing</text>
+      <rect class="box" x="470" y="80" width="135" height="65" rx="32"/><text class="label" x="537" y="118" text-anchor="middle">loading</text>
+      <rect class="box-accent" x="665" y="80" width="135" height="65" rx="32"/><text class="label" x="732" y="118" text-anchor="middle">active</text>
+      <rect class="box-accent" x="860" y="80" width="190" height="65" rx="32"/><text class="label" x="955" y="118" text-anchor="middle">awaiting-input</text>
+      <rect class="box-gold" x="690" y="270" width="160" height="65" rx="32"/><text class="label" x="770" y="308" text-anchor="middle">completed</text>
+      <rect class="box-danger" x="320" y="270" width="135" height="65" rx="32"/><text class="label" x="387" y="308" text-anchor="middle">failed</text>
+      <path class="arrow" d="M190 112 H250"/><text class="tiny" x="220" y="100" text-anchor="middle">initialize</text><path class="arrow" d="M410 112 H470"/><text class="tiny" x="440" y="100" text-anchor="middle">loading</text><path class="arrow" d="M605 112 H665"/><text class="tiny" x="635" y="100" text-anchor="middle">state</text><path class="arrow" d="M800 112 H860"/><text class="tiny" x="830" y="100" text-anchor="middle">prompt</text><path class="arrow" d="M860 145 C820 190 760 190 732 145"/><text class="tiny" x="790" y="185" text-anchor="middle">respond</text><path class="arrow-gold" d="M770 145 V270"/><text class="tiny" x="790" y="215">result</text><path class="arrow-muted" d="M955 145 C955 240 850 245 820 270"/>
+      <path class="arrow-muted" d="M537 145 C537 210 430 220 400 270"/><path class="arrow-muted" d="M732 145 C620 230 470 235 420 270"/><path class="arrow-muted" d="M955 145 C750 350 520 350 455 305"/><text class="tiny" x="600" y="365">non-recoverable error / watchdog / invalid event</text>
+      <path class="arrow" d="M387 270 C260 220 220 165 300 145"/><text class="tiny" x="245" y="235">retry → replace</text><path class="arrow" d="M770 270 C640 220 500 190 360 145"/><text class="tiny" x="570" y="230">restart → replace</text>
+      </svg>
+    </figure>
+    <div class="grid-2"><div class="panel"><h3>Worker lifecycle</h3><p><code>spawned → initialize queued → resources ready → one duel active → result/dispose → handle destroyed</code>. Runtime can retain last bounded trace after session ends. Uncertain cleanup sets <code>replacementRequired</code>.</p></div><div class="panel"><h3>Snapshot lifecycle</h3><p><code>staged → receipt-verified → active → previous → removed</code>. Activation uses expected active ID + generation in one IndexedDB transaction. One previous snapshot retained for rollback.</p></div></div>
+  </section>
+
+  <section id="architecture--privacy">
+    <h2>Privacy path</h2>
+    <div class="notice danger"><strong>Critical invariant.</strong> Opponent hidden card identity must never cross Worker boundary. Rendering a card back is insufficient if code/name remains in JS object.</div>
+    <ol class="flow-list"><li>Raw core message may contain card code and field location inside Worker.</li><li><code>DuelStateProjector</code> applies visibility policy. Opponent hand gets <code>handCount</code>, but public <code>hand</code> array is empty.</li><li>When visible card becomes hidden, projector rotates public instance ID and deletes code.</li><li><code>PromptRegistry</code> redacts prompt card code/name/description when viewer cannot see identity.</li><li>Outbound event parser rechecks public state: opponent hand identity array must remain empty.</li><li>Svelte/Phaser receive hidden cards without identity; Phaser selects card-back texture from <code>hidden</code>.</li><li>E2E captures real Worker events and asserts opponent hand objects remain empty.</li></ol>
+    <p class="source-ref">Key files: src/duel/card-visibility.ts · src/worker/projection/DuelStateProjector.ts · src/worker/protocol/PromptRegistry.ts · src/duel/contracts/duel-worker-event.ts · e2e/duel-smoke.spec.ts</p>
+  </section>
+
+  <section id="architecture--direction">
+    <h2>Dependency direction</h2>
+    <table><thead><tr><th>From</th><th>May depend on</th><th>Must not depend on</th></tr></thead><tbody>
+      <tr><td>Svelte app/store</td><td>duel contracts, main-thread services, field bridge types</td><td>WASM, raw engine constants/messages, Node asset loaders</td></tr>
+      <tr><td>Phaser field</td><td>public state, prompts, presentation events</td><td>Worker client, engine adapter, legality logic</td></tr>
+      <tr><td>Shared contracts</td><td>small validation helpers/IDs</td><td>Svelte, Phaser, Worker implementation, Node APIs</td></tr>
+      <tr><td>Worker runtime</td><td>contracts, controller, assets, engine adapter</td><td>Svelte/DOM/Phaser</td></tr>
+      <tr><td>Protocol/projector/policy</td><td>engine message types + domain contracts</td><td>browser UI/storage</td></tr>
+      <tr><td>OcgCoreAdapter</td><td>vendored engine package</td><td>app UI/persistence</td></tr>
+      <tr><td>Browser runtime loader</td><td>fetch, Cache Storage, manifest parsers</td><td>Node-only modules</td></tr>
+      <tr><td>Node runtime loader</td><td>fs/path, same runtime contracts</td><td>browser bundle</td></tr>
+    </tbody></table>
+    <div class="notice"><strong>Build enforcement.</strong> <code>scripts/verify-browser-build.ts</code> scans emitted JS for Node markers, JSPI/fallback engine markers, wrong engine chunks, missing activation ID. Architectural rules are release-time assertions, not prose only.</div>
+  </section>
+
+  <section id="architecture--landmarks">
+    <h2>Source landmarks</h2>
+    <table><thead><tr><th>Question</th><th>Start here</th><th>Then read</th></tr></thead><tbody>
+      <tr><td>How does UI action reach engine?</td><td class="path">src/app/stores/duel-store.ts</td><td class="path">DuelWorkerClient.ts → duel.worker.ts → DuelWorkerRuntime.ts</td></tr>
+      <tr><td>How is prompt encoded?</td><td class="path">src/worker/protocol/PromptRegistry.ts</td><td class="path">player-prompt.ts · prompt-selection.ts · sum-selection.ts</td></tr>
+      <tr><td>How is state projected/redacted?</td><td class="path">src/worker/projection/DuelStateProjector.ts</td><td class="path">card-visibility.ts · public-duel-state.ts</td></tr>
+      <tr><td>How does core start/process?</td><td class="path">src/worker/engine/DuelSession.ts</td><td class="path">OcgCoreAdapter.ts · HeadlessDuelController.ts</td></tr>
+      <tr><td>How does opponent choose?</td><td class="path">src/worker/opponent/OpponentPolicy.ts</td><td class="path">tests/unit/opponent-policy.test.ts</td></tr>
+      <tr><td>How does visual field update?</td><td class="path">src/app/components/DuelField.svelte</td><td class="path">create-phaser-presentation-bridge.ts → DuelScene.ts</td></tr>
+      <tr><td>How are runtime assets trusted?</td><td class="path">src/worker/assets/browser-runtime-assets.ts</td><td class="path">runtime-manifest.ts · vite-runtime-assets.ts · verify-browser-build.ts</td></tr>
+      <tr><td>How does rollback work?</td><td class="path">src/storage/snapshot-store.ts</td><td class="path">revision-cache-cleanup.ts · browser-snapshot-pointer.ts</td></tr>
+      <tr><td>What proves production behavior?</td><td class="path">e2e/duel-smoke.spec.ts</td><td class="path">tests/integration/node-worker-thread.test.ts · programmed-duel.test.ts</td></tr>
+    </tbody></table>
+  </section>
+
+</section>
+<section class="page-section" id="runtime-flows" data-page="runtime-flows" hidden>
+
+  <section class="hero"><div class="hero-copy"><p class="kicker">Trigger → dispatch → receive → observe</p><h1>Runtime flows</h1><p>Concrete sequences from browser boot through engine processing. Each flow names boundary payload, owner, stop condition, recovery path.</p></div><dl class="meta-stack"><div><dt>IPC</dt><dd>Structured clone</dd></div><div><dt>Concurrency</dt><dd>Serialized Worker cmd queue</dd></div><div><dt>Session</dt><dd>One duel per Worker</dd></div><div><dt>Recovery</dt><dd>Terminate + replace</dd></div></dl></section>
+  <aside class="toc" aria-labelledby="runtime-flows--toc-title"><h2 id="runtime-flows--toc-title">Flows</h2><ol><li><a href="#runtime-flows/startup">Cold startup</a></li><li><a href="#runtime-flows/duel">Duel processing</a></li><li><a href="#runtime-flows/human">Human prompt</a></li><li><a href="#runtime-flows/opponent">Opponent prompt</a></li><li><a href="#runtime-flows/presentation">Presentation</a></li><li><a href="#runtime-flows/snapshots">Snapshot/image activation</a></li><li><a href="#runtime-flows/diagnostics">Diagnostics</a></li><li><a href="#runtime-flows/recovery">Restart/failure recovery</a></li></ol></aside>
+
+  <section id="runtime-flows--startup">
+    <h2>Cold startup</h2>
+    <figure class="diagram"><header><h3>Browser boot to first human prompt</h3><p>three parallel tracks converge before full interaction</p></header>
+      <svg viewBox="0 0 1160 900" role="img" aria-labelledby="runtime-flows--startup-title runtime-flows--startup-desc"><title id="runtime-flows--startup-title">Cold startup sequence</title><desc id="runtime-flows--startup-desc">App mounts and concurrently initializes Worker, storage, and images. Worker verifies runtime assets, initializes core, loads preset dependencies, emits ready, then app starts duel and receives state and prompt.</desc><defs></defs>
+      <g><rect class="box" x="45" y="30" width="170" height="55" rx="10"/><text class="label" x="130" y="63" text-anchor="middle">App.svelte</text><rect class="box-accent" x="265" y="30" width="185" height="55" rx="10"/><text class="label" x="357" y="63" text-anchor="middle">Worker client</text><rect class="box-accent" x="500" y="30" width="185" height="55" rx="10"/><text class="label" x="592" y="63" text-anchor="middle">Duel Worker</text><rect class="box-gold" x="735" y="30" width="175" height="55" rx="10"/><text class="label" x="822" y="63" text-anchor="middle">Runtime assets</text><rect class="box" x="960" y="30" width="155" height="55" rx="10"/><text class="label" x="1037" y="63" text-anchor="middle">Storage</text></g>
+      <g stroke="#33445f" stroke-width="1" stroke-dasharray="5 6"><path d="M130 85 V860"/><path d="M357 85 V860"/><path d="M592 85 V860"/><path d="M822 85 V860"/><path d="M1037 85 V860"/></g>
+      <text class="small" x="145" y="120">onMount</text><path class="arrow" d="M130 135 H357"/><text class="small" x="230" y="127" text-anchor="middle">initialize()</text><path class="arrow" d="M357 165 H592"/><text class="small" x="475" y="157" text-anchor="middle">{ type: initialize }</text>
+      <path class="arrow-muted" d="M130 205 H1037"/><text class="small" x="600" y="197" text-anchor="middle">open IndexedDB · read pointers · stage current activation</text>
+      <path class="arrow-muted" d="M130 245 H822"/><text class="small" x="475" y="237" text-anchor="middle">preload active image manifest/files (main thread)</text>
+      <path class="arrow-gold" d="M592 300 H822"/><text class="small" x="707" y="292" text-anchor="middle">fetch runtime root + active closure</text><path class="arrow-gold dash" d="M822 335 H592"/><text class="small" x="707" y="327" text-anchor="middle">bytes + manifest receipts</text>
+      <rect class="box" x="510" y="370" width="165" height="130" rx="10"/><text class="small" x="592" y="399" text-anchor="middle">validate manifest</text><text class="small" x="592" y="422" text-anchor="middle">verify hashes/lengths</text><text class="small" x="592" y="445" text-anchor="middle">init sync WASM</text><text class="small" x="592" y="468" text-anchor="middle">parse preset decks</text><text class="small" x="592" y="491" text-anchor="middle">load active deps</text>
+      <path class="arrow" d="M592 535 H357"/><text class="small" x="475" y="527" text-anchor="middle">ready(core 11.0, snapshot IDs)</text><path class="arrow" d="M357 570 H130"/><text class="small" x="245" y="562" text-anchor="middle">store → idle</text>
+      <path class="arrow" d="M130 610 H357"/><text class="small" x="245" y="602" text-anchor="middle">reactive auto-start once/generation</text><path class="arrow" d="M357 645 H592"/><text class="small" x="475" y="637" text-anchor="middle">startDuel(MVP_PRESET_ID)</text>
+      <rect class="box-gold" x="510" y="680" width="165" height="105" rx="10"/><text class="small" x="592" y="710" text-anchor="middle">fresh production seed</text><text class="small" x="592" y="733" text-anchor="middle">create core handle</text><text class="small" x="592" y="756" text-anchor="middle">load Lua/decks/start</text><text class="small" x="592" y="779" text-anchor="middle">advance to boundary</text>
+      <path class="arrow" d="M592 815 H357"/><text class="small" x="475" y="807" text-anchor="middle">events → state → prompt</text><path class="arrow" d="M357 845 H130"/><text class="small" x="245" y="837" text-anchor="middle">validated store update</text>
+      </svg>
+    </figure>
+    <h3>Fallback order during Worker asset load</h3><ol class="flow-list"><li>Fetch current packaged runtime with expected manifest SHA.</li><li>If network/static load fails, open current snapshot from verified Cache Storage.</li><li>If current cache fails, read active/previous snapshot pointers from IndexedDB.</li><li>Attempt each fallback runtime cache using stored runtime manifest + image digests.</li><li>If all fail, emit sanitized initialization error. Client watchdog also bounds no-response case.</li></ol>
+    <p class="source-ref">Sources: src/app/App.svelte:114–300 · src/app/DuelWorkerClient.ts:142–158 · src/worker/create-browser-runtime.ts · src/worker/DuelWorkerRuntime.ts:181–214</p>
+  </section>
+
+  <section id="runtime-flows--duel">
+    <h2>Duel processing loop</h2>
+    <div class="grid-2"><div class="panel accent"><h3>Boundary-driven loop</h3><p><code>DuelSession.processUntilBoundary()</code> repeatedly calls synchronous core until <code>WAITING</code> or <code>END</code>. Controller then consumes complete message batch. It returns only at human prompt, result, or deterministic failure.</p></div><div class="panel"><h3>Hard limits</h3><ul><li>10,000 core process iterations/session boundary.</li><li>1,000 automatic opponent responses before human.</li><li>128 pending Worker cmds.</li><li>30s main-thread cmd watchdog.</li><li>120s initialization watchdog.</li><li>1s graceful disposal timeout.</li></ul></div></div>
+    <ol class="flow-list"><li>Core emits process status + parsed raw messages.</li><li>Projector applies each msg → public state mutations + presentation events/result.</li><li>PromptRegistry examines msg → domain prompt or null.</li><li>Human prompt → stop loop, emit current snapshot/events/prompt.</li><li>Opponent prompt → policy chooses opaque IDs from legal choices; registry encodes response; core resumes.</li><li>Result → destroy core handle, preserve bounded trace, emit state/events/result.</li><li>Waiting without supported prompt or end without result → fail as unsupported.</li></ol>
+  </section>
+
+  <section id="runtime-flows--human">
+    <h2>Human prompt response</h2>
+    <figure class="diagram"><header><h3>Choice round-trip</h3><p>opaque IDs protect raw protocol indexes</p></header>
+      <svg viewBox="0 0 1160 690" role="img" aria-labelledby="runtime-flows--human-title"><title id="runtime-flows--human-title">Human prompt response sequence</title><defs></defs>
+      <g><rect class="box" x="35" y="30" width="145" height="55" rx="10"/><text class="label" x="107" y="63" text-anchor="middle">User/UI</text><rect class="box" x="225" y="30" width="155" height="55" rx="10"/><text class="label" x="302" y="63" text-anchor="middle">Duel store</text><rect class="box-accent" x="425" y="30" width="170" height="55" rx="10"/><text class="label" x="510" y="63" text-anchor="middle">Worker client</text><rect class="box-accent" x="640" y="30" width="170" height="55" rx="10"/><text class="label" x="725" y="63" text-anchor="middle">Controller</text><rect class="box" x="855" y="30" width="155" height="55" rx="10"/><text class="label" x="932" y="63" text-anchor="middle">Registry</text><rect class="box-gold" x="1040" y="30" width="90" height="55" rx="10"/><text class="label" x="1085" y="63" text-anchor="middle">Core</text></g>
+      <g stroke="#33445f" stroke-width="1" stroke-dasharray="5 6"><path d="M107 85 V650"/><path d="M302 85 V650"/><path d="M510 85 V650"/><path d="M725 85 V650"/><path d="M932 85 V650"/><path d="M1085 85 V650"/></g>
+      <path class="arrow" d="M725 130 H510"/><text class="small" x="617" y="122" text-anchor="middle">prompt(PlayerPrompt)</text><path class="arrow" d="M510 165 H302"/><text class="small" x="405" y="157" text-anchor="middle">validated event</text><path class="arrow" d="M302 200 H107"/><text class="small" x="204" y="192" text-anchor="middle">render legal choices</text>
+      <path class="arrow" d="M107 250 H302"/><text class="small" x="204" y="242" text-anchor="middle">select/confirm</text><rect class="box" x="237" y="280" width="130" height="80" rx="10"/><text class="small" x="302" y="308" text-anchor="middle">validate UX</text><text class="small" x="302" y="330" text-anchor="middle">count/order/sum</text><text class="small" x="302" y="352" text-anchor="middle">set pending</text>
+      <path class="arrow" d="M302 395 H510"/><text class="small" x="405" y="387" text-anchor="middle">respond(promptId, choiceIds)</text><rect class="box-accent" x="445" y="420" width="130" height="72" rx="10"/><text class="small" x="510" y="448" text-anchor="middle">current prompt?</text><text class="small" x="510" y="470" text-anchor="middle">not duplicate?</text>
+      <path class="arrow" d="M510 525 H725"/><text class="small" x="617" y="517" text-anchor="middle">serialized respond cmd</text><path class="arrow-muted" d="M725 555 H932"/><text class="small" x="828" y="547" text-anchor="middle">resolve opaque IDs</text><path class="arrow-gold" d="M932 585 H1085"/><text class="small" x="1008" y="577" text-anchor="middle">EngineResponse</text><path class="arrow-gold" d="M1085 620 H725"/><text class="small" x="905" y="612" text-anchor="middle">resume processing → next boundary</text>
+      </svg>
+    </figure>
+    <div class="notice"><strong>Double-submit defense.</strong> Store marks <code>responsePending</code>; client records responded prompt IDs and clears current prompt before posting. E2E double-clicks same button, asserts one <code>respond</code> cmd.</div>
+    <p class="source-ref">Sources: src/app/prompts/PromptControls.svelte · src/app/stores/duel-store.ts:274–325 · src/app/DuelWorkerClient.ts:187–212 · src/worker/HeadlessDuelController.ts:183–206 · src/worker/protocol/PromptRegistry.ts</p>
+  </section>
+
+  <section id="runtime-flows--opponent">
+    <h2>Opponent prompt</h2>
+    <p>Opponent runs inside same controller loop. No Worker round trip. Policy is deliberately shallow, deterministic, deck-specific.</p>
+    <div class="grid-3"><div class="panel"><h3>Input</h3><p>Typed legal <code>PlayerPrompt</code> plus <code>OpponentVisibleDuelState</code>. Visible state contains counts/phase/LP, no card identities.</p></div><div class="panel"><h3>Decision</h3><p>Priority: summon → special summon → activate → set → advance. Attacks choose strongest legal attacker. Optional chains/effects decline.</p></div><div class="panel"><h3>Evidence</h3><p>Trace records prompt ID, opaque choices, player 1, machine-readable reason such as <code>attack_strongest</code>.</p></div></div>
+    <ol class="flow-list"><li>PromptRegistry publishes player 1 prompt from core msg.</li><li>Projector snapshot converts to identity-free opponent-visible summary.</li><li>BasicOpponentPolicy picks legal choice IDs; sum/counter/sort prompts use specialized valid selection.</li><li>Registry validates/encodes IDs to raw response; session calls core synchronously.</li><li>Controller continues automatically until human boundary or result.</li></ol>
+  </section>
+
+  <section id="runtime-flows--presentation">
+    <h2>Dual presentation path</h2>
+    <table><thead><tr><th>Worker output</th><th>Svelte path</th><th>Phaser path</th></tr></thead><tbody><tr><td><code>state</code></td><td>Store snapshot → LP/turn/zones/semantic cards</td><td>DuelField bridge → <code>applySnapshot</code> → reconcile sprites/stacks</td></tr><tr><td><code>prompt</code></td><td>PromptControls chooses control family, focuses heading/control</td><td><code>applyPrompt</code> highlights target cards/zones</td></tr><tr><td><code>event</code></td><td>Bounded 100-entry text log + live-region latest event</td><td>Sequence-aware scheduler shows cancellable feedback</td></tr><tr><td><code>result/error</code></td><td>Accessible result/error panel + focus + recovery</td><td>Field remains non-authoritative; disposed on replacement/unmount</td></tr></tbody></table>
+    <div class="notice success"><strong>Graceful degradation.</strong> Phaser code is dynamic-imported with 10s startup/image deadlines. Failure logs error, announces semantic fallback, offers retry. Text state and controls remain complete.</div>
+  </section>
+
+  <section id="runtime-flows--snapshots">
+    <h2>Snapshot/image activation</h2>
+    <p>Runtime Worker and main-thread image loader operate in parallel. Local activation waits until both prove matching receipts.</p>
+    <ol class="flow-list"><li>App stages composite activation ID with required receipts: runtime package SHA + active image manifest SHA.</li><li>Worker loads runtime and emits runtime snapshot ID + selected image digest in <code>ready</code>.</li><li>Main thread verifies active image manifest bytes, each image SHA/length/JPEG dimensions/decode, then builds object URL library.</li><li>App waits for staged record, verified images, initialized core, expected runtime ID.</li><li>Store verifies complete receipt set.</li><li>Web Lock serializes cross-tab activation; IndexedDB CAS checks expected active ID/generation.</li><li>Candidate becomes active; old active becomes previous; stale prior previous removed.</li><li>Cache cleanup retains active/fallback runtime and image namespaces only.</li></ol>
+    <p>If current runtime falls back, App requests image library for fallback snapshot/digest. Mismatched runtime/image identity never renders face images: deterministic placeholders/card backs preserve privacy and usability.</p>
+  </section>
+
+  <section id="runtime-flows--diagnostics">
+    <h2>Diagnostics flow</h2>
+    <div class="notice danger"><strong>Sensitive artifact.</strong> Download contains production seed. UI permits diagnostics only after inactive session, labels sensitivity, warns before sharing.</div>
+    <ol class="flow-list"><li>Bounded Worker trace records lifecycle, process status, core msg type, presentation event, prompt, response IDs, opponent reason, result/error.</li><li>After result/failure, user requests diagnostics. Client enforces initialized + prior session + inactive + single-flight.</li><li>Runtime combines trace with core version and pinned revision metadata; computes pending prompt/last msg.</li><li>Worker emits validated <code>diagnostics</code> event.</li><li>App combines trace with build ID, browser info, active/fallback snapshot IDs, image cache summary.</li><li>Downloader serializes schema v2 JSON to Blob, triggers local file download.</li><li>App stores bounded metadata only (max 20 debug runs) in IndexedDB, not raw sensitive trace.</li></ol>
+    <p class="source-ref">Sources: src/worker/diagnostics/duel-trace.ts · src/worker/DuelWorkerRuntime.ts:461–528 · src/app/diagnostics/download-diagnostics.ts · src/app/App.svelte:457–509</p>
+  </section>
+
+  <section id="runtime-flows--recovery">
+    <h2>Restart and failure recovery</h2>
+    <figure class="diagram"><header><h3>Worker replacement</h3><p>same path used by restart/retry; hard failure may skip graceful ack</p></header>
+      <svg viewBox="0 0 1160 500" role="img" aria-labelledby="runtime-flows--replace-title"><title id="runtime-flows--replace-title">Worker replacement sequence</title><defs></defs>
+      <rect class="box" x="60" y="50" width="190" height="70" rx="10"/><text class="label" x="155" y="82" text-anchor="middle">Store/App</text><text class="small" x="155" y="104" text-anchor="middle">restart or retry</text><rect class="box-accent" x="350" y="50" width="210" height="70" rx="10"/><text class="label" x="455" y="82" text-anchor="middle">Worker client</text><text class="small" x="455" y="104" text-anchor="middle">replace()</text><rect class="box-danger" x="660" y="50" width="190" height="70" rx="10"/><text class="label" x="755" y="82" text-anchor="middle">Old Worker</text><text class="small" x="755" y="104" text-anchor="middle">active/stuck/failed</text><rect class="box-accent" x="950" y="50" width="160" height="70" rx="10"/><text class="label" x="1030" y="82" text-anchor="middle">New Worker</text><text class="small" x="1030" y="104" text-anchor="middle">generation +1</text>
+      <path class="arrow" d="M250 175 H350"/><text class="small" x="300" y="167" text-anchor="middle">replace</text><path class="arrow" d="M560 210 H660"/><text class="small" x="610" y="202" text-anchor="middle">dispose</text><path class="arrow-muted" d="M660 245 H560"/><text class="small" x="610" y="237" text-anchor="middle">disposed(clean)</text><text class="tiny" x="755" y="275" text-anchor="middle">or 1s timeout / dispatch failure / uncertain cleanup</text><path class="arrow-muted" d="M560 305 H850"/><text class="small" x="705" y="297" text-anchor="middle">terminate old port unconditionally</text><path class="arrow" d="M560 350 H950"/><text class="small" x="755" y="342" text-anchor="middle">spawn module Worker, reset session gen</text><path class="arrow" d="M1030 395 H455"/><text class="small" x="742" y="387" text-anchor="middle">new context(workerGeneration, 0)</text><path class="arrow" d="M455 435 H155"/><text class="small" x="305" y="427" text-anchor="middle">initializing state → initialize()</text>
+      </svg>
+    </figure>
+    <h3>Failure classes</h3><table><thead><tr><th>Failure</th><th>Detection</th><th>Outcome</th></tr></thead><tbody><tr><td>Invalid Worker event</td><td>Main parser throws</td><td>Emit nonrecoverable error, terminate, spawn replacement</td></tr><tr><td>Worker error/messageerror/exit</td><td>Port handlers</td><td>Same replacement path</td></tr><tr><td>Initialization/command hangs</td><td>Main watchdog</td><td><code>process_timeout</code>, terminate, replacement available</td></tr><tr><td>Core cleanup uncertain</td><td>Session destroy throws/AggregateError</td><td>Runtime flags replacement; Worker posts diagnostics + <code>disposed(clean:false)</code></td></tr><tr><td>Recoverable invalid choice</td><td>Store/PromptRegistry</td><td>Keep current prompt, show dismissible error, allow resubmit</td></tr><tr><td>Phaser failure</td><td>startup deadline/onError</td><td>Dispose visual bridge only; semantic UI remains</td></tr><tr><td>Image failure</td><td>hash/decode/fetch</td><td>Per-card placeholder; controls unlock after each image resolved/fallback</td></tr></tbody></table>
+  </section>
+
+</section>
+<section class="page-section" id="data-quality" data-page="data-quality" hidden>
+
+  <section class="hero"><div class="hero-copy"><p class="kicker">Supply chain · persistence · release evidence</p><h1>Data, build, quality</h1><p>Offline simulator depends on large third-party corpus. Repo treats engine + data + scripts + images as verified immutable supply chain, then proves packaged browser behavior through layered gates.</p></div><dl class="meta-stack"><div><dt>Catalog</dt><dd>14,794 cards/text/image records</dd></div><div><dt>Scripts</dt><dd>13,399 official + 125 prerelease</dd></div><div><dt>Images</dt><dd>14,579 verified · 215 missing</dd></div><div><dt>Snapshot</dt><dd>SHA-256 content identity</dd></div></dl></section>
+
+  <aside class="toc" aria-labelledby="data-quality--toc-title"><h2 id="data-quality--toc-title">Contents</h2><ol><li><a href="#data-quality/sources">Sources</a></li><li><a href="#data-quality/pipeline">Asset pipeline</a></li><li><a href="#data-quality/snapshot">Snapshot model</a></li><li><a href="#data-quality/browser">Browser loading/storage</a></li><li><a href="#data-quality/build">Build packaging</a></li><li><a href="#data-quality/tests">Test architecture</a></li><li><a href="#data-quality/ci">CI/release gates</a></li><li><a href="#data-quality/budgets">Budgets</a></li><li><a href="#data-quality/governance">Security/licensing</a></li></ol></aside>
+
+  <section id="data-quality--sources">
+    <h2>External source inventory</h2>
+    <table><thead><tr><th>Input</th><th>Source</th><th>Pin/provenance</th><th>Runtime use</th></tr></thead><tbody>
+      <tr><td>Rules engine</td><td><code>ocgcore-wasm@0.1.2</code> / Project Ignis core</td><td>npm SHA-512, per-file vendor manifest, embedded core revision</td><td>sync WASM in dedicated Worker</td></tr>
+      <tr><td>Card metadata/text</td><td>ProjectIgnis/BabelCDB</td><td>concrete Git revision in asset/runtime manifests</td><td>sharded card/text JSON</td></tr>
+      <tr><td>Card effects</td><td>ProjectIgnis/CardScripts</td><td>concrete Git revision; official/prerelease/global inventories</td><td>preloaded Lua strings via sync callback</td></tr>
+      <tr><td>System strings</td><td>ProjectIgnis/Distribution</td><td>concrete Git revision</td><td>prompt/effect text resolution</td></tr>
+      <tr><td>Artwork</td><td>YGOPRODeck URL convention/local archive</td><td>per-image bytes + SHA-256; provider report</td><td>active preset subset only</td></tr>
+      <tr><td>Preset decks</td><td>repo-owned <code>.ydk</code> files</td><td>source control + validation against catalog</td><td>fixed human/opponent MVP</td></tr>
+    </tbody></table>
+    <div class="notice"><strong>Current verified snapshot.</strong> Runtime ID <code>a562f5ad…f69fb2</code>; core version <code>11.0</code>; engine core revision <code>8e5f4e4…e3272</code>. Values come from <code>generated/runtime/current/manifest.json</code>.</div>
+  </section>
+
+  <section id="data-quality--pipeline">
+    <h2>Asset acquisition and transformation</h2>
+    <figure class="diagram"><header><h3>Build-time dataflow</h3><p>network inputs become deterministic local snapshot</p></header>
+      <svg viewBox="0 0 1160 760" role="img" aria-labelledby="data-quality--asset-title data-quality--asset-desc"><title id="data-quality--asset-title">Asset import pipeline</title><desc id="data-quality--asset-desc">Pinned engine package and three Git sources are acquired and verified, transformed into deterministic shards, combined with verified image archive, manifested, independently checked, and published as current generated snapshot.</desc><defs></defs>
+      <rect class="box-gold" x="45" y="45" width="210" height="85" rx="11"/><text class="label" x="150" y="78" text-anchor="middle">npm engine tarball</text><text class="small" x="150" y="102" text-anchor="middle">pinned version + integrity</text><rect class="box" x="325" y="45" width="210" height="85" rx="11"/><text class="label" x="430" y="78" text-anchor="middle">BabelCDB</text><text class="small" x="430" y="102" text-anchor="middle">standard CDB + text</text><rect class="box" x="605" y="45" width="210" height="85" rx="11"/><text class="label" x="710" y="78" text-anchor="middle">CardScripts</text><text class="small" x="710" y="102" text-anchor="middle">effects + globals</text><rect class="box" x="885" y="45" width="230" height="85" rx="11"/><text class="label" x="1000" y="78" text-anchor="middle">Distribution + images</text><text class="small" x="1000" y="102" text-anchor="middle">strings · provider archive</text>
+      <rect class="box-accent" x="70" y="200" width="1020" height="90" rx="12"/><text class="label" x="580" y="234" text-anchor="middle">Acquire into staging / .cache</text><text class="small" x="580" y="258" text-anchor="middle">fetch pinned refs · verify npm SHA-512 · safe extraction · cross-process lock · resume images</text><text class="tiny" x="580" y="278" text-anchor="middle">scripts/download-mvp-assets.ts · sync-engine.ts · sync-assets.ts · download-images.ts</text>
+      <path class="arrow" d="M150 130 V175 H580 V200"/><path class="arrow" d="M430 130 V200"/><path class="arrow" d="M710 130 V200"/><path class="arrow" d="M1000 130 V175 H580 V200"/>
+      <rect class="box" x="55" y="360" width="235" height="130" rx="12"/><text class="label" x="172" y="393" text-anchor="middle">Normalize catalog</text><text class="small" x="172" y="420" text-anchor="middle">64 card shards</text><text class="small" x="172" y="442" text-anchor="middle">64 English text shards</text><text class="small" x="172" y="464" text-anchor="middle">64 image-record shards</text><text class="tiny" x="172" y="480" text-anchor="middle">ID modulo 64</text>
+      <rect class="box" x="325" y="360" width="235" height="130" rx="12"/><text class="label" x="442" y="393" text-anchor="middle">Package scripts</text><text class="small" x="442" y="420" text-anchor="middle">256 card-script shards</text><text class="small" x="442" y="442" text-anchor="middle">global/procedure JSON</text><text class="small" x="442" y="464" text-anchor="middle">official/prerelease index</text><text class="tiny" x="442" y="480" text-anchor="middle">ID modulo 256</text>
+      <rect class="box" x="595" y="360" width="235" height="130" rx="12"/><text class="label" x="712" y="393" text-anchor="middle">Verify image archive</text><text class="small" x="712" y="420" text-anchor="middle">JPEG signature</text><text class="small" x="712" y="442" text-anchor="middle">provider missing report</text><text class="small" x="712" y="464" text-anchor="middle">resumable full archive</text><text class="tiny" x="712" y="480" text-anchor="middle">2.37 GB local</text>
+      <rect class="box-gold" x="865" y="360" width="235" height="130" rx="12"/><text class="label" x="982" y="393" text-anchor="middle">Manifest everything</text><text class="small" x="982" y="420" text-anchor="middle">path · bytes · SHA-256</text><text class="small" x="982" y="442" text-anchor="middle">upstream revisions</text><text class="small" x="982" y="464" text-anchor="middle">record counts/schemas</text><text class="tiny" x="982" y="480" text-anchor="middle">content-derived identity</text>
+      <path class="arrow-muted" d="M580 290 C500 325 172 325 172 360"/><path class="arrow-muted" d="M580 290 C520 325 442 325 442 360"/><path class="arrow-muted" d="M580 290 C650 325 712 325 712 360"/><path class="arrow-gold" d="M580 290 C750 320 982 320 982 360"/>
+      <rect class="box-accent" x="160" y="565" width="840" height="80" rx="12"/><text class="label" x="580" y="598" text-anchor="middle">Independent staging verification</text><text class="small" x="580" y="622" text-anchor="middle">hashes · lengths · counts · coverage · exact files · required globals · ID uniqueness · redistribution flag</text>
+      <path class="arrow" d="M172 490 V535 H580 V565"/><path class="arrow" d="M442 490 V565"/><path class="arrow" d="M712 490 V565"/><path class="arrow-gold" d="M982 490 V535 H580 V565"/>
+      <rect class="box-gold" x="310" y="690" width="540" height="50" rx="12"/><text class="label" x="580" y="721" text-anchor="middle">Recoverably publish generated/*/current + ready status</text><path class="arrow-gold" d="M580 645 V690"/>
+      </svg>
+    </figure>
+    <p>Unified command: <code>npm run assets:mvp</code>. Offline regeneration: <code>npm run assets:mvp -- --offline</code>. Run is cross-process locked; final status becomes <code>ready</code> only after all verifiers pass.</p>
+  </section>
+
+  <section id="data-quality--snapshot">
+    <h2>Atomic snapshot identity</h2>
+    <div class="grid-2"><div class="panel accent"><h3>Runtime snapshot ID</h3><p>Content-derived from verified asset manifest content digest + vendored engine manifest digest. Identifies rules/data/script compatibility unit.</p><pre><code>runtimeSnapshotId = sha256(
+  runtimeAssetContentSha256,
+  engineVendorManifestSha256
+)</code></pre></div><div class="panel accent"><h3>Activation snapshot ID</h3><p>Separates browser activation when image subset changes without runtime change.</p><pre><code>activationId = sha256(JSON.stringify({
+  runtimeSnapshotId,
+  activeImageManifestSha256
+}))</code></pre></div></div>
+    <h3>Why two IDs</h3><p>Engine/data/scripts define duel compatibility. Active image manifest defines UI artifact set and legal distribution packaging. Combining them for browser activation prevents image-only release from colliding with existing persisted runtime record.</p>
+    <h3>Generated layout</h3><pre><code>generated/
+├── mvp-assets-status.json
+├── runtime/current/manifest.json
+├── engine/current/
+├── assets/current/
+│   ├── catalog/cards/00..3f.json
+│   ├── catalog/texts/en/00..3f.json
+│   ├── scripts/cards/00..ff.json
+│   ├── scripts/globals.json
+│   ├── scripts/index.json
+│   ├── strings/en.json
+│   └── images/00..3f.json
+└── card-images/archive/
+    ├── download-report.json
+    └── full/&lt;CARD_ID&gt;.jpg</code></pre>
+  </section>
+
+  <section id="data-quality--browser">
+    <h2>Browser data and persistence</h2>
+    <figure class="diagram"><header><h3>Persistence topology</h3><p>identity in IndexedDB · verified bytes in Cache Storage</p></header>
+      <svg viewBox="0 0 1160 520" role="img" aria-labelledby="data-quality--storage-title"><title id="data-quality--storage-title">Browser storage topology</title><defs></defs>
+      <rect class="box-accent" x="55" y="55" width="260" height="115" rx="12"/><text class="label" x="185" y="90" text-anchor="middle">App / SnapshotStore</text><text class="small" x="185" y="116" text-anchor="middle">stage · verify · activate</text><text class="small" x="185" y="138" text-anchor="middle">rollback · cleanup</text><rect class="box-accent" x="450" y="55" width="260" height="115" rx="12"/><text class="label" x="580" y="90" text-anchor="middle">Worker runtime loader</text><text class="small" x="580" y="116" text-anchor="middle">manifest + active deps</text><text class="small" x="580" y="138" text-anchor="middle">current/cache/fallback</text><rect class="box" x="845" y="55" width="260" height="115" rx="12"/><text class="label" x="975" y="90" text-anchor="middle">CardImageCache</text><text class="small" x="975" y="116" text-anchor="middle">verify · decode · object URLs</text><text class="small" x="975" y="138" text-anchor="middle">placeholders on failure</text>
+      <rect class="box-gold" x="90" y="270" width="420" height="185" rx="12"/><text class="label" x="300" y="305" text-anchor="middle">IndexedDB · ygo-story-duel · v2</text><text class="small" x="125" y="340">snapshots</text><text class="tiny" x="260" y="340">staged / active / previous + receipts/revisions</text><text class="small" x="125" y="372">pointers</text><text class="tiny" x="260" y="372">active / previous + CAS generation</text><text class="small" x="125" y="404">preferences</text><text class="tiny" x="260" y="404">bounded primitive values</text><text class="small" x="125" y="436">debugRuns</text><text class="tiny" x="260" y="436">max 20 metadata records</text>
+      <rect class="box-gold" x="650" y="270" width="420" height="185" rx="12"/><text class="label" x="860" y="305" text-anchor="middle">Cache Storage</text><text class="small" x="690" y="345">ygo-runtime-v1-&lt;snapshot&gt;-&lt;manifest&gt;</text><text class="tiny" x="690" y="368">verified manifest/WASM/active JSON closure</text><text class="small" x="690" y="408">ygo-card-images-v1-&lt;snapshot&gt;-&lt;imageDigest&gt;</text><text class="tiny" x="690" y="431">verified image manifest + JPEG bytes</text>
+      <path class="arrow-gold" d="M185 170 V270"/><path class="arrow-gold" d="M580 170 C580 230 760 220 800 270"/><path class="arrow-gold" d="M975 170 V270"/><path class="arrow-muted" d="M450 135 C380 200 350 220 350 270"/><path class="arrow-muted" d="M845 135 C750 210 440 220 440 270"/>
+      </svg>
+    </figure>
+    <h3>Activation transaction</h3><ol class="flow-list"><li>Validate exact input shape, digests, runtime/image receipt consistency.</li><li>Stage immutable candidate unless identical record exists.</li><li>Verify receipts exactly equal required set.</li><li>Open read-write transaction over snapshots + pointers.</li><li>Validate active/previous pointer targets and generations.</li><li>Compare actual active ID/generation to caller expectation.</li><li>Move active→previous, candidate→active, update pointers to next generation.</li><li>Delete stale previous after atomic commit.</li></ol>
+    <div class="notice"><strong>Cross-tab safety.</strong> App combines Web Lock around activation/cache cleanup with IndexedDB compare-and-swap. Lock serializes cooperating tabs; CAS rejects stale actors even if lock unavailable/logic changes.</div>
+  </section>
+
+  <section id="data-quality--build">
+    <h2>Production package flow</h2>
+    <ol class="flow-list"><li><code>vendor:verify</code> proves vendored engine package/file hashes.</li><li><code>snapshot:verify</code> proves current runtime root and all generated inputs.</li><li><code>vite build --mode private</code> compiles Svelte, dedicated module Worker, sync engine adapter, lazy Phaser chunk.</li><li>Vite runtime plugin copies only recursively resolved active-deck closure, active preset images, engine WASM/manifests, licenses.</li><li>Unapproved image posture writes <code>PRIVATE_DEPLOYMENT_ONLY.txt</code>; ordinary non-private packaging refuses.</li><li><code>build:verify</code> independently rehashes source vs dist, exact file sets, content-derived IDs, engine chunk, Worker digest embedding, activation ID, licenses, forbidden Node markers, size budgets.</li><li><code>build:reproducible</code> creates two isolated builds and requires identical hashes.</li></ol>
+    <div class="grid-2"><div class="panel"><h3>Initial JS</h3><p>Svelte app + lightweight orchestration. Phaser excluded from first-load bundle.</p></div><div class="panel"><h3>Lazy presentation</h3><p><code>DuelField.svelte</code> dynamic-imports Phaser bridge only after semantic duel UI has state/images.</p></div><div class="panel"><h3>Dedicated Worker</h3><p>Vite emits separate <code>duel.worker-browser-*</code> module containing runtime/protocol/adapter, not Node loaders.</p></div><div class="panel"><h3>Static runtime</h3><p>Dist carries manifest, sync WASM, active JSON shards/scripts/strings, active images, licenses under base-aware <code>runtime/</code>.</p></div></div>
+  </section>
+
+  <section id="data-quality--tests">
+    <h2>Test architecture</h2>
+    <figure class="diagram"><header><h3>Evidence pyramid</h3><p>narrow fast checks below; expensive production proof above</p></header>
+      <svg viewBox="0 0 1160 560" role="img" aria-labelledby="data-quality--tests-title"><title id="data-quality--tests-title">Test architecture pyramid</title>
+      <polygon points="580,55 735,170 425,170" fill="#2a2518" stroke="#ffd580" stroke-width="2"/><text class="label" x="580" y="112" text-anchor="middle">Browser E2E</text><text class="tiny" x="580" y="137" text-anchor="middle">real dist · Worker · WASM · keyboard · recovery</text>
+      <polygon points="425,190 735,190 870,300 290,300" fill="#123236" stroke="#73daca" stroke-width="2"/><text class="label" x="580" y="235" text-anchor="middle">Integration</text><text class="small" x="580" y="260" text-anchor="middle">real WASM · Worker thread · programmed duels</text><text class="tiny" x="580" y="281" text-anchor="middle">7 suites · 1,094 lines</text>
+      <polygon points="290,320 870,320 1005,430 155,430" fill="#17243a" stroke="#657692" stroke-width="2"/><text class="label" x="580" y="360" text-anchor="middle">Unit + component</text><text class="small" x="580" y="385" text-anchor="middle">contracts · protocol · projection · store · storage · field · UI</text><text class="tiny" x="580" y="407" text-anchor="middle">30 suites · 5,775 lines</text>
+      <rect x="80" y="455" width="1000" height="70" rx="12" fill="#111d31" stroke="#657692" stroke-width="1.5"/><text class="label" x="580" y="486" text-anchor="middle">Static + artifact verification</text><text class="small" x="580" y="510" text-anchor="middle">format · lint · strict types · asset hashes/counts · build exactness · reproducibility · budgets</text>
+      </svg>
+    </figure>
+    <table><thead><tr><th>Layer</th><th>What it proves</th><th>Representative suites</th></tr></thead><tbody>
+      <tr><td>Pure unit</td><td>Parser/encoder behavior, privacy, immutable state, prompt constraints, opponent choices, client/store state</td><td class="path">tests/unit/contracts.test.ts<br>prompt-registry.test.ts<br>duel-state-projector.test.ts<br>duel-worker-client.test.ts</td></tr>
+      <tr><td>Component</td><td>Every prompt family maps to accessible controls and valid submission behavior</td><td class="path">tests/component/PromptControls.test.ts</td></tr>
+      <tr><td>Integration</td><td>Real WASM startup/processing, active deps, controller lifecycle, actual Node Worker structured clone</td><td class="path">tests/integration/real-wasm-smoke.test.ts<br>programmed-duel.test.ts<br>node-worker-thread.test.ts</td></tr>
+      <tr><td>Legacy pipeline</td><td>Asset import helpers and acquisition behavior</td><td class="path">tests/*.test.ts</td></tr>
+      <tr><td>Browser E2E</td><td>Production static package at subpath, real browser Worker/WASM/images, hidden privacy, full keyboard duel, restart, timeouts, fallbacks</td><td class="path">e2e/duel-smoke.spec.ts</td></tr>
+    </tbody></table>
+    <h3>E2E browser matrix</h3><ul><li><strong>Chromium:</strong> complete flow suite, including full duel.</li><li><strong>Firefox/WebKit:</strong> production startup smoke selected by test title.</li><li><strong>Base path:</strong> <code>/ygo-story-duel/</code> catches root-relative Worker/WASM/image bugs.</li><li><strong>Artifacts on failure:</strong> trace, screenshot, video retained.</li></ul>
+  </section>
+
+  <section id="data-quality--ci">
+    <h2>CI and local gates</h2>
+    <figure class="diagram"><header><h3>Compatibility-and-browser pipeline</h3><p>.github/workflows/ci.yml</p></header>
+      <svg viewBox="0 0 1160 340" role="img" aria-labelledby="data-quality--ci-title"><title id="data-quality--ci-title">CI pipeline</title><defs></defs>
+      <rect class="box" x="30" y="75" width="145" height="90" rx="10"/><text class="label" x="102" y="108" text-anchor="middle">Checkout</text><text class="small" x="102" y="132" text-anchor="middle">Node 24</text><text class="tiny" x="102" y="151" text-anchor="middle">restore caches</text><rect class="box-accent" x="215" y="75" width="175" height="90" rx="10"/><text class="label" x="302" y="108" text-anchor="middle">Regenerate</text><text class="small" x="302" y="132" text-anchor="middle">assets:mvp</text><text class="tiny" x="302" y="151" text-anchor="middle">network + verify</text><rect class="box" x="430" y="75" width="190" height="90" rx="10"/><text class="label" x="525" y="108" text-anchor="middle">Isolated copy</text><text class="small" x="525" y="132" text-anchor="middle">npm ci --offline</text><text class="tiny" x="525" y="151" text-anchor="middle">check:headless</text><rect class="box" x="660" y="75" width="175" height="90" rx="10"/><text class="label" x="747" y="108" text-anchor="middle">Browsers</text><text class="small" x="747" y="132" text-anchor="middle">install 3 engines</text><text class="tiny" x="747" y="151" text-anchor="middle">Chromium/FF/WebKit</text><rect class="box-accent" x="875" y="75" width="250" height="90" rx="10"/><text class="label" x="1000" y="108" text-anchor="middle">npm run check</text><text class="small" x="1000" y="132" text-anchor="middle">headless + browser</text><text class="tiny" x="1000" y="151" text-anchor="middle">build/repro/E2E</text>
+      <path class="arrow" d="M175 120 H215"/><path class="arrow" d="M390 120 H430"/><path class="arrow" d="M620 120 H660"/><path class="arrow" d="M835 120 H875"/>
+      <rect class="box-gold" x="655" y="235" width="225" height="65" rx="10"/><text class="label" x="767" y="264" text-anchor="middle">Success artifact</text><text class="small" x="767" y="286" text-anchor="middle">private dist + manifests</text><rect class="box-danger" x="925" y="235" width="200" height="65" rx="10"/><text class="label" x="1025" y="264" text-anchor="middle">Failure evidence</text><text class="small" x="1025" y="286" text-anchor="middle">traces/reports/status</text><path class="arrow-gold" d="M1000 165 C950 210 800 205 800 235"/><path class="arrow-muted" d="M1000 165 V235"/>
+      </svg>
+    </figure>
+    <table><thead><tr><th>Command</th><th>Use</th></tr></thead><tbody><tr><td><code>npm run test:unit</code></td><td>Fast focused implementation tests.</td></tr><tr><td><code>npm run test:component</code></td><td>Svelte prompt controls.</td></tr><tr><td><code>npm run test:integration</code></td><td>Real assets/WASM/Worker integration.</td></tr><tr><td><code>npm run check:headless</code></td><td>Format, lint, types, non-browser tests, vendor/assets/snapshot verification.</td></tr><tr><td><code>npm run check:browser</code></td><td>Component test, build, independent verify, reproducibility, browser E2E.</td></tr><tr><td><code>npm run check</code></td><td>Full release-equivalent local gate.</td></tr></tbody></table>
+  </section>
+
+  <section id="data-quality--budgets">
+    <h2>Production size budgets</h2>
+    <table><thead><tr><th>Artifact</th><th>Maximum</th><th>Reason</th></tr></thead><tbody><tr><td>Aggregate cold start</td><td>10 MB</td><td>Initial JS + Worker + runtime closure + active images</td></tr><tr><td>Initial JS</td><td>300 KB</td><td>Keep shell/control path fast</td></tr><tr><td>Duel Worker JS</td><td>200 KB</td><td>Exclude embedded-WASM fallback/unneeded host code</td></tr><tr><td>Lazy Phaser presentation</td><td>1.6 MB</td><td>Heavy renderer stays off initial path</td></tr><tr><td>Active runtime closure</td><td>6.5 MB</td><td>Package only preset dependencies, not full 45 MB data corpus</td></tr><tr><td>Active card images</td><td>4 MB</td><td>Package preset subset only</td></tr></tbody></table>
+    <p>Verifier computes actual emitted bytes. Any breach fails build. Chunk naming checks ensure exactly one small synchronous engine adapter chunk, no JSPI chunk.</p>
+  </section>
+
+  <section id="data-quality--governance">
+    <h2>Security and licensing boundaries</h2>
+    <div class="grid-2"><div class="panel"><span class="tag accent">Security</span><h3>Trusted local inputs only</h3><ul><li>Pinned project-provided Lua, decks, manifests.</li><li>Path containment + realpath checks in dev/build asset serving.</li><li>Strict manifest/payload bounds.</li><li>Dedicated Worker termination boundary.</li><li>Hidden identities removed before IPC.</li><li>No user scripts/decks or multiplayer authority in MVP.</li></ul></div><div class="panel warning"><span class="tag gold">Distribution</span><h3>Public deployment blocked</h3><ul><li>Embedded core + CardScripts carry AGPL obligations.</li><li>BabelCDB redistribution terms need separate review.</li><li>Artwork/content/trademarks need permission.</li><li>Image provider access does not grant redistribution.</li><li>Current active manifest explicitly says <code>redistributionApproved: false</code>.</li><li>Build marker says keep artifact private.</li></ul></div></div>
+    <div class="notice danger"><strong>Do not publish <code>dist/</code> publicly.</strong> Existing build is intentionally private-only until source availability, DB terms, artwork/content permissions receive authorized review.</div>
+  </section>
+
+</section>
+<section class="page-section" id="onboarding" data-page="onboarding" hidden>
+
+  <section class="hero"><div class="hero-copy"><p class="kicker">Setup · repository tour · change playbook</p><h1>New developer onboarding</h1><p>Shortest safe route from fresh checkout to productive change. Includes setup dependencies, mental model, task-specific reading, test selection, debugging evidence, common traps.</p></div><dl class="meta-stack"><div><dt>Prerequisite</dt><dd>Node.js 24+ · Git · npm</dd></div><div><dt>Initial disk</dt><dd>≈2.5 GB for image archive</dd></div><div><dt>Initial network</dt><dd>Required for asset acquisition</dd></div><div><dt>Default branch</dt><dd>main</dd></div></dl></section>
+
+  <aside class="toc" aria-labelledby="onboarding--toc-title"><h2 id="onboarding--toc-title">Contents</h2><ol><li><a href="#onboarding/setup">Setup</a></li><li><a href="#onboarding/verify">Verify environment</a></li><li><a href="#onboarding/mental">Mental model</a></li><li><a href="#onboarding/tour">Repository tour</a></li><li><a href="#onboarding/week">First-week path</a></li><li><a href="#onboarding/tasks">Task routing</a></li><li><a href="#onboarding/recipes">Safe change recipes</a></li><li><a href="#onboarding/debug">Debugging</a></li><li><a href="#onboarding/traps">Common traps</a></li><li><a href="#onboarding/glossary">Glossary</a></li></ol></aside>
+
+  <section id="onboarding--setup">
+    <h2>Fresh checkout</h2>
+    <pre><code>git clone git@github.com:AronGomu/ygo-story-duel-simulator.git
+cd ygo-story-duel-simulator
+npm ci
+npm run assets:mvp
+npm run check
+npm run dev</code></pre>
+    <div class="grid-2"><div class="panel"><h3><code>npm ci</code></h3><p>Installs exact lockfile dev/runtime deps. Node engine requirement: <code>&gt;=24.0.0</code>.</p></div><div class="panel"><h3><code>npm run assets:mvp</code></h3><p>Acquires vendored core, upstream DB/scripts/strings, image archive, generated snapshots. Resumable; rerun after network failure.</p></div><div class="panel"><h3><code>npm run check</code></h3><p>Runs complete local release gates. First run installs no browsers automatically; Playwright browser binaries must exist.</p></div><div class="panel"><h3><code>npm run dev</code></h3><p>Starts Vite. Dev middleware serves verified runtime files under configured base with no-store caching.</p></div></div>
+    <h3>Quick launchers</h3><p>Windows: <code>download-mvp-assets.cmd</code>. macOS/Linux: <code>./download-mvp-assets.sh</code>. Both set project cwd, accept same flags as unified command.</p>
+    <details><summary>Useful asset flags</summary><div><pre><code>npm run assets:mvp -- --offline
+npm run assets:mvp -- --concurrency 8 --requests-per-second 12
+npm run assets:mvp -- --force-images</code></pre><p><code>--offline</code> requires populated caches/archive. Default image concurrency/rate: 18; hard max rate: 20 req/s.</p></div></details>
+  </section>
+
+  <section id="onboarding--verify">
+    <h2>Verify environment incrementally</h2>
+    <ol class="flow-list"><li><strong>Identity:</strong> <code>node --version</code> → 24+; <code>npm --version</code>; <code>git --version</code>.</li><li><strong>Generated status:</strong> <code>generated/mvp-assets-status.json</code> must say <code>ready</code>.</li><li><strong>Vendor:</strong> <code>npm run vendor:verify</code>.</li><li><strong>Data:</strong> <code>npm run assets:verify</code> + <code>npm run snapshot:verify</code>.</li><li><strong>Static quality:</strong> <code>npm run format:check &amp;&amp; npm run lint &amp;&amp; npm run typecheck</code>.</li><li><strong>Fast behavior:</strong> <code>npm run test:unit</code>.</li><li><strong>Real core:</strong> <code>npm run test:integration</code>.</li><li><strong>Browser package:</strong> <code>npm run build</code>, then <code>npm run test:e2e</code>.</li></ol>
+    <div class="notice warning"><strong>Vite prerequisite.</strong> <code>vite.config.ts</code> reads <code>generated/runtime/current/manifest.json</code> immediately. Missing generated assets can fail config loading before dev server starts.</div>
+  </section>
+
+  <section id="onboarding--mental">
+    <h2>Mental model in 90 seconds</h2>
+    <div class="grid-3"><div class="panel accent"><h3>Rules</h3><p><strong>Core owns truth.</strong> UI never calculates legality. Worker protocol maps engine prompts to opaque choices.</p></div><div class="panel accent"><h3>Isolation</h3><p><strong>Worker owns secrets/handles.</strong> Main thread sees immutable redacted state and current human prompt.</p></div><div class="panel accent"><h3>Presentation</h3><p><strong>Svelte is complete UI.</strong> Phaser adds spatial visuals; failure cannot block duel controls.</p></div><div class="panel"><h3>Data</h3><p><strong>One compatibility snapshot.</strong> Engine/catalog/scripts/strings/images are pinned, hashed, activated together.</p></div><div class="panel"><h3>Reliability</h3><p><strong>Replace, do not trust uncertain state.</strong> Hung/broken Worker gets terminated and recreated.</p></div><div class="panel"><h3>Evidence</h3><p><strong>Headless first.</strong> Real-WASM fixtures/transcripts prove game support before UI polish.</p></div></div>
+    <figure class="diagram"><header><h3>Decision ownership cheat sheet</h3><p>follow arrows when locating bugs</p></header>
+      <svg viewBox="0 0 1160 300" role="img" aria-labelledby="onboarding--cheat-title"><title id="onboarding--cheat-title">Decision ownership cheat sheet</title><defs></defs>
+      <rect class="box" x="40" y="75" width="190" height="120" rx="12"/><text class="label" x="135" y="108" text-anchor="middle">UI looks wrong</text><text class="small" x="135" y="136" text-anchor="middle">Svelte / field mapping</text><text class="tiny" x="135" y="160" text-anchor="middle">state may still be correct</text><text class="tiny" x="135" y="180" text-anchor="middle">inspect store snapshot first</text>
+      <rect class="box-accent" x="275" y="75" width="190" height="120" rx="12"/><text class="label" x="370" y="108" text-anchor="middle">State looks wrong</text><text class="small" x="370" y="136" text-anchor="middle">DuelStateProjector</text><text class="tiny" x="370" y="160" text-anchor="middle">message fixture + privacy</text><text class="tiny" x="370" y="180" text-anchor="middle">do not patch Phaser</text>
+      <rect class="box-accent" x="510" y="75" width="190" height="120" rx="12"/><text class="label" x="605" y="108" text-anchor="middle">Choice fails</text><text class="small" x="605" y="136" text-anchor="middle">PromptRegistry</text><text class="tiny" x="605" y="160" text-anchor="middle">domain choice ↔ raw index</text><text class="tiny" x="605" y="180" text-anchor="middle">current prompt only</text>
+      <rect class="box-gold" x="745" y="75" width="190" height="120" rx="12"/><text class="label" x="840" y="108" text-anchor="middle">Rule/effect wrong</text><text class="small" x="840" y="136" text-anchor="middle">core/data/script</text><text class="tiny" x="840" y="160" text-anchor="middle">verify snapshot inputs</text><text class="tiny" x="840" y="180" text-anchor="middle">engine remains authority</text>
+      <rect class="box-danger" x="980" y="75" width="145" height="120" rx="12"/><text class="label" x="1052" y="108" text-anchor="middle">Hang/crash</text><text class="small" x="1052" y="136" text-anchor="middle">trace/logs</text><text class="tiny" x="1052" y="160" text-anchor="middle">watchdogs</text><text class="tiny" x="1052" y="180" text-anchor="middle">replacement</text>
+      <path class="arrow-muted" d="M230 135 H275"/><path class="arrow" d="M465 135 H510"/><path class="arrow-gold" d="M700 135 H745"/><path class="arrow-muted" d="M935 135 H980"/>
+      </svg>
+    </figure>
+  </section>
+
+  <section id="onboarding--tour">
+    <h2>Repository tour</h2>
+    <pre><code>.
+├── src/
+│   ├── app/       # Svelte shell, typed Worker client/store, prompts, images
+│   ├── duel/      # shared domain contracts, visibility, presets
+│   ├── field/     # Phaser-only presentation and field mapping
+│   ├── storage/   # IndexedDB snapshot model + cache cleanup
+│   ├── worker/    # runtime, engine, protocol, projection, opponent, assets
+│   └── styles/    # global app styling
+├── scripts/       # acquisition, transform, snapshot, package verification
+├── tests/
+│   ├── unit/      # focused behavior/boundary tests
+│   ├── component/ # Svelte prompt controls
+│   ├── integration/ # real WASM, Worker thread, full scenarios
+│   └── fixtures/  # fake adapter, transcripts, programmed scenarios
+├── e2e/           # production browser suite
+├── docs/          # current architecture, assets, plans, archive
+├── vendor/        # checked-in integrity-verified engine package
+├── generated/     # ignored generated snapshot/image archive
+├── .cache/        # ignored upstream Git/temp inputs
+├── vite.config.ts # compile-time snapshot IDs + runtime packaging plugins
+└── package.json   # commands and gate composition</code></pre>
+    <h3>Read order for all contributors</h3><ol class="flow-list"><li><code>README.md</code> for current status, setup, commands, limits.</li><li><code>docs/developer-guide/index.html</code> for visual system map.</li><li><code>docs/architecture/architecture.md</code> for canonical invariants/task routing.</li><li>Relevant focused architecture doc.</li><li>Owning source file + direct tests.</li><li>Neighboring contract producer/consumer before edit.</li></ol>
+  </section>
+
+  <section id="onboarding--week">
+    <h2>Suggested first-week path</h2>
+    <table><thead><tr><th>Stage</th><th>Exercise</th><th>Outcome</th></tr></thead><tbody><tr><td>Environment</td><td>Run assets + unit + one integration + dev app</td><td>Know costs/prerequisites</td></tr><tr><td>Observe</td><td>Play one duel, inspect Worker console events, download diagnostics</td><td>See command/event/trace model</td></tr><tr><td>Trace</td><td>Follow one “End turn” click through store/client/Worker/registry/core</td><td>Understand IPC + opaque choices</td></tr><tr><td>Projection</td><td>Read DRAW/MOVE handling and projector tests</td><td>Understand public state/privacy</td></tr><tr><td>Assets</td><td>Inspect runtime manifest, active file resolver, build verifier</td><td>Understand immutable closure</td></tr><tr><td>Presentation</td><td>Disable Phaser chunk or images via devtools</td><td>See graceful degradation</td></tr><tr><td>Small change</td><td>Add/adjust one presentation label with unit/component test</td><td>Learn safe local workflow</td></tr><tr><td>Boundary change</td><td>Review—not necessarily edit—one contract + parser + producer + consumer test chain</td><td>Understand cross-cutting cost</td></tr></tbody></table>
+  </section>
+
+  <section id="onboarding--tasks">
+    <h2>Task routing</h2>
+    <table><thead><tr><th>Task</th><th>Read first</th><th>Likely files</th><th>Minimum tests</th></tr></thead><tbody>
+      <tr><td>Change prompt UI</td><td>presentation boundary + player prompt contract</td><td class="path">PromptControls.svelte<br>prompt-control-family.ts<br>prompt-selection.ts</td><td>component + prompt selection unit + E2E keyboard if interaction changes</td></tr>
+      <tr><td>Add core prompt/message support</td><td>protocol-and-state.md</td><td class="path">engine-constants.ts<br>message-classification.ts<br>PromptRegistry.ts<br>DuelStateProjector.ts</td><td>fixture/parser + registry/projector + programmed real-WASM</td></tr>
+      <tr><td>Change public state</td><td>worker-contract.md + protocol-and-state.md</td><td class="path">public-duel-state.ts<br>duel-worker-event.ts<br>DuelStateProjector.ts<br>duel-store.ts<br>UI/field mapping</td><td>contract + privacy + projector + store + consumer tests</td></tr>
+      <tr><td>Change opponent behavior</td><td>opponent-policy.md</td><td class="path">OpponentPolicy.ts</td><td>policy unit table + programmed scenario</td></tr>
+      <tr><td>Change Phaser field</td><td>svelte-phaser-boundary.md</td><td class="path">card-mapping.ts<br>DuelScene.ts<br>duel-field-layout.ts<br>bridge.ts</td><td>duel-field unit + E2E visual fallback/mobile if boundary changes</td></tr>
+      <tr><td>Change Worker lifecycle</td><td>topology.md + duel-lifecycle.md</td><td class="path">DuelWorkerClient.ts<br>duel.worker.ts<br>DuelWorkerRuntime.ts</td><td>client + attachment + runtime + Node Worker integration + E2E timeout/restart</td></tr>
+      <tr><td>Update engine/data</td><td>asset-snapshots.md + asset pipeline doc</td><td class="path">scripts/<br>vendor/<br>generated manifests</td><td>all asset verifiers + all integration + build + E2E</td></tr>
+      <tr><td>Change browser storage</td><td>browser-storage.md</td><td class="path">snapshot-store.ts<br>revision-cache-cleanup.ts<br>App.svelte</td><td>snapshot/revision unit + fallback integration + browser refresh cases</td></tr>
+      <tr><td>Change packaging/base paths</td><td>browser-platform.md + licensing doc</td><td class="path">vite.config.ts<br>vite-runtime-assets.ts<br>verify-browser-build.ts<br>playwright.config.ts</td><td>build verify + reproducibility + E2E non-root base</td></tr>
+    </tbody></table>
+  </section>
+
+  <section id="onboarding--recipes">
+    <h2>Safe change recipes</h2>
+    <details open><summary>Add a supported engine prompt family</summary><div><ol><li>Add/verify engine message classification and stable fixture.</li><li>Add domain <code>PromptKind</code>/choice shape only if existing model cannot express it.</li><li>Map raw msg to opaque choices in <code>PromptRegistry</code>.</li><li>Encode/validate response, retaining raw indexes only in registry binding.</li><li>Add client-side prompt selection rules if multi-select/sum/order semantics differ.</li><li>Add accessible control family in <code>PromptControls.svelte</code>.</li><li>Add policy branch so opponent can always answer reachable prompt.</li><li>Update exhaustive switches and event/contract parsers.</li><li>Write unit fixture, component test, programmed real-WASM scenario, keyboard E2E only if browser path newly distinct.</li></ol></div></details>
+    <details><summary>Add field presentation for existing event</summary><div><ol><li>Keep event domain-level; no raw core values.</li><li>Map event to <code>PresentationCommand</code> with reduced-motion duration.</li><li>Render cancellable effect in <code>DuelScene.present</code>.</li><li>Ensure applying snapshot remains idempotent; event is cosmetic.</li><li>Ensure restart/dispose cancels timers/tweens and releases refs.</li><li>Test command mapping and bridge disposal/failure.</li></ol></div></details>
+    <details><summary>Change public duel state</summary><div><ol><li>Define privacy requirement first.</li><li>Change source contract and exact-key runtime parser together.</li><li>Update projector and invariants.</li><li>Update event parser privacy checks.</li><li>Update store/UI/field consumers.</li><li>Add structured-clone/round-trip tests, projection fixture, hidden-information test.</li><li>Run Node Worker integration and browser event-capture assertions.</li></ol></div></details>
+    <details><summary>Update pinned assets or engine</summary><div><ol><li>Use isolated branch; update refs/version/integrity intentionally.</li><li>Regenerate full asset snapshot and runtime snapshot.</li><li>Review count/protocol/active closure drift; never accept blind trace update.</li><li>Run all protocol classification + programmed real-WASM suites.</li><li>Run private build, independent verifier, reproducibility check, browser matrix.</li><li>Archive exact manifests with release candidate; keep previous snapshot available.</li><li>Repeat legal/distribution review when source/image posture changes.</li></ol></div></details>
+    <details><summary>Fix bug</summary><div><ol><li>Classify layer: UI, projection, protocol, core/data, asset, storage, lifecycle.</li><li>Capture fastest evidence: Worker event, downloaded trace, failing fixture, cache/manifest digest.</li><li>Write smallest deterministic test reproducing failure before fix.</li><li>Fix owning layer only. Do not hide projection/protocol bug in Phaser/UI.</li><li>Run direct suite, then boundary integration, then broader gate based on affected contracts.</li></ol></div></details>
+  </section>
+
+  <section id="onboarding--debug">
+    <h2>Debugging playbook</h2>
+    <h3>Fast symptom map</h3>
+    <table><thead><tr><th>Symptom</th><th>First check</th><th>Likely owner</th></tr></thead><tbody><tr><td>App fails before rendering</td><td>generated runtime manifest exists; Vite config error</td><td>asset setup/config</td></tr><tr><td>“Engine not ready”</td><td>Worker console <code>duel.worker.*</code>; runtime network paths</td><td>runtime asset loader/core init</td></tr><tr><td>Prompt visible, click ignored</td><td><code>responsePending</code>, captured respond cmd count, current prompt ID</td><td>controls/store/client</td></tr><tr><td>“invalid_response”</td><td>choice count/order/sum; registry binding; stale prompt</td><td>selection/PromptRegistry</td></tr><tr><td>Opponent hangs</td><td>last prompt player/kind; trace opponent reason; auto-response limit</td><td>OpponentPolicy/prompt support</td></tr><tr><td>Wrong card/LP/zone</td><td>latest raw msg type + projector fixture</td><td>DuelStateProjector</td></tr><tr><td>Visual field wrong, text right</td><td>mapped field view and scene reconciliation</td><td>field presentation</td></tr><tr><td>Images are placeholders</td><td>image warning, manifest digest, diagnostics status, network/cache</td><td>CardImageCache/package</td></tr><tr><td>Fallback snapshot unexpectedly used</td><td>current load failure log, IndexedDB pointers, cache namespaces</td><td>browser runtime loader/storage</td></tr><tr><td>Restart stuck</td><td>dispose cmd/ack, terminations, Worker generations</td><td>DuelWorkerClient/worker detach</td></tr><tr><td>Build fails despite app running</td><td>exact verifier error: licenses/files/Node marker/budget/private marker</td><td>packaging contract</td></tr></tbody></table>
+
+    <h3>Worker log vocabulary</h3>
+    <ul><li><code>duel.worker.command.*</code> — receive/reject/fail/complete/skip.</li><li><code>duel.worker.event.*</code> — event dispatch/post failure.</li><li><code>duel.worker.detached</code> — attachment teardown.</li><li><code>duel.worker.node.*</code> — Node Worker bootstrap/thread boundary.</li><li><code>duel.worker.logging.failed</code> — logger fallback failure.</li><li><code>duel.client.worker.*</code> — main-thread creation, boundary failure, disposal/replacement.</li><li><code>duel.field.*</code> — lazy Phaser startup/texture failures.</li><li><code>duel.app.*</code> — storage activation/cleanup and destroy failures.</li></ul>
+
+    <h3>Diagnostic file</h3><p>Request after duel result/failure. File contains app/browser/build metadata, active/fallback snapshot IDs, image cache counts, core version, upstream revisions, production seed, ordered trace. Treat as sensitive. Reproduce with exact snapshot + seed + ordered responses in authorized local workflow.</p>
+
+    <h3>Targeted commands</h3>
+    <pre><code># focused test file
+npx vitest run tests/unit/prompt-registry.test.ts
+
+# real Worker boundary
+npx vitest run tests/integration/node-worker-thread.test.ts
+
+# production package validation
+npm run build
+
+# one browser test title
+npx playwright test -g "forced Worker initialization timeout"
+
+# inspect static private package
+npm run preview -- --host 127.0.0.1</code></pre>
+  </section>
+
+  <section id="onboarding--traps">
+    <h2>Common traps</h2>
+    <div class="grid-2"><div class="panel danger"><h3>Import engine on main thread</h3><p>Breaks isolation and packaging. Only <code>OcgCoreAdapter.ts</code> imports vendored package.</p></div><div class="panel danger"><h3>Use Phaser as state truth</h3><p>Sprites are disposable projections. Query public state/store instead.</p></div><div class="panel danger"><h3>Hide instead of redact</h3><p>Card back does not protect code in object. Remove identity before Worker boundary.</p></div><div class="panel warning"><h3>Fetch inside core callback</h3><p>Callbacks are synchronous. Preload all card/script data into Worker maps.</p></div><div class="panel warning"><h3>Expose raw indexes</h3><p>UI uses namespaced opaque prompt/choice IDs. Raw response indexes remain private binding data.</p></div><div class="panel warning"><h3>Reuse uncertain Worker</h3><p>Cleanup failure means terminate + replace. Never continue on possibly live handle.</p></div><div class="panel"><h3>Run Vite before assets</h3><p>Config needs generated manifest. Complete asset baseline first.</p></div><div class="panel"><h3>Update traces to make CI green</h3><p>Understand semantic drift. Fixtures are compatibility evidence.</p></div><div class="panel"><h3>Package full data archive</h3><p>Production includes recursively resolved active closure only.</p></div><div class="panel danger"><h3>Publish private dist</h3><p>Current images/content lack approved redistribution posture.</p></div></div>
+  </section>
+
+  <section id="onboarding--glossary">
+    <h2>Glossary</h2>
+    <table><thead><tr><th>Term</th><th>Meaning here</th></tr></thead><tbody><tr><td>ocgcore / ygopro-core</td><td>Project Ignis duel rules engine; final authority for legal actions/effects/results.</td></tr><tr><td>ocgcore-wasm</td><td>Vendored TS/WASM wrapper package, pinned to 0.1.2 synchronous build.</td></tr><tr><td>Runtime snapshot</td><td>Immutable compatibility identity for engine vendor manifest + generated asset manifest.</td></tr><tr><td>Activation snapshot</td><td>Runtime snapshot plus active-image manifest digest used by browser persistence.</td></tr><tr><td>Active closure</td><td>Small recursively resolved subset of catalog/scripts/strings needed by preset decks.</td></tr><tr><td>Public state</td><td>Immutable clone-safe duel projection safe for human viewer; hidden opponent identities absent.</td></tr><tr><td>Prompt</td><td>Domain representation of one engine decision boundary with opaque legal choices.</td></tr><tr><td>Presentation event</td><td>Non-authoritative domain event used by text log and Phaser feedback.</td></tr><tr><td>Programmed duel</td><td>Internal deterministic seed/order/script test seam; never exposed in public Worker cmd.</td></tr><tr><td>Production duel</td><td>Fresh non-zero seed, normal shuffle via startup Lua effect, fixed preset decks.</td></tr><tr><td>Worker generation</td><td>Monotonic client identity for each Worker instance; rejects stale events.</td></tr><tr><td>Session generation</td><td>Identity for duel session within Worker generation.</td></tr><tr><td>Replacement required</td><td>Runtime cleanup uncertainty; boundary must terminate Worker before more work.</td></tr><tr><td>Receipt</td><td>Artifact ID + SHA-256 proving expected runtime/image artifact during activation.</td></tr><tr><td>CAS generation</td><td>IndexedDB pointer version used to reject stale cross-tab activation/rollback.</td></tr></tbody></table>
+  </section>
+
+  <section>
+    <h2>Ready-to-change checklist</h2>
+    <ul><li><span class="check">✓</span> Full setup succeeds; generated status ready.</li><li><span class="check">✓</span> You can explain main-thread vs Worker ownership.</li><li><span class="check">✓</span> You know owning architecture doc and direct tests for task.</li><li><span class="check">✓</span> You traced producer + boundary parser + consumer for contract changes.</li><li><span class="check">✓</span> You selected smallest reproduction/test before implementation.</li><li><span class="check">✓</span> You know whether change affects snapshots, private packaging, privacy, replay evidence.</li></ul>
+  </section>
+
+</section>
+</main>
+<footer>
+  <p>Single-page preview of <code>docs/developer-guide/</code>. Navbar uses hash routes (<code>#architecture</code>) so preview server works.</p>
+</footer>
+<script>
+
+(function () {
+  var pages = ['overview', 'architecture', 'runtime-flows', 'data-quality', 'onboarding'];
+
+  function parseHash() {
+    var raw = (location.hash || '#overview').replace(/^#/, '');
+    if (!raw) return { page: 'overview', frag: null };
+    var slash = raw.indexOf('/');
+    if (slash === -1) {
+      if (pages.indexOf(raw) !== -1) return { page: raw, frag: null };
+      return { page: null, frag: raw };
+    }
+    return { page: raw.slice(0, slash), frag: raw.slice(slash + 1) || null };
+  }
+
+  function show(page) {
+    document.querySelectorAll('.page-section').forEach(function (el) {
+      var on = el.id === page;
+      el.hidden = !on;
+      el.classList.toggle('is-active', on);
+    });
+    document.querySelectorAll('nav a[data-nav]').forEach(function (a) {
+      var on = a.getAttribute('data-nav') === page;
+      if (on) a.setAttribute('aria-current', 'page');
+      else a.removeAttribute('aria-current');
+      a.classList.toggle('is-active', on);
+    });
+  }
+
+  function scrollToFrag(page, frag) {
+    if (!frag) { window.scrollTo(0, 0); return; }
+    var el = document.getElementById(page + '--' + frag) || document.getElementById(frag);
+    if (el) {
+      requestAnimationFrame(function () {
+        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+    } else {
+      window.scrollTo(0, 0);
+    }
+  }
+
+  function route() {
+    var parsed = parseHash();
+    var page = parsed.page;
+    var frag = parsed.frag;
+    if (!page && frag) {
+      for (var i = 0; i < pages.length; i++) {
+        if (document.getElementById(pages[i] + '--' + frag)) {
+          page = pages[i];
+          break;
+        }
+      }
+    }
+    if (!page || pages.indexOf(page) === -1) page = 'overview';
+    show(page);
+    scrollToFrag(page, frag);
+  }
+
+  window.addEventListener('hashchange', route);
+  route();
+})();
+
+</script>
+</body>
+</html>

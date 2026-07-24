@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="artifact-kind" content="html">
+<meta name="artifact-generated" content="1784885927570">
+<meta name="artifact-project" content="C:\Users\Natha\coding\ygo-story-duel-simulator">
+<title>Card Game VN Handoff Architecture — Round 3</title>
+<style data-base>:root { color-scheme: light dark;
+  --bg: #ffffff;
+  --fg: #1c1c1a;
+  --muted: #6b6862;
+  --border: #e7e5e0;
+  --code-bg: #f7f6f4;
+  --accent: #b95730;
+  --add-bg: #e9f7ee;
+  --add-word-bg: #c8ecd3;
+  --add-fg: #1a7f37;
+  --del-bg: #feeff1;
+  --del-word-bg: #f8d2d7;
+  --del-fg: #c93c4c;
+  --hl-comment: #6e7781;
+  --hl-keyword: #cf222e;
+  --hl-string: #0a3069;
+  --hl-number: #0550ae;
+  --hl-title: #8250df;
+  --hl-type: #953800;
+  --hl-attr: #0550ae;
+}
+@media (prefers-color-scheme: dark) { :root {
+  --bg: #171614;
+  --fg: #e6e3de;
+  --muted: #94918a;
+  --border: #2e2d29;
+  --code-bg: #201f1c;
+  --accent: #d67858;
+  --add-bg: #1d2a20;
+  --add-word-bg: #2b4232;
+  --add-fg: #85c793;
+  --del-bg: #2e1c1e;
+  --del-word-bg: #4a292c;
+  --del-fg: #e28a91;
+  --hl-comment: #8b949e;
+  --hl-keyword: #ff7b72;
+  --hl-string: #a5d6ff;
+  --hl-number: #79c0ff;
+  --hl-title: #d2a8ff;
+  --hl-type: #ffa657;
+  --hl-attr: #79c0ff;
+} }
+
+* { box-sizing: border-box; }
+html { font-size: 15px; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+article { max-width: 860px; margin: 0 auto; padding: 2.75rem 1.5rem 4rem; }
+h1, h2, h3, h4 { line-height: 1.3; letter-spacing: -0.01em; color: var(--fg); }
+h1 { font-size: 1.45rem; font-weight: 650; margin: 0 0 1rem; }
+h2 { font-size: 1.15rem; font-weight: 650; margin: 2.2em 0 .7em; padding-bottom: .35em; border-bottom: 1px solid var(--border); }
+h3 { font-size: 1rem; font-weight: 600; margin: 1.8em 0 .5em; }
+h4 { font-size: .9rem; font-weight: 600; margin: 1.5em 0 .4em; }
+p { margin: .8em 0; }
+a { color: var(--accent); text-decoration: underline; text-decoration-color: color-mix(in srgb, var(--accent) 35%, transparent); text-underline-offset: 2px; }
+a:hover { text-decoration-color: var(--accent); }
+strong { font-weight: 600; }
+ul, ol { margin: .8em 0; padding-left: 1.5em; }
+li { margin: .3em 0; }
+li > ul, li > ol { margin: .2em 0; }
+hr { border: none; border-top: 1px solid var(--border); margin: 2.5em 0; }
+img, svg, video { max-width: 100%; }
+::selection { background: color-mix(in srgb, var(--accent) 25%, transparent); }
+
+blockquote {
+  margin: 1.2em 0;
+  padding: .1em 1.1em;
+  border-left: 3px solid color-mix(in srgb, var(--accent) 55%, transparent);
+  color: var(--muted);
+}
+blockquote > :first-child { margin-top: .4em; }
+blockquote > :last-child { margin-bottom: .4em; }
+
+table { border-collapse: collapse; width: 100%; margin: 1.2em 0; font-size: .9rem; }
+th {
+  text-align: left; font-weight: 600; font-size: .74rem;
+  text-transform: uppercase; letter-spacing: .06em; color: var(--muted);
+  padding: .5em .75em; border-bottom: 1px solid var(--border);
+}
+td { padding: .55em .75em; border-bottom: 1px solid var(--border); vertical-align: top; }
+tr:last-child td { border-bottom: none; }
+
+code, kbd, samp { font-family: ui-monospace, "SF Mono", "JetBrains Mono", "Cascadia Code", Menlo, Consolas, "Liberation Mono", monospace; }
+code { font-size: .85em; background: var(--code-bg); padding: .15em .4em; border-radius: 4px; }
+pre {
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 1em 1.2em;
+  overflow-x: auto;
+  font-size: .82rem;
+  line-height: 1.55;
+  margin: 1.2em 0;
+}
+pre code { background: transparent; padding: 0; font-size: inherit; }
+
+input[type="checkbox"] { accent-color: var(--accent); margin-right: .4em; }
+
+
+.artifact-header {
+  display: flex; align-items: baseline; gap: .75rem; flex-wrap: wrap;
+  margin-bottom: 2rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border);
+}
+.artifact-header h1 { margin: 0; }
+.artifact-badge {
+  font-family: ui-monospace, "SF Mono", "JetBrains Mono", "Cascadia Code", Menlo, Consolas, "Liberation Mono", monospace; font-size: .66rem; text-transform: uppercase;
+  letter-spacing: .08em; color: var(--accent);
+  border: 1px solid color-mix(in srgb, var(--accent) 35%, transparent);
+  border-radius: 999px; padding: .2em .7em; white-space: nowrap;
+}
+.artifact-meta { margin-left: auto; color: var(--muted); font-size: .72rem; font-family: ui-monospace, "SF Mono", "JetBrains Mono", "Cascadia Code", Menlo, Consolas, "Liberation Mono", monospace; }
+.artifact-footer {
+  margin-top: 4rem; padding-top: 1rem; border-top: 1px solid var(--border);
+  color: var(--muted); font-size: .72rem; font-family: ui-monospace, "SF Mono", "JetBrains Mono", "Cascadia Code", Menlo, Consolas, "Liberation Mono", monospace;
+}
+.artifact-mermaid { text-align: center; margin: 1.5rem 0; }
+</style>
+</head>
+<body>
+<article>
+<header class="artifact-header">
+<h1>Card Game VN Handoff Architecture — Round 3</h1>
+<span class="artifact-badge">html</span>
+<span class="artifact-meta">2026-07-24 09:38:47</span>
+</header>
+<style>
+  .qdoc { max-width: 900px; margin: 0 auto; }
+  .qdoc header { padding-bottom: 1.4rem; border-bottom: 1px solid var(--border); }
+  .qdoc h1 { margin-bottom: .35rem; }
+  .muted { color: var(--muted); }
+  .settled { margin: 1.2rem 0 2rem; padding: .8rem 1rem; border-left: 3px solid var(--accent); background: var(--code-bg); border-radius: 0 8px 8px 0; }
+  .settled p { margin: 0; }
+  .question { margin: 1rem 0; padding: 1.1rem; border: 1px solid var(--border); border-radius: 12px; }
+  .num { margin: 0 0 .4rem; color: var(--accent); font-size: .8rem; font-weight: 750; letter-spacing: .06em; text-transform: uppercase; }
+  .question h2 { margin: 0; padding: 0; border: 0; font-size: 1.08rem; }
+  fieldset { margin: .85rem 0 0; padding: 0; border: 0; }
+  .choice { display: grid; grid-template-columns: auto 1fr; gap: .65rem; align-items: start; margin: .45rem 0; padding: .65rem .7rem; border: 1px solid var(--border); border-radius: 8px; cursor: pointer; }
+  .choice:hover { border-color: var(--accent); }
+  input[type="radio"] { margin-top: .2rem; accent-color: var(--accent); }
+  .choice strong, .choice small { display: block; }
+  .choice small { margin-top: .18rem; color: var(--muted); line-height: 1.4; }
+  .rec { margin-left: .35rem; color: var(--accent); font-size: .74rem; font-weight: 750; }
+  textarea { box-sizing: border-box; width: 100%; padding: .7rem; color: var(--fg); background: var(--bg); border: 1px solid var(--border); border-radius: 8px; }
+  textarea:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .custom { margin-top: .5rem; }
+  .notes { margin-top: 1.5rem; }
+  .packet { margin-top: 2.5rem; padding: 1rem; border: 1px solid var(--border); border-radius: 12px; }
+  .packet h2 { margin-top: 0; }
+  #answer-output { min-height: 390px; resize: vertical; background: var(--code-bg); font-family: ui-monospace, SFMono-Regular, Consolas, monospace; line-height: 1.5; }
+  .actions { display: flex; flex-wrap: wrap; gap: .6rem; align-items: center; margin-top: .8rem; }
+  button { padding: .65rem .9rem; color: var(--bg); background: var(--accent); border: 1px solid var(--accent); border-radius: 8px; font-weight: 700; cursor: pointer; }
+  button.secondary { color: var(--fg); background: var(--bg); border-color: var(--border); }
+  #copy-status { color: var(--muted); font-size: .86rem; }
+  .gate { margin-top: 1.2rem; color: var(--muted); font-size: .9rem; }
+</style>
+
+<article class="qdoc">
+  <header>
+    <p class="muted">Dependency-gated design interview</p>
+    <h1>Card Game VN Handoff — Round 3</h1>
+    <p class="muted">Current frontier only. Recommendations explicit. No answer preselected.</p>
+  </header>
+
+  <aside class="settled">
+    <p><strong>Settled prerequisites:</strong> complete target + phased delivery; single app pkg with enforced domain boundaries; self-contained battle facade; illustrated hotspots + accessible list; private-only deployment gate; installable offline PWA.</p>
+  </aside>
+
+  <form id="round-form">
+    <section class="question">
+      <p class="num">Question 11</p>
+      <h2>What campaign progression topology should target product use?</h2>
+      <fieldset>
+        <legend class="muted">Choose one.</legend>
+        <label class="choice"><input type="radio" name="q11" value="Authored chapters with gated map hubs; scenes, choices, flags, battles, and rewards unlock locations and advance chapter objectives."><span><strong>Chapter campaign + gated map hubs <span class="rec">Recommended</span></strong><small>Supports authored VN pacing plus meaningful map selection.</small></span></label>
+        <label class="choice"><input type="radio" name="q11" value="Map-first nonlinear campaign; locations and events drive progression with minimal fixed chapter order."><span><strong>Map-first nonlinear campaign</strong><small>Player route choice dominates authored sequence.</small></span></label>
+        <label class="choice"><input type="radio" name="q11" value="Mostly linear visual novel; maps appear only for occasional branch or destination choices."><span><strong>Mostly linear VN</strong><small>Chapter script dominates; maps remain lightweight choice UI.</small></span></label>
+        <label class="choice"><input type="radio" name="q11" value="Custom"><span><strong>Custom campaign topology</strong></span></label>
+        <textarea class="custom" data-for="q11" rows="3" placeholder="Custom answer for Question 11"></textarea>
+      </fieldset>
+    </section>
+
+    <section class="question">
+      <p class="num">Question 12</p>
+      <h2>What role should deck management have in target product?</h2>
+      <fieldset>
+        <legend class="muted">Choose one.</legend>
+        <label class="choice"><input type="radio" name="q12" value="Campaign-owned collection plus local deck library with create, edit, validate, import, export, and encounter deck selection; first slice may use one fixed starter deck."><span><strong>Collection + full local deck library <span class="rec">Recommended</span></strong><small>Long-term YGO progression target. Preserve fixed starter deck for first slice simplicity.</small></span></label>
+        <label class="choice"><input type="radio" name="q12" value="Local deck library with create, edit, validate, import, export, and battle selection; campaign collection does not restrict available cards."><span><strong>Unrestricted local deck library</strong><small>Deck building exists without card acquisition progression.</small></span></label>
+        <label class="choice"><input type="radio" name="q12" value="Authored preset decks only; campaign unlocks or selects complete decks, with no card-level editor."><span><strong>Preset decks only</strong><small>Reduce UI, validation, save, reward scope.</small></span></label>
+        <label class="choice"><input type="radio" name="q12" value="YDK import and selection only; no in-app editor."><span><strong>Import + select only</strong><small>Use external deck tools.</small></span></label>
+        <label class="choice"><input type="radio" name="q12" value="Custom"><span><strong>Custom deck scope</strong></span></label>
+        <textarea class="custom" data-for="q12" rows="3" placeholder="Custom answer for Question 12"></textarea>
+      </fieldset>
+    </section>
+
+    <section class="question">
+      <p class="num">Question 13</p>
+      <h2>What save and resume boundary should target product support?</h2>
+      <fieldset>
+        <legend class="muted">Choose one.</legend>
+        <label class="choice"><input type="radio" name="q13" value="Save outside active battles; persist campaign, narrative checkpoint, map, collection, decks, settings, and content revisions; interrupted battle restarts from its pre-battle checkpoint."><span><strong>Out-of-battle saves <span class="rec">Recommended</span></strong><small>Avoid serializing live WASM state. Preserve deterministic battle boundary.</small></span></label>
+        <label class="choice"><input type="radio" name="q13" value="Resume battles by replaying recorded seed and ordered choices to reconstruct the session, then continue from the last prompt."><span><strong>Replay-based battle resume</strong><small>Add reconstruction validation, version pinning, replay timeout, drift handling.</small></span></label>
+        <label class="choice"><input type="radio" name="q13" value="Save only at authored checkpoints; no arbitrary map or narrative save command."><span><strong>Authored checkpoints only</strong><small>Small save surface; player cannot save anywhere.</small></span></label>
+        <label class="choice"><input type="radio" name="q13" value="Custom"><span><strong>Custom save boundary</strong></span></label>
+        <textarea class="custom" data-for="q13" rows="3" placeholder="Custom answer for Question 13"></textarea>
+      </fieldset>
+    </section>
+
+    <section class="question">
+      <p class="num">Question 14</p>
+      <h2>What source format should narrative and campaign content use?</h2>
+      <fieldset>
+        <legend class="muted">Choose one primary authored format.</legend>
+        <label class="choice"><input type="radio" name="q14" value="Versioned JSON documents validated against strict runtime schemas; no executable code in content."><span><strong>Schema-validated JSON <span class="rec">Recommended</span></strong><small>Deterministic, toolable, AI-friendly, safe to package and migrate.</small></span></label>
+        <label class="choice"><input type="radio" name="q14" value="Versioned YAML documents compiled and validated into canonical JSON during build."><span><strong>YAML source → JSON artifact</strong><small>Author-friendly syntax with build-time normalization.</small></span></label>
+        <label class="choice"><input type="radio" name="q14" value="Custom text DSL compiled and validated into canonical JSON during build."><span><strong>Custom narrative DSL</strong><small>Optimize writing ergonomics at cost of parser, tooling, diagnostics.</small></span></label>
+        <label class="choice"><input type="radio" name="q14" value="TypeScript content modules validated during build."><span><strong>TypeScript content</strong><small>Typed authoring with executable-code trust implications.</small></span></label>
+        <label class="choice"><input type="radio" name="q14" value="Custom"><span><strong>Custom content format</strong></span></label>
+        <textarea class="custom" data-for="q14" rows="3" placeholder="Custom answer for Question 14"></textarea>
+      </fieldset>
+    </section>
+
+    <section class="question">
+      <p class="num">Question 15</p>
+      <h2>Which Svelte application model should target use?</h2>
+      <fieldset>
+        <legend class="muted">Choose one.</legend>
+        <label class="choice"><input type="radio" name="q15" value="Plain Svelte SPA on current Vite app; explicit typed game-mode state controls screens; URL routing remains limited to entry and utility surfaces."><span><strong>Plain Svelte SPA + typed mode state <span class="rec">Recommended</span></strong><small>Fits offline game flow. Minimizes migration from current app.</small></span></label>
+        <label class="choice"><input type="radio" name="q15" value="Plain Svelte SPA with a client router; major screens have URLs and browser-history navigation."><span><strong>Svelte SPA + client router</strong><small>Route game modes through URL state.</small></span></label>
+        <label class="choice"><input type="radio" name="q15" value="SvelteKit with static adapter; routes own major screens and build emits a static PWA."><span><strong>SvelteKit static app</strong><small>Add framework routing, layouts, load boundaries, static adapter migration.</small></span></label>
+        <label class="choice"><input type="radio" name="q15" value="Custom"><span><strong>Custom Svelte model</strong></span></label>
+        <textarea class="custom" data-for="q15" rows="3" placeholder="Custom answer for Question 15"></textarea>
+      </fieldset>
+    </section>
+
+    <section class="question">
+      <p class="num">Question 16</p>
+      <h2>How should progressive content packs relate to current atomic duel snapshot?</h2>
+      <fieldset>
+        <legend class="muted">Choose one compatibility model.</legend>
+        <label class="choice"><input type="radio" name="q16" value="Keep engine, catalog, scripts, strings, and image manifest as one atomic duel snapshot; install separate story/media packs that declare schema, app, dependency, and compatible duel-snapshot ranges."><span><strong>Atomic duel snapshot + separate story/media packs <span class="rec">Recommended</span></strong><small>Preserve proven rules compatibility. Let chapters and large media download independently.</small></span></label>
+        <label class="choice"><input type="radio" name="q16" value="Each campaign pack pins and carries its complete compatible duel runtime snapshot plus story and media dependencies."><span><strong>Self-contained campaign packs</strong><small>Maximum reproducibility. Higher duplication + storage cost.</small></span></label>
+        <label class="choice"><input type="radio" name="q16" value="One monolithic versioned release pack contains duel runtime, all story content, and all media."><span><strong>Monolithic release pack</strong><small>Simple activation. No independent progressive chapter updates.</small></span></label>
+        <label class="choice"><input type="radio" name="q16" value="No custom content packs; bundle required story assets through Vite and use current caches only."><span><strong>No custom pack system</strong><small>Use code-build releases for all content.</small></span></label>
+        <label class="choice"><input type="radio" name="q16" value="Custom"><span><strong>Custom compatibility model</strong></span></label>
+        <textarea class="custom" data-for="q16" rows="3" placeholder="Custom answer for Question 16"></textarea>
+      </fieldset>
+    </section>
+
+    <section class="question">
+      <p class="num">Question 17</p>
+      <h2>Which subsystem should decide whether a map location is hidden, locked, available, or completed?</h2>
+      <fieldset>
+        <legend class="muted">Choose one owner.</legend>
+        <label class="choice"><input type="radio" name="q17" value="Campaign engine evaluates flags, objectives, chapter state, and requirements; map feature renders an immutable evaluated view and returns a location ID; campaign revalidates selection."><span><strong>Campaign engine owns availability <span class="rec">Recommended</span></strong><small>One progression authority. Map remains presentation + selection.</small></span></label>
+        <label class="choice"><input type="radio" name="q17" value="Map feature receives raw campaign variables and evaluates location conditions itself."><span><strong>Map feature owns availability</strong><small>Condition semantics live with map content.</small></span></label>
+        <label class="choice"><input type="radio" name="q17" value="Content build precomputes location states; runtime does not evaluate dynamic conditions."><span><strong>Build-time states only</strong><small>No runtime flag-dependent availability.</small></span></label>
+        <label class="choice"><input type="radio" name="q17" value="Custom"><span><strong>Custom availability owner</strong></span></label>
+        <textarea class="custom" data-for="q17" rows="3" placeholder="Custom answer for Question 17"></textarea>
+      </fieldset>
+    </section>
+
+    <div class="notes">
+      <label for="round-notes"><strong>Round 3 notes</strong></label>
+      <textarea id="round-notes" rows="4" placeholder="Optional constraints, rationale, or corrections"></textarea>
+    </div>
+  </form>
+
+  <section class="packet">
+    <h2>Copyable answer packet</h2>
+    <p class="muted">Selections generate next-round input.</p>
+    <textarea id="answer-output" readonly></textarea>
+    <div class="actions">
+      <button type="button" id="copy-answers">Copy answers</button>
+      <button type="button" id="reset-answers" class="secondary">Reset</button>
+      <span id="copy-status" role="status" aria-live="polite"></span>
+    </div>
+  </section>
+
+  <p class="gate"><strong>Stop gate:</strong> first-slice definition, campaign contracts, save schema, deck model, PWA implementation, pack lifecycle remain downstream. No implementation authorized.</p>
+</article>
+
+<script>
+(() => {
+  const form = document.getElementById('round-form');
+  const output = document.getElementById('answer-output');
+  const status = document.getElementById('copy-status');
+  const questions = [
+    ['q11', 'Campaign progression topology'],
+    ['q12', 'Deck-management role'],
+    ['q13', 'Save and resume boundary'],
+    ['q14', 'Narrative and campaign source format'],
+    ['q15', 'Svelte application model'],
+    ['q16', 'Content-pack compatibility model'],
+    ['q17', 'Map-location availability owner']
+  ];
+  function getAnswer(name) {
+    const chosen = form.querySelector(`input[name="${name}"]:checked`);
+    if (!chosen) return '[UNANSWERED]';
+    if (chosen.value !== 'Custom') return chosen.value;
+    return form.querySelector(`textarea[data-for="${name}"]`).value.trim() || '[CUSTOM — TEXT REQUIRED]';
+  }
+  function update() {
+    const notes = document.getElementById('round-notes').value.trim();
+    const answers = questions.flatMap(([name, label], index) => [`${index + 11}. ${label}:`, getAnswer(name), '']);
+    output.value = [
+      '# Card Game VN Handoff — Round 3 answers', '',
+      'Settled context:',
+      '- Handoff: exploratory reference; target architecture + phased delivery.',
+      '- Product: Yu-Gi-Oh!-specific; VN outside battles.',
+      '- Preserve all current duel guarantees and release gates.',
+      '- Single app package with enforced domain boundaries.',
+      '- Self-contained battle facade returns normalized campaign outcome.',
+      '- Illustrated map hotspots plus accessible location list.',
+      '- Private-only install/testing; hard public-build rejection retained.',
+      '- Installable offline PWA.', '',
+      ...answers,
+      'Round 3 notes:', notes || '[NONE]', '',
+      'Instruction: Recompute design-tree frontier from these answers. Generate next questionnaire round only. Do not implement yet.'
+    ].join('\n');
+    status.textContent = '';
+  }
+  form.addEventListener('input', update);
+  document.getElementById('copy-answers').addEventListener('click', async () => {
+    update();
+    try { await navigator.clipboard.writeText(output.value); status.textContent = 'Copied.'; }
+    catch { output.removeAttribute('readonly'); output.select(); document.execCommand('copy'); output.setAttribute('readonly', ''); status.textContent = 'Copied.'; }
+  });
+  document.getElementById('reset-answers').addEventListener('click', () => {
+    form.reset(); form.querySelectorAll('textarea').forEach((node) => { node.value = ''; }); update(); status.textContent = 'Reset.';
+  });
+  update();
+})();
+</script>
+<footer class="artifact-footer">source: C:\Users\Natha\coding\ygo-story-duel-simulator</footer>
+</article>
+
+<script>
+(function () {
+  var slug = "card-game-vn-handoff-architecture-round-3";
+  var es = new EventSource("/events");
+  es.addEventListener("reload", function (e) {
+    try { if (e.data === slug || e.data === "*") location.reload(); } catch (_) {}
+  });
+})();
+</script>
+</body>
+</html>

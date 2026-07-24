@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="artifact-kind" content="html">
+<meta name="artifact-generated" content="1784886543785">
+<meta name="artifact-project" content="C:\Users\Natha\coding\ygo-story-duel-simulator">
+<title>Card Game VN Handoff Architecture — Round 6</title>
+<style data-base>:root { color-scheme: light dark;
+  --bg: #ffffff;
+  --fg: #1c1c1a;
+  --muted: #6b6862;
+  --border: #e7e5e0;
+  --code-bg: #f7f6f4;
+  --accent: #b95730;
+  --add-bg: #e9f7ee;
+  --add-word-bg: #c8ecd3;
+  --add-fg: #1a7f37;
+  --del-bg: #feeff1;
+  --del-word-bg: #f8d2d7;
+  --del-fg: #c93c4c;
+  --hl-comment: #6e7781;
+  --hl-keyword: #cf222e;
+  --hl-string: #0a3069;
+  --hl-number: #0550ae;
+  --hl-title: #8250df;
+  --hl-type: #953800;
+  --hl-attr: #0550ae;
+}
+@media (prefers-color-scheme: dark) { :root {
+  --bg: #171614;
+  --fg: #e6e3de;
+  --muted: #94918a;
+  --border: #2e2d29;
+  --code-bg: #201f1c;
+  --accent: #d67858;
+  --add-bg: #1d2a20;
+  --add-word-bg: #2b4232;
+  --add-fg: #85c793;
+  --del-bg: #2e1c1e;
+  --del-word-bg: #4a292c;
+  --del-fg: #e28a91;
+  --hl-comment: #8b949e;
+  --hl-keyword: #ff7b72;
+  --hl-string: #a5d6ff;
+  --hl-number: #79c0ff;
+  --hl-title: #d2a8ff;
+  --hl-type: #ffa657;
+  --hl-attr: #79c0ff;
+} }
+
+* { box-sizing: border-box; }
+html { font-size: 15px; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+article { max-width: 860px; margin: 0 auto; padding: 2.75rem 1.5rem 4rem; }
+h1, h2, h3, h4 { line-height: 1.3; letter-spacing: -0.01em; color: var(--fg); }
+h1 { font-size: 1.45rem; font-weight: 650; margin: 0 0 1rem; }
+h2 { font-size: 1.15rem; font-weight: 650; margin: 2.2em 0 .7em; padding-bottom: .35em; border-bottom: 1px solid var(--border); }
+h3 { font-size: 1rem; font-weight: 600; margin: 1.8em 0 .5em; }
+h4 { font-size: .9rem; font-weight: 600; margin: 1.5em 0 .4em; }
+p { margin: .8em 0; }
+a { color: var(--accent); text-decoration: underline; text-decoration-color: color-mix(in srgb, var(--accent) 35%, transparent); text-underline-offset: 2px; }
+a:hover { text-decoration-color: var(--accent); }
+strong { font-weight: 600; }
+ul, ol { margin: .8em 0; padding-left: 1.5em; }
+li { margin: .3em 0; }
+li > ul, li > ol { margin: .2em 0; }
+hr { border: none; border-top: 1px solid var(--border); margin: 2.5em 0; }
+img, svg, video { max-width: 100%; }
+::selection { background: color-mix(in srgb, var(--accent) 25%, transparent); }
+
+blockquote {
+  margin: 1.2em 0;
+  padding: .1em 1.1em;
+  border-left: 3px solid color-mix(in srgb, var(--accent) 55%, transparent);
+  color: var(--muted);
+}
+blockquote > :first-child { margin-top: .4em; }
+blockquote > :last-child { margin-bottom: .4em; }
+
+table { border-collapse: collapse; width: 100%; margin: 1.2em 0; font-size: .9rem; }
+th {
+  text-align: left; font-weight: 600; font-size: .74rem;
+  text-transform: uppercase; letter-spacing: .06em; color: var(--muted);
+  padding: .5em .75em; border-bottom: 1px solid var(--border);
+}
+td { padding: .55em .75em; border-bottom: 1px solid var(--border); vertical-align: top; }
+tr:last-child td { border-bottom: none; }
+
+code, kbd, samp { font-family: ui-monospace, "SF Mono", "JetBrains Mono", "Cascadia Code", Menlo, Consolas, "Liberation Mono", monospace; }
+code { font-size: .85em; background: var(--code-bg); padding: .15em .4em; border-radius: 4px; }
+pre {
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 1em 1.2em;
+  overflow-x: auto;
+  font-size: .82rem;
+  line-height: 1.55;
+  margin: 1.2em 0;
+}
+pre code { background: transparent; padding: 0; font-size: inherit; }
+
+input[type="checkbox"] { accent-color: var(--accent); margin-right: .4em; }
+
+
+.artifact-header {
+  display: flex; align-items: baseline; gap: .75rem; flex-wrap: wrap;
+  margin-bottom: 2rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border);
+}
+.artifact-header h1 { margin: 0; }
+.artifact-badge {
+  font-family: ui-monospace, "SF Mono", "JetBrains Mono", "Cascadia Code", Menlo, Consolas, "Liberation Mono", monospace; font-size: .66rem; text-transform: uppercase;
+  letter-spacing: .08em; color: var(--accent);
+  border: 1px solid color-mix(in srgb, var(--accent) 35%, transparent);
+  border-radius: 999px; padding: .2em .7em; white-space: nowrap;
+}
+.artifact-meta { margin-left: auto; color: var(--muted); font-size: .72rem; font-family: ui-monospace, "SF Mono", "JetBrains Mono", "Cascadia Code", Menlo, Consolas, "Liberation Mono", monospace; }
+.artifact-footer {
+  margin-top: 4rem; padding-top: 1rem; border-top: 1px solid var(--border);
+  color: var(--muted); font-size: .72rem; font-family: ui-monospace, "SF Mono", "JetBrains Mono", "Cascadia Code", Menlo, Consolas, "Liberation Mono", monospace;
+}
+.artifact-mermaid { text-align: center; margin: 1.5rem 0; }
+</style>
+</head>
+<body>
+<article>
+<header class="artifact-header">
+<h1>Card Game VN Handoff Architecture — Round 6</h1>
+<span class="artifact-badge">html</span>
+<span class="artifact-meta">2026-07-24 09:49:03</span>
+</header>
+<style>
+.qdoc{max-width:900px;margin:0 auto}.qdoc header{padding-bottom:1.4rem;border-bottom:1px solid var(--border)}.qdoc h1{margin-bottom:.35rem}.muted{color:var(--muted)}.settled{margin:1.2rem 0 2rem;padding:.8rem 1rem;border-left:3px solid var(--accent);background:var(--code-bg);border-radius:0 8px 8px 0}.settled p{margin:0}.question{margin:1rem 0;padding:1.1rem;border:1px solid var(--border);border-radius:12px}.num{margin:0 0 .4rem;color:var(--accent);font-size:.8rem;font-weight:750;letter-spacing:.06em;text-transform:uppercase}.question h2{margin:0;padding:0;border:0;font-size:1.08rem}fieldset{margin:.85rem 0 0;padding:0;border:0}.choice{display:grid;grid-template-columns:auto 1fr;gap:.65rem;align-items:start;margin:.45rem 0;padding:.65rem .7rem;border:1px solid var(--border);border-radius:8px;cursor:pointer}.choice:hover{border-color:var(--accent)}input[type=radio]{margin-top:.2rem;accent-color:var(--accent)}.choice strong,.choice small{display:block}.choice small{margin-top:.18rem;color:var(--muted);line-height:1.4}.rec{margin-left:.35rem;color:var(--accent);font-size:.74rem;font-weight:750}textarea{box-sizing:border-box;width:100%;padding:.7rem;color:var(--fg);background:var(--bg);border:1px solid var(--border);border-radius:8px}textarea:focus{outline:2px solid var(--accent);outline-offset:1px}.custom{margin-top:.5rem}.notes{margin-top:1.5rem}.packet{margin-top:2.5rem;padding:1rem;border:1px solid var(--border);border-radius:12px}.packet h2{margin-top:0}#answer-output{min-height:500px;resize:vertical;background:var(--code-bg);font-family:ui-monospace,SFMono-Regular,Consolas,monospace;line-height:1.5}.actions{display:flex;flex-wrap:wrap;gap:.6rem;align-items:center;margin-top:.8rem}button{padding:.65rem .9rem;color:var(--bg);background:var(--accent);border:1px solid var(--accent);border-radius:8px;font-weight:700;cursor:pointer}button.secondary{color:var(--fg);background:var(--bg);border-color:var(--border)}#copy-status{color:var(--muted);font-size:.86rem}.gate{margin-top:1.2rem;color:var(--muted);font-size:.9rem}
+</style>
+<article class="qdoc">
+<header><p class="muted">Dependency-gated design interview</p><h1>Card Game VN Handoff — Round 6</h1><p class="muted">Current frontier only. Recommendations explicit. No answer preselected.</p></header>
+<aside class="settled"><p><strong>Settled prerequisites:</strong> correlated effect handshake; deterministic narrative cursor; declared typed campaign vars; explicit save migrations + dependency recovery; immutable staged pack sets; <code>vite-plugin-pwa</code> injectManifest with ContentManager-owned packs.</p></aside>
+<form id="round-form">
+<section class="question"><p class="num">Question 31</p><h2>Who should control retries after a blocking campaign effect fails?</h2><fieldset><legend class="muted">Choose one policy.</legend>
+<label class="choice"><input type="radio" name="q31" value="Campaign receives typed failure and remains at same pending effect; UI offers explicit retry, cancel, or return action allowed by effect policy; retry reuses effect ID; only idempotent content downloads may auto-retry with bounded backoff."><span><strong>Explicit retry + bounded idempotent auto-retry <span class="rec">Recommended</span></strong><small>No silent duplicate battles, map selections, saves, or rewards.</small></span></label>
+<label class="choice"><input type="radio" name="q31" value="Shell automatically retries every failed effect with bounded exponential backoff before reporting failure."><span><strong>Generic automatic retry</strong><small>Uniform behavior; non-idempotent effects require extra dedupe guarantees.</small></span></label>
+<label class="choice"><input type="radio" name="q31" value="Campaign content declares retry behavior per effect occurrence."><span><strong>Content-authored retry policy</strong><small>Authors control operational failure behavior.</small></span></label>
+<label class="choice"><input type="radio" name="q31" value="Custom"><span><strong>Custom retry policy</strong></span></label><textarea class="custom" data-for="q31" rows="3" placeholder="Custom answer for Question 31"></textarea></fieldset></section>
+
+<section class="question"><p class="num">Question 32</p><h2>What input should self-contained battle facade accept?</h2><fieldset><legend class="muted">Choose one request boundary.</legend>
+<label class="choice"><input type="radio" name="q32" value="Validated immutable BattleRequest containing encounter ID, opponent preset/config ID, player deck snapshot with deck ID and revision, duel rules config, compatible duel snapshot ID, and effect correlation ID; no raw seed, deck order, script, Worker, or protocol fields."><span><strong>Validated immutable battle request <span class="rec">Recommended</span></strong><small>Reproducible campaign boundary without exposing test seams or Worker internals.</small></span></label>
+<label class="choice"><input type="radio" name="q32" value="Battle facade receives only encounter ID and selected deck ID; it loads campaign, deck, content, and duel dependencies itself."><span><strong>ID-only request</strong><small>Smaller call site; facade depends on repositories + campaign content.</small></span></label>
+<label class="choice"><input type="radio" name="q32" value="Battle facade receives current low-level startDuel command and exposes existing Worker event contract."><span><strong>Worker-shaped request</strong><small>Minimal adapter; campaign boundary inherits engine protocol shape.</small></span></label>
+<label class="choice"><input type="radio" name="q32" value="Custom"><span><strong>Custom battle request</strong></span></label><textarea class="custom" data-for="q32" rows="3" placeholder="Custom answer for Question 32"></textarea></fieldset></section>
+
+<section class="question"><p class="num">Question 33</p><h2>Which command families should target narrative schema support?</h2><fieldset><legend class="muted">Choose one target inventory.</legend>
+<label class="choice"><input type="radio" name="q33" value="Presentation and flow commands for background, character, expression, dialogue, narration, choice, wait, transition, goto, and conditional branch; typed campaign intents for variable change and reward; external effects for map and battle; optional music and sound commands in target schema, while first slice implements only commands it uses."><span><strong>Full target inventory; slice implements used subset <span class="rec">Recommended</span></strong><small>Version complete schema without forcing unused media work into first milestone.</small></span></label>
+<label class="choice"><input type="radio" name="q33" value="First-slice commands only: background, character, dialogue, choice, conditional branch, map, battle, variable change, reward, and end; add all other commands through later schema versions."><span><strong>First-slice inventory only</strong><small>Smallest initial schema; later commands require explicit version evolution.</small></span></label>
+<label class="choice"><input type="radio" name="q33" value="Presentation and flow commands only; narrative cannot change campaign state or request map/battle directly."><span><strong>Presentation-only narrative</strong><small>Campaign content separately owns all progression + external effects.</small></span></label>
+<label class="choice"><input type="radio" name="q33" value="Custom"><span><strong>Custom command inventory</strong></span></label><textarea class="custom" data-for="q33" rows="4" placeholder="Custom answer for Question 33"></textarea></fieldset></section>
+
+<section class="question"><p class="num">Question 34</p><h2>How should JSON content express conditions over declared campaign variables?</h2><fieldset><legend class="muted">Choose one expression model.</legend>
+<label class="choice"><input type="radio" name="q34" value="Strict JSON expression AST with allowlisted typed operators for equality, ordering, membership, boolean composition, and variable lookup; schema validation plus runtime type checking; no eval or arbitrary functions."><span><strong>Typed JSON expression AST <span class="rec">Recommended</span></strong><small>Safe, deterministic, serializable, inspectable by tools and AI.</small></span></label>
+<label class="choice"><input type="radio" name="q34" value="JSON Logic expressions validated against an allowlist and evaluated by a library."><span><strong>JSON Logic subset</strong><small>Existing convention plus dependency and adapter layer.</small></span></label>
+<label class="choice"><input type="radio" name="q34" value="String expressions parsed by a custom expression parser."><span><strong>String expression DSL</strong><small>Concise authoring; parser, escaping, diagnostics, tooling required.</small></span></label>
+<label class="choice"><input type="radio" name="q34" value="Conditions reference named predicates implemented in TypeScript; JSON contains predicate IDs plus arguments."><span><strong>Named code predicates</strong><small>Logic stays in trusted runtime code, not content.</small></span></label>
+<label class="choice"><input type="radio" name="q34" value="Custom"><span><strong>Custom condition model</strong></span></label><textarea class="custom" data-for="q34" rows="3" placeholder="Custom answer for Question 34"></textarea></fieldset></section>
+
+<section class="question"><p class="num">Question 35</p><h2>How should shell represent game screens and overlays?</h2><fieldset><legend class="muted">Choose one mode model.</legend>
+<label class="choice"><input type="radio" name="q35" value="One discriminated GameMode union owns active full-screen mode such as boot, title, narrative, map, battle, deck-library, load-save, or fatal-error; separate typed overlay state owns modal panels; mode changes occur only through shell effect completion or explicit global commands."><span><strong>Single full-screen mode + separate overlays <span class="rec">Recommended</span></strong><small>Prevents contradictory screens and scattered booleans. Fits typed SPA state.</small></span></label>
+<label class="choice"><input type="radio" name="q35" value="Stack of screen states supports push, pop, replace, and modal navigation; campaign effects manipulate the stack."><span><strong>Screen stack</strong><small>Natural back navigation; more state combinations.</small></span></label>
+<label class="choice"><input type="radio" name="q35" value="Independent Svelte stores and conditional components determine visible screens and overlays."><span><strong>Independent stores</strong><small>Minimal central shell model.</small></span></label>
+<label class="choice"><input type="radio" name="q35" value="Custom"><span><strong>Custom screen model</strong></span></label><textarea class="custom" data-for="q35" rows="3" placeholder="Custom answer for Question 35"></textarea></fieldset></section>
+
+<section class="question"><p class="num">Question 36</p><h2>At which runtime states may save writes occur?</h2><fieldset><legend class="muted">Choose one safe-point rule.</legend>
+<label class="choice"><input type="radio" name="q36" value="Save only when no unresolved external effect exists; narrative may save while paused for advance or choice; pre-battle autosave occurs before dispatching battle effect; post-battle autosave occurs after resolved outcome is reduced; waits, transitions, downloads, and active battle are not save points."><span><strong>Explicit stable-state save points <span class="rec">Recommended</span></strong><small>Every save maps to serializable reducer + narrative cursor state.</small></span></label>
+<label class="choice"><input type="radio" name="q36" value="Save after every campaign or narrative command, including pending effects; load resumes or reissues pending effect using effect ID."><span><strong>Save every command boundary</strong><small>Fine-grained recovery; pending-effect replay required.</small></span></label>
+<label class="choice"><input type="radio" name="q36" value="Save only between completed scenes and at map hubs."><span><strong>Scene/map boundaries only</strong><small>Smaller recovery surface; dialogue progress may replay.</small></span></label>
+<label class="choice"><input type="radio" name="q36" value="Custom"><span><strong>Custom save points</strong></span></label><textarea class="custom" data-for="q36" rows="3" placeholder="Custom answer for Question 36"></textarea></fieldset></section>
+
+<section class="question"><p class="num">Question 37</p><h2>How should first vertical slice obtain bootstrap and prologue content?</h2><fieldset><legend class="muted">Choose one acquisition path.</legend>
+<label class="choice"><input type="radio" name="q37" value="Release package includes immutable bootstrap and prologue pack bytes outside JS chunks; first run verifies and atomically activates them through ContentManager without network; later releases may download additional packs."><span><strong>Bundled pack bytes activated by ContentManager <span class="rec">Recommended</span></strong><small>Proves pack format + offline install without first-slice downloader UI.</small></span></label>
+<label class="choice"><input type="radio" name="q37" value="First run downloads prologue pack through ContentManager before New Game becomes available; bootstrap shell alone is installed initially."><span><strong>First-run prologue download</strong><small>Proves network acquisition + progress UI in first slice.</small></span></label>
+<label class="choice"><input type="radio" name="q37" value="Vite imports prologue JSON and media into application chunks; custom pack activation begins in later phase."><span><strong>Vite-bundled prologue</strong><small>Smallest first slice; does not prove pack lifecycle.</small></span></label>
+<label class="choice"><input type="radio" name="q37" value="Custom"><span><strong>Custom prologue acquisition</strong></span></label><textarea class="custom" data-for="q37" rows="3" placeholder="Custom answer for Question 37"></textarea></fieldset></section>
+
+<section class="question"><p class="num">Question 38</p><h2>When should downloaded PWA app-shell update activate?</h2><fieldset><legend class="muted">Choose one update policy.</legend>
+<label class="choice"><input type="radio" name="q38" value="Download update in background, notify app, prompt at stable non-battle boundary, persist current safe state, then activate and reload after user confirms; never force activation during battle, save write, content activation, or unresolved effect."><span><strong>Prompted safe-boundary activation <span class="rec">Recommended</span></strong><small>Prevents mixed running code and interrupted critical state.</small></span></label>
+<label class="choice"><input type="radio" name="q38" value="Activate update automatically at next app launch or reload; do not prompt during current session."><span><strong>Next-launch activation</strong><small>No in-session reload. Old shell continues until exit.</small></span></label>
+<label class="choice"><input type="radio" name="q38" value="Activate and reload immediately when update finishes downloading."><span><strong>Immediate activation</strong><small>Fast updates; can interrupt active game state.</small></span></label>
+<label class="choice"><input type="radio" name="q38" value="Custom"><span><strong>Custom update policy</strong></span></label><textarea class="custom" data-for="q38" rows="3" placeholder="Custom answer for Question 38"></textarea></fieldset></section>
+
+<div class="notes"><label for="round-notes"><strong>Round 6 notes</strong></label><textarea id="round-notes" rows="4" placeholder="Optional constraints, rationale, or corrections"></textarea></div>
+</form>
+<section class="packet"><h2>Copyable answer packet</h2><p class="muted">Selections generate next-round input.</p><textarea id="answer-output" readonly></textarea><div class="actions"><button type="button" id="copy-answers">Copy answers</button><button type="button" id="reset-answers" class="secondary">Reset</button><span id="copy-status" role="status" aria-live="polite"></span></div></section>
+<p class="gate"><strong>Stop gate:</strong> narrative UI behavior, effect cancellation, battle mount lifecycle, save-slot retention, pack scheduling, update compatibility, content validation pipeline remain downstream. No implementation authorized.</p>
+</article>
+<script>
+(()=>{const form=document.getElementById('round-form'),output=document.getElementById('answer-output'),status=document.getElementById('copy-status');const qs=[['q31','Effect retry ownership'],['q32','Battle facade request boundary'],['q33','Narrative command families'],['q34','Condition expression model'],['q35','Shell screen and overlay model'],['q36','Save-safe-point rule'],['q37','First-slice prologue acquisition'],['q38','PWA app-shell update activation']];function a(n){const c=form.querySelector(`input[name="${n}"]:checked`);if(!c)return'[UNANSWERED]';if(c.value!=='Custom')return c.value;return form.querySelector(`textarea[data-for="${n}"]`).value.trim()||'[CUSTOM — TEXT REQUIRED]'}function update(){const notes=document.getElementById('round-notes').value.trim();const answers=qs.flatMap(([n,l],i)=>[`${i+31}. ${l}:`,a(n),'']);output.value=['# Card Game VN Handoff — Round 6 answers','','Settled context:','- Campaign effects use correlated pending-effect handshake.','- Narrative uses deterministic serializable cursor interpreter.','- Campaign vars are declared and typed.','- Saves use explicit migration and dependency recovery.','- Content packs use immutable staged activation sets.','- PWA uses vite-plugin-pwa injectManifest; ContentManager owns pack caches.','- First slice is minimal end-to-end prologue.','',...answers,'Round 6 notes:',notes||'[NONE]','','Instruction: Recompute design-tree frontier from these answers. Generate next questionnaire round only. Do not implement yet.'].join('\n');status.textContent=''}form.addEventListener('input',update);document.getElementById('copy-answers').addEventListener('click',async()=>{update();try{await navigator.clipboard.writeText(output.value);status.textContent='Copied.'}catch{output.removeAttribute('readonly');output.select();document.execCommand('copy');output.setAttribute('readonly','');status.textContent='Copied.'}});document.getElementById('reset-answers').addEventListener('click',()=>{form.reset();form.querySelectorAll('textarea').forEach(n=>n.value='');update();status.textContent='Reset.'});update()})();
+</script>
+<footer class="artifact-footer">source: C:\Users\Natha\coding\ygo-story-duel-simulator</footer>
+</article>
+
+<script>
+(function () {
+  var slug = "card-game-vn-handoff-architecture-round-6";
+  var es = new EventSource("/events");
+  es.addEventListener("reload", function (e) {
+    try { if (e.data === slug || e.data === "*") location.reload(); } catch (_) {}
+  });
+})();
+</script>
+</body>
+</html>

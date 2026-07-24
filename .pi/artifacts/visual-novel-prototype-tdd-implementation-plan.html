@@ -1,0 +1,794 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="artifact-kind" content="markdown">
+<meta name="artifact-generated" content="1784905121935">
+<meta name="artifact-project" content="C:\Users\Natha\coding\ygo-story-duel-simulator">
+<title>Visual Novel Prototype TDD Implementation Plan</title>
+<style data-base>:root { color-scheme: light dark;
+  --bg: #ffffff;
+  --fg: #1c1c1a;
+  --muted: #6b6862;
+  --border: #e7e5e0;
+  --code-bg: #f7f6f4;
+  --accent: #b95730;
+  --add-bg: #e9f7ee;
+  --add-word-bg: #c8ecd3;
+  --add-fg: #1a7f37;
+  --del-bg: #feeff1;
+  --del-word-bg: #f8d2d7;
+  --del-fg: #c93c4c;
+  --hl-comment: #6e7781;
+  --hl-keyword: #cf222e;
+  --hl-string: #0a3069;
+  --hl-number: #0550ae;
+  --hl-title: #8250df;
+  --hl-type: #953800;
+  --hl-attr: #0550ae;
+}
+@media (prefers-color-scheme: dark) { :root {
+  --bg: #171614;
+  --fg: #e6e3de;
+  --muted: #94918a;
+  --border: #2e2d29;
+  --code-bg: #201f1c;
+  --accent: #d67858;
+  --add-bg: #1d2a20;
+  --add-word-bg: #2b4232;
+  --add-fg: #85c793;
+  --del-bg: #2e1c1e;
+  --del-word-bg: #4a292c;
+  --del-fg: #e28a91;
+  --hl-comment: #8b949e;
+  --hl-keyword: #ff7b72;
+  --hl-string: #a5d6ff;
+  --hl-number: #79c0ff;
+  --hl-title: #d2a8ff;
+  --hl-type: #ffa657;
+  --hl-attr: #79c0ff;
+} }
+
+* { box-sizing: border-box; }
+html { font-size: 15px; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+article { max-width: 860px; margin: 0 auto; padding: 2.75rem 1.5rem 4rem; }
+h1, h2, h3, h4 { line-height: 1.3; letter-spacing: -0.01em; color: var(--fg); }
+h1 { font-size: 1.45rem; font-weight: 650; margin: 0 0 1rem; }
+h2 { font-size: 1.15rem; font-weight: 650; margin: 2.2em 0 .7em; padding-bottom: .35em; border-bottom: 1px solid var(--border); }
+h3 { font-size: 1rem; font-weight: 600; margin: 1.8em 0 .5em; }
+h4 { font-size: .9rem; font-weight: 600; margin: 1.5em 0 .4em; }
+p { margin: .8em 0; }
+a { color: var(--accent); text-decoration: underline; text-decoration-color: color-mix(in srgb, var(--accent) 35%, transparent); text-underline-offset: 2px; }
+a:hover { text-decoration-color: var(--accent); }
+strong { font-weight: 600; }
+ul, ol { margin: .8em 0; padding-left: 1.5em; }
+li { margin: .3em 0; }
+li > ul, li > ol { margin: .2em 0; }
+hr { border: none; border-top: 1px solid var(--border); margin: 2.5em 0; }
+img, svg, video { max-width: 100%; }
+::selection { background: color-mix(in srgb, var(--accent) 25%, transparent); }
+
+blockquote {
+  margin: 1.2em 0;
+  padding: .1em 1.1em;
+  border-left: 3px solid color-mix(in srgb, var(--accent) 55%, transparent);
+  color: var(--muted);
+}
+blockquote > :first-child { margin-top: .4em; }
+blockquote > :last-child { margin-bottom: .4em; }
+
+table { border-collapse: collapse; width: 100%; margin: 1.2em 0; font-size: .9rem; }
+th {
+  text-align: left; font-weight: 600; font-size: .74rem;
+  text-transform: uppercase; letter-spacing: .06em; color: var(--muted);
+  padding: .5em .75em; border-bottom: 1px solid var(--border);
+}
+td { padding: .55em .75em; border-bottom: 1px solid var(--border); vertical-align: top; }
+tr:last-child td { border-bottom: none; }
+
+code, kbd, samp { font-family: ui-monospace, "SF Mono", "JetBrains Mono", "Cascadia Code", Menlo, Consolas, "Liberation Mono", monospace; }
+code { font-size: .85em; background: var(--code-bg); padding: .15em .4em; border-radius: 4px; }
+pre {
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 1em 1.2em;
+  overflow-x: auto;
+  font-size: .82rem;
+  line-height: 1.55;
+  margin: 1.2em 0;
+}
+pre code { background: transparent; padding: 0; font-size: inherit; }
+
+input[type="checkbox"] { accent-color: var(--accent); margin-right: .4em; }
+
+
+.artifact-header {
+  display: flex; align-items: baseline; gap: .75rem; flex-wrap: wrap;
+  margin-bottom: 2rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border);
+}
+.artifact-header h1 { margin: 0; }
+.artifact-badge {
+  font-family: ui-monospace, "SF Mono", "JetBrains Mono", "Cascadia Code", Menlo, Consolas, "Liberation Mono", monospace; font-size: .66rem; text-transform: uppercase;
+  letter-spacing: .08em; color: var(--accent);
+  border: 1px solid color-mix(in srgb, var(--accent) 35%, transparent);
+  border-radius: 999px; padding: .2em .7em; white-space: nowrap;
+}
+.artifact-meta { margin-left: auto; color: var(--muted); font-size: .72rem; font-family: ui-monospace, "SF Mono", "JetBrains Mono", "Cascadia Code", Menlo, Consolas, "Liberation Mono", monospace; }
+.artifact-footer {
+  margin-top: 4rem; padding-top: 1rem; border-top: 1px solid var(--border);
+  color: var(--muted); font-size: .72rem; font-family: ui-monospace, "SF Mono", "JetBrains Mono", "Cascadia Code", Menlo, Consolas, "Liberation Mono", monospace;
+}
+.artifact-mermaid { text-align: center; margin: 1.5rem 0; }
+</style>
+<style data-hljs>
+.hljs { color: var(--fg); background: transparent; }
+.hljs-comment, .hljs-quote { color: var(--hl-comment); font-style: italic; }
+.hljs-keyword, .hljs-selector-tag, .hljs-literal, .hljs-deletion { color: var(--hl-keyword); }
+.hljs-string, .hljs-regexp, .hljs-addition { color: var(--hl-string); }
+.hljs-number, .hljs-symbol, .hljs-bullet, .hljs-meta, .hljs-link { color: var(--hl-number); }
+.hljs-title, .hljs-section, .hljs-function .hljs-title { color: var(--hl-title); }
+.hljs-type, .hljs-class .hljs-title, .hljs-built_in { color: var(--hl-type); }
+.hljs-variable, .hljs-template-variable, .hljs-attr, .hljs-attribute, .hljs-property { color: var(--hl-attr); }
+.hljs-emphasis { font-style: italic; }
+.hljs-strong { font-weight: 600; }
+</style>
+</head>
+<body>
+<article>
+<header class="artifact-header">
+<h1>Visual Novel Prototype TDD Implementation Plan</h1>
+<span class="artifact-badge">markdown</span>
+<span class="artifact-meta">2026-07-24 14:58:41</span>
+</header>
+<h1>Visual Novel Experience Prototype — TDD Implementation Plan</h1>
+<blockquote>
+<p>Status: draft for review<br>Scope authority: <a href="09-experience-prototype-scope.md"><code>09-experience-prototype-scope.md</code></a><br>Product decision: illustrated map is primary chapter-navigation surface<br>Delivery rule: each numbered section is independently testable and committable</p>
+</blockquote>
+<h2>1. Goal</h2>
+<p>Implement isolated, disposable visual-novel UX prototype without changing current direct-duel behavior or creating production campaign architecture.</p>
+<p>Target flow:</p>
+<pre><code class="hljs language-text">Launcher
+→ Title
+→ New Game / mock Load
+→ Narrative
+→ Choice
+→ Illustrated map
+→ Pre-battle briefing
+→ Mock battle outcome
+→ Outcome scene
+→ Reward/progression
+→ Updated map
+→ Save feedback
+→ End/review</code></pre><h2>2. Mandatory TDD loop</h2>
+<p>Apply this loop to every committable section:</p>
+<ul>
+<li><input disabled="" type="checkbox"> Write smallest automated test proving next behavior.</li>
+<li><input disabled="" type="checkbox"> Run focused test; confirm failure for expected missing behavior.</li>
+<li><input disabled="" type="checkbox"> Record RED evidence in commit notes or working log.</li>
+<li><input disabled="" type="checkbox"> Implement minimum code needed to pass.</li>
+<li><input disabled="" type="checkbox"> Run focused test; confirm GREEN.</li>
+<li><input disabled="" type="checkbox"> Refactor only code introduced by current section.</li>
+<li><input disabled="" type="checkbox"> Re-run focused test after refactor.</li>
+<li><input disabled="" type="checkbox"> Run formatting, type, lint, unit, component, integration, build, reproducibility, browser gates through <code>npm run check</code>.</li>
+<li><input disabled="" type="checkbox"> Confirm current direct-duel E2E remains green.</li>
+<li><input disabled="" type="checkbox"> Commit section only after all gates pass.</li>
+</ul>
+<p>Never write production behavior before failing test. Visual-only details must still receive semantic/component, state, responsive, or browser assertions before implementation.</p>
+<h2>3. Commit boundaries</h2>
+<ul>
+<li><input disabled="" type="checkbox"> Keep each numbered section in one standalone commit.</li>
+<li><input disabled="" type="checkbox"> Do not mix unrelated cleanup, architecture migration, or duel changes into prototype commits.</li>
+<li><input disabled="" type="checkbox"> Keep current <code>index.html</code> direct-duel entry behavior unchanged.</li>
+<li><input disabled="" type="checkbox"> Keep prototype code under <code>src/prototype/</code> except required root/config/test/doc files.</li>
+<li><input disabled="" type="checkbox"> Do not import from <code>src/duel/</code>, <code>src/worker/</code>, <code>src/field/</code>, or <code>src/storage/</code>.</li>
+<li><input disabled="" type="checkbox"> Do not add runtime deps unless implementation cannot proceed with existing Svelte/Vite/Vitest/Playwright stack.</li>
+<li><input disabled="" type="checkbox"> Keep private-distribution safeguards intact.</li>
+<li><input disabled="" type="checkbox"> Use suggested commit message or repo-equivalent conventional style.</li>
+</ul>
+<hr>
+<h2>Section 0 — Baseline evidence</h2>
+<p><strong>Commit:</strong> none unless baseline documentation changes<br><strong>Purpose:</strong> prove starting tree is green before prototype work.</p>
+<h3>Steps</h3>
+<ul>
+<li><input disabled="" type="checkbox"> Record current branch and working-tree status without changing unrelated files.</li>
+<li><input disabled="" type="checkbox"> Record runtime snapshot ID and current test counts from latest trusted handoff.</li>
+<li><input disabled="" type="checkbox"> Run <code>npm run format:check</code>.</li>
+<li><input disabled="" type="checkbox"> Run <code>npm run lint</code>.</li>
+<li><input disabled="" type="checkbox"> Run <code>npm run typecheck</code>.</li>
+<li><input disabled="" type="checkbox"> Run <code>npm test</code>.</li>
+<li><input disabled="" type="checkbox"> Run <code>npm run build</code>.</li>
+<li><input disabled="" type="checkbox"> Run <code>npm run build:reproducible</code>.</li>
+<li><input disabled="" type="checkbox"> Run <code>npm run test:e2e</code>.</li>
+<li><input disabled="" type="checkbox"> Run <code>npm run check</code> as canonical baseline proof.</li>
+<li><input disabled="" type="checkbox"> Stop prototype work if failure represents current baseline rather than planned RED test.</li>
+<li><input disabled="" type="checkbox"> Save command/result summary in implementation notes.</li>
+</ul>
+<h3>Validation gate</h3>
+<ul>
+<li><input disabled="" type="checkbox"> Current direct-duel app initializes from root URL.</li>
+<li><input disabled="" type="checkbox"> Existing Worker/privacy/browser tests pass.</li>
+<li><input disabled="" type="checkbox"> No baseline repair is bundled into prototype commits.</li>
+</ul>
+<hr>
+<h2>Section 1 — Isolated prototype entry and boundary guard</h2>
+<p><strong>Suggested commit:</strong> <code>feat(prototype): add isolated visual novel entry</code></p>
+<h3>RED — tests first</h3>
+<ul>
+<li><input disabled="" type="checkbox"> Add <code>tests/unit/prototype/prototype-boundaries.test.ts</code>.</li>
+<li><input disabled="" type="checkbox"> Assert every source import under <code>src/prototype/</code> rejects <code>app</code>, <code>duel</code>, <code>field</code>, <code>storage</code>, and <code>worker</code> domains.</li>
+<li><input disabled="" type="checkbox"> Assert prototype entry cannot be current <code>src/main.ts</code>.</li>
+<li><input disabled="" type="checkbox"> Add <code>e2e/prototype-entry.spec.ts</code>.</li>
+<li><input disabled="" type="checkbox"> Assert <code>/prototype.html</code> loads heading <code>Visual novel prototype</code>.</li>
+<li><input disabled="" type="checkbox"> Assert prototype page exposes <code>Start full flow</code> and <code>Jump to screen or state</code>.</li>
+<li><input disabled="" type="checkbox"> Assert root URL still reaches current direct-duel UI.</li>
+<li><input disabled="" type="checkbox"> Run <code>npx vitest run tests/unit/prototype/prototype-boundaries.test.ts</code>; confirm RED because prototype entry does not exist.</li>
+<li><input disabled="" type="checkbox"> Run <code>npx playwright test e2e/prototype-entry.spec.ts --project=chromium</code>; confirm RED because <code>/prototype.html</code> is absent.</li>
+</ul>
+<h3>GREEN — minimum implementation</h3>
+<ul>
+<li><input disabled="" type="checkbox"> Add <code>prototype.html</code> with private/prototype metadata and <code>#prototype-app</code> mount point.</li>
+<li><input disabled="" type="checkbox"> Add <code>src/prototype/main.ts</code>.</li>
+<li><input disabled="" type="checkbox"> Add minimal <code>src/prototype/PrototypeApp.svelte</code> launcher shell.</li>
+<li><input disabled="" type="checkbox"> Add <code>src/prototype/styles.css</code> with prototype-scoped root tokens; do not mutate current <code>src/styles/app.css</code>.</li>
+<li><input disabled="" type="checkbox"> Configure Vite multi-page input for <code>index.html</code> and <code>prototype.html</code>.</li>
+<li><input disabled="" type="checkbox"> Update browser-build verifier to require packaged <code>prototype.html</code> while preserving all current runtime checks.</li>
+<li><input disabled="" type="checkbox"> Add clear prototype/private status copy.</li>
+<li><input disabled="" type="checkbox"> Re-run boundary unit test; confirm GREEN.</li>
+<li><input disabled="" type="checkbox"> Re-run prototype entry E2E; confirm GREEN.</li>
+</ul>
+<h3>Refactor and validation</h3>
+<ul>
+<li><input disabled="" type="checkbox"> Remove any accidental duplicate mount/config code.</li>
+<li><input disabled="" type="checkbox"> Run <code>npm run check</code>.</li>
+<li><input disabled="" type="checkbox"> Inspect production <code>dist/prototype.html</code>.</li>
+<li><input disabled="" type="checkbox"> Confirm prototype bundle does not initialize Worker or fetch runtime snapshot.</li>
+<li><input disabled="" type="checkbox"> Confirm root direct-duel bundle behavior remains unchanged.</li>
+<li><input disabled="" type="checkbox"> Commit only after gate passes.</li>
+</ul>
+<hr>
+<h2>Section 2 — Pure prototype state model and sample content</h2>
+<p><strong>Suggested commit:</strong> <code>feat(prototype): add tested story state model</code></p>
+<h3>RED — tests first</h3>
+<ul>
+<li><input disabled="" type="checkbox"> Add <code>tests/unit/prototype/prototype-state.test.ts</code>.</li>
+<li><input disabled="" type="checkbox"> Define expected screen union: launcher, title, load, narrative, map, pre-battle, battle mock, outcome, reward, end.</li>
+<li><input disabled="" type="checkbox"> Test New Game starts first narrative beat.</li>
+<li><input disabled="" type="checkbox"> Test Continue resumes mock progress.</li>
+<li><input disabled="" type="checkbox"> Test Load selects occupied manual/autosave slot.</li>
+<li><input disabled="" type="checkbox"> Test dialogue advance cannot skip two beats from duplicate input.</li>
+<li><input disabled="" type="checkbox"> Test choice records selected option once.</li>
+<li><input disabled="" type="checkbox"> Test immediate choice response differs by option.</li>
+<li><input disabled="" type="checkbox"> Test later map/story acknowledgment reads retained choice.</li>
+<li><input disabled="" type="checkbox"> Test map selection accepts available location only.</li>
+<li><input disabled="" type="checkbox"> Test locked/hidden locations cannot navigate.</li>
+<li><input disabled="" type="checkbox"> Test battle win/loss/abort/failure produce distinct state variants.</li>
+<li><input disabled="" type="checkbox"> Test win/loss route to separate scenes.</li>
+<li><input disabled="" type="checkbox"> Test abort/failure never grant progression.</li>
+<li><input disabled="" type="checkbox"> Test resolved outcome grants one reward/flag exactly once.</li>
+<li><input disabled="" type="checkbox"> Test reset returns pristine state.</li>
+<li><input disabled="" type="checkbox"> Test every state is serializable.</li>
+<li><input disabled="" type="checkbox"> Run <code>npx vitest run tests/unit/prototype/prototype-state.test.ts</code>; confirm RED.</li>
+</ul>
+<h3>GREEN — minimum implementation</h3>
+<ul>
+<li><input disabled="" type="checkbox"> Add <code>src/prototype/model/prototype-state.ts</code>.</li>
+<li><input disabled="" type="checkbox"> Add <code>src/prototype/model/prototype-reducer.ts</code>.</li>
+<li><input disabled="" type="checkbox"> Use small discriminated state/command unions; avoid production campaign abstractions.</li>
+<li><input disabled="" type="checkbox"> Add <code>src/prototype/content/prologue.ts</code> as typed in-code mock fixture.</li>
+<li><input disabled="" type="checkbox"> Author 25–40 provisional dialogue/narration beats.</li>
+<li><input disabled="" type="checkbox"> Author 2 speaking characters plus protagonist thought voice.</li>
+<li><input disabled="" type="checkbox"> Author one 2–3 option choice with immediate reactions.</li>
+<li><input disabled="" type="checkbox"> Author later choice acknowledgment.</li>
+<li><input disabled="" type="checkbox"> Author two illustrated-map locations: one available, one locked.</li>
+<li><input disabled="" type="checkbox"> Author reviewer-only hidden/completed/available-completed variants.</li>
+<li><input disabled="" type="checkbox"> Author pre-battle briefing.</li>
+<li><input disabled="" type="checkbox"> Author win, loss, abort, and technical-failure content.</li>
+<li><input disabled="" type="checkbox"> Author one reward/objective update.</li>
+<li><input disabled="" type="checkbox"> Implement pure reducer transitions only; no DOM/localStorage calls.</li>
+<li><input disabled="" type="checkbox"> Re-run state tests; confirm GREEN.</li>
+</ul>
+<h3>Refactor and validation</h3>
+<ul>
+<li><input disabled="" type="checkbox"> Remove unreachable commands and speculative generic APIs.</li>
+<li><input disabled="" type="checkbox"> Confirm reducer file stays prototype-specific.</li>
+<li><input disabled="" type="checkbox"> Run <code>npm run check</code>.</li>
+<li><input disabled="" type="checkbox"> Commit only after gate passes.</li>
+</ul>
+<hr>
+<h2>Section 3 — Visual-direction boards</h2>
+<p><strong>Suggested commit:</strong> <code>feat(prototype): add visual direction comparison</code></p>
+<h3>RED — tests first</h3>
+<ul>
+<li><input disabled="" type="checkbox"> Add <code>tests/component/prototype/VisualDirectionBoards.test.ts</code>.</li>
+<li><input disabled="" type="checkbox"> Assert exactly three named directions render: Existing client continuity, Duel-anime broadcast, Cinematic visual novel.</li>
+<li><input disabled="" type="checkbox"> Assert each direction uses same title, dialogue beat, and illustrated-map state.</li>
+<li><input disabled="" type="checkbox"> Assert each direction explains benefit and risk.</li>
+<li><input disabled="" type="checkbox"> Assert direction selection is keyboard-operable.</li>
+<li><input disabled="" type="checkbox"> Assert selected direction is exposed semantically.</li>
+<li><input disabled="" type="checkbox"> Run <code>npx vitest run tests/component/prototype/VisualDirectionBoards.test.ts</code>; confirm RED.</li>
+</ul>
+<h3>GREEN — minimum implementation</h3>
+<ul>
+<li><input disabled="" type="checkbox"> Add <code>src/prototype/components/VisualDirectionBoards.svelte</code>.</li>
+<li><input disabled="" type="checkbox"> Implement Direction A with dark navy, teal accent, restrained chrome.</li>
+<li><input disabled="" type="checkbox"> Implement Direction B with stronger broadcast framing and objective energy.</li>
+<li><input disabled="" type="checkbox"> Implement Direction C with image-dominant composition and quiet chrome.</li>
+<li><input disabled="" type="checkbox"> Ensure differences include hierarchy, density, typography, framing, or topology—not palette only.</li>
+<li><input disabled="" type="checkbox"> Set Direction A as proposed full-flow default without marking it approved.</li>
+<li><input disabled="" type="checkbox"> Add direction selection to launcher.</li>
+<li><input disabled="" type="checkbox"> Re-run component test; confirm GREEN.</li>
+</ul>
+<h3>Refactor and validation</h3>
+<ul>
+<li><input disabled="" type="checkbox"> Keep comparison styles scoped to direction boards.</li>
+<li><input disabled="" type="checkbox"> Avoid production token system or theme engine.</li>
+<li><input disabled="" type="checkbox"> Run <code>npm run check</code>.</li>
+<li><input disabled="" type="checkbox"> Manually inspect boards at 1280 × 720 and 375 × 667.</li>
+<li><input disabled="" type="checkbox"> Commit only after gate passes.</li>
+</ul>
+<hr>
+<h2>Section 4 — Title, New Game, Continue, Load</h2>
+<p><strong>Suggested commit:</strong> <code>feat(prototype): add title and mock load flow</code></p>
+<h3>RED — tests first</h3>
+<ul>
+<li><input disabled="" type="checkbox"> Add <code>tests/component/prototype/TitleAndLoad.test.ts</code>.</li>
+<li><input disabled="" type="checkbox"> Test title renders New Game, Load, Settings.</li>
+<li><input disabled="" type="checkbox"> Test Continue appears only when mock progress exists.</li>
+<li><input disabled="" type="checkbox"> Test New Game transitions directly to prologue.</li>
+<li><input disabled="" type="checkbox"> Test Continue resumes saved prototype screen.</li>
+<li><input disabled="" type="checkbox"> Test Load screen shows occupied manual slot, autosave, empty slot.</li>
+<li><input disabled="" type="checkbox"> Test save summaries include chapter/location, playtime, timestamp, preview.</li>
+<li><input disabled="" type="checkbox"> Test incompatible/corrupt example is reachable from reviewer state.</li>
+<li><input disabled="" type="checkbox"> Test Delete requires confirmation.</li>
+<li><input disabled="" type="checkbox"> Test Back restores title focus.</li>
+<li><input disabled="" type="checkbox"> Run <code>npx vitest run tests/component/prototype/TitleAndLoad.test.ts</code>; confirm RED.</li>
+</ul>
+<h3>GREEN — minimum implementation</h3>
+<ul>
+<li><input disabled="" type="checkbox"> Add <code>src/prototype/screens/TitleScreen.svelte</code>.</li>
+<li><input disabled="" type="checkbox"> Add <code>src/prototype/screens/LoadScreen.svelte</code>.</li>
+<li><input disabled="" type="checkbox"> Add reusable prototype-only confirm dialog if tests require it.</li>
+<li><input disabled="" type="checkbox"> Connect screens to pure prototype reducer.</li>
+<li><input disabled="" type="checkbox"> Add provisional title composition.</li>
+<li><input disabled="" type="checkbox"> Keep version/prototype marker secondary.</li>
+<li><input disabled="" type="checkbox"> Place initial focus on primary action.</li>
+<li><input disabled="" type="checkbox"> Implement empty/incompatible/corrupt load examples as mock states.</li>
+<li><input disabled="" type="checkbox"> Re-run component test; confirm GREEN.</li>
+</ul>
+<h3>Refactor and validation</h3>
+<ul>
+<li><input disabled="" type="checkbox"> Remove duplicated action/focus code introduced in section.</li>
+<li><input disabled="" type="checkbox"> Run <code>npm run check</code>.</li>
+<li><input disabled="" type="checkbox"> Keyboard-test New Game, Load, Delete confirmation, Back.</li>
+<li><input disabled="" type="checkbox"> Commit only after gate passes.</li>
+</ul>
+<hr>
+<h2>Section 5 — Narrative presentation and meaningful choice</h2>
+<p><strong>Suggested commit:</strong> <code>feat(prototype): add narrative and choice experience</code></p>
+<h3>RED — tests first</h3>
+<ul>
+<li><input disabled="" type="checkbox"> Add <code>tests/component/prototype/NarrativeScreen.test.ts</code>.</li>
+<li><input disabled="" type="checkbox"> Test narration, named dialogue, protagonist thought.</li>
+<li><input disabled="" type="checkbox"> Test one-character and two-character compositions.</li>
+<li><input disabled="" type="checkbox"> Test expression change and character exit.</li>
+<li><input disabled="" type="checkbox"> Test background change.</li>
+<li><input disabled="" type="checkbox"> Test short, long, and multiline dialogue.</li>
+<li><input disabled="" type="checkbox"> Test <code>Enter</code>, <code>Space</code>, click, and tap-equivalent advance one beat only.</li>
+<li><input disabled="" type="checkbox"> Test focused control blocks global advance shortcut.</li>
+<li><input disabled="" type="checkbox"> Test choice input cannot be accidentally selected by prior advance key.</li>
+<li><input disabled="" type="checkbox"> Test choice focus and selected semantics.</li>
+<li><input disabled="" type="checkbox"> Test immediate response changes by choice.</li>
+<li><input disabled="" type="checkbox"> Test Hide UI preserves narrative cursor.</li>
+<li><input disabled="" type="checkbox"> Test missing sprite/background fallback.</li>
+<li><input disabled="" type="checkbox"> Test complete dialogue line is exposed without character-by-character live-region spam.</li>
+<li><input disabled="" type="checkbox"> Run <code>npx vitest run tests/component/prototype/NarrativeScreen.test.ts</code>; confirm RED.</li>
+</ul>
+<h3>GREEN — minimum implementation</h3>
+<ul>
+<li><input disabled="" type="checkbox"> Add <code>src/prototype/screens/NarrativeScreen.svelte</code>.</li>
+<li><input disabled="" type="checkbox"> Add focused components only where independently testable: background, character layer, dialogue box, choice list, utility controls.</li>
+<li><input disabled="" type="checkbox"> Add replaceable local placeholder backgrounds/sprites with provenance note.</li>
+<li><input disabled="" type="checkbox"> Implement speaker, narration, thought, expression, enter/exit, background state.</li>
+<li><input disabled="" type="checkbox"> Implement visible advance cue.</li>
+<li><input disabled="" type="checkbox"> Implement keyboard/click/touch advance guard.</li>
+<li><input disabled="" type="checkbox"> Implement choice state and immediate acknowledgment.</li>
+<li><input disabled="" type="checkbox"> Implement Hide UI and restore action.</li>
+<li><input disabled="" type="checkbox"> Implement deterministic missing-asset fallback.</li>
+<li><input disabled="" type="checkbox"> Add restrained default transitions.</li>
+<li><input disabled="" type="checkbox"> Re-run narrative component test; confirm GREEN.</li>
+</ul>
+<h3>Refactor and validation</h3>
+<ul>
+<li><input disabled="" type="checkbox"> Remove duplicated speaker/asset mapping.</li>
+<li><input disabled="" type="checkbox"> Verify UI remains usable with animations disabled.</li>
+<li><input disabled="" type="checkbox"> Run <code>npm run check</code>.</li>
+<li><input disabled="" type="checkbox"> Complete narrative-to-choice path by keyboard only.</li>
+<li><input disabled="" type="checkbox"> Commit only after gate passes.</li>
+</ul>
+<hr>
+<h2>Section 6 — History, Settings, Pause, Save/Load overlays</h2>
+<p><strong>Suggested commit:</strong> <code>feat(prototype): add narrative utility overlays</code></p>
+<h3>RED — tests first</h3>
+<ul>
+<li><input disabled="" type="checkbox"> Add <code>tests/component/prototype/PrototypeOverlays.test.ts</code>.</li>
+<li><input disabled="" type="checkbox"> Test History lists current-scene entries in declared order.</li>
+<li><input disabled="" type="checkbox"> Test empty History state.</li>
+<li><input disabled="" type="checkbox"> Test Settings exposes text speed, auto speed, transition preference, disabled audio notice, fullscreen support state, reset.</li>
+<li><input disabled="" type="checkbox"> Test changed Settings state and reset.</li>
+<li><input disabled="" type="checkbox"> Test close restores invoking control.</li>
+<li><input disabled="" type="checkbox"> Test <code>Escape</code> closes only top overlay.</li>
+<li><input disabled="" type="checkbox"> Test Pause supports Resume, Save, Load, Settings, Return to Title.</li>
+<li><input disabled="" type="checkbox"> Test unsaved progress requires Return to Title confirmation.</li>
+<li><input disabled="" type="checkbox"> Test Save success, overwrite, and simulated failure states.</li>
+<li><input disabled="" type="checkbox"> Test Auto and Skip are marked experimental, not fully functional.</li>
+<li><input disabled="" type="checkbox"> Run <code>npx vitest run tests/component/prototype/PrototypeOverlays.test.ts</code>; confirm RED.</li>
+</ul>
+<h3>GREEN — minimum implementation</h3>
+<ul>
+<li><input disabled="" type="checkbox"> Add <code>src/prototype/overlays/HistoryOverlay.svelte</code>.</li>
+<li><input disabled="" type="checkbox"> Add <code>src/prototype/overlays/SettingsOverlay.svelte</code>.</li>
+<li><input disabled="" type="checkbox"> Add <code>src/prototype/overlays/PauseOverlay.svelte</code>.</li>
+<li><input disabled="" type="checkbox"> Add <code>src/prototype/overlays/SaveLoadOverlay.svelte</code> or reuse tested Load surface where simpler.</li>
+<li><input disabled="" type="checkbox"> Use semantic dialog behavior with explicit label and bounded scroll.</li>
+<li><input disabled="" type="checkbox"> Implement focus placement, trap, close, and restoration.</li>
+<li><input disabled="" type="checkbox"> Implement prototype settings in local component/state model only.</li>
+<li><input disabled="" type="checkbox"> Keep audio controls disabled with explicit prototype copy.</li>
+<li><input disabled="" type="checkbox"> Implement Save feedback without production persistence contracts.</li>
+<li><input disabled="" type="checkbox"> Re-run overlay component test; confirm GREEN.</li>
+</ul>
+<h3>Refactor and validation</h3>
+<ul>
+<li><input disabled="" type="checkbox"> Consolidate only genuinely repeated dialog behavior.</li>
+<li><input disabled="" type="checkbox"> Avoid modal nesting beyond one tested confirmation layer.</li>
+<li><input disabled="" type="checkbox"> Run <code>npm run check</code>.</li>
+<li><input disabled="" type="checkbox"> Keyboard-test overlay open/close/focus paths.</li>
+<li><input disabled="" type="checkbox"> Commit only after gate passes.</li>
+</ul>
+<hr>
+<h2>Section 7 — Illustrated map hub</h2>
+<p><strong>Suggested commit:</strong> <code>feat(prototype): add illustrated map navigation</code></p>
+<p><strong>Fixed decision:</strong> illustrated map is primary chapter navigation. No chapter-menu variant.</p>
+<h3>RED — tests first</h3>
+<ul>
+<li><input disabled="" type="checkbox"> Add <code>tests/component/prototype/IllustratedMap.test.ts</code>.</li>
+<li><input disabled="" type="checkbox"> Test illustrated map, objective, hotspot layer, marker states, location list.</li>
+<li><input disabled="" type="checkbox"> Test hotspot and list expose same location IDs.</li>
+<li><input disabled="" type="checkbox"> Test focusing/selecting hotspot synchronizes list detail.</li>
+<li><input disabled="" type="checkbox"> Test focusing/selecting list synchronizes hotspot detail.</li>
+<li><input disabled="" type="checkbox"> Test available location navigates to destination.</li>
+<li><input disabled="" type="checkbox"> Test locked location remains visible, explains reason, cannot activate.</li>
+<li><input disabled="" type="checkbox"> Test hidden location appears in neither hotspot nor list.</li>
+<li><input disabled="" type="checkbox"> Test completed styling remains separate from access.</li>
+<li><input disabled="" type="checkbox"> Test available-completed location remains selectable.</li>
+<li><input disabled="" type="checkbox"> Test authored order controls keyboard order, not absolute coordinates.</li>
+<li><input disabled="" type="checkbox"> Test Back renders only when state allows it.</li>
+<li><input disabled="" type="checkbox"> Test every interactive map target has accessible name/state/marker description.</li>
+<li><input disabled="" type="checkbox"> Run <code>npx vitest run tests/component/prototype/IllustratedMap.test.ts</code>; confirm RED.</li>
+</ul>
+<h3>GREEN — minimum implementation</h3>
+<ul>
+<li><input disabled="" type="checkbox"> Add <code>src/prototype/screens/IllustratedMapScreen.svelte</code>.</li>
+<li><input disabled="" type="checkbox"> Add one replaceable illustrated map asset.</li>
+<li><input disabled="" type="checkbox"> Add percentage-positioned hotspot buttons.</li>
+<li><input disabled="" type="checkbox"> Add always-present equivalent location list.</li>
+<li><input disabled="" type="checkbox"> Add objective panel.</li>
+<li><input disabled="" type="checkbox"> Add available, locked, hidden, completed, available-completed presentation.</li>
+<li><input disabled="" type="checkbox"> Add synchronized selection/detail preview.</li>
+<li><input disabled="" type="checkbox"> Add marker styles for story, battle, locked, completed.</li>
+<li><input disabled="" type="checkbox"> Add clear locked reason.</li>
+<li><input disabled="" type="checkbox"> Connect available location to pre-battle/story destination.</li>
+<li><input disabled="" type="checkbox"> Re-run illustrated-map component test; confirm GREEN.</li>
+</ul>
+<h3>Refactor and validation</h3>
+<ul>
+<li><input disabled="" type="checkbox"> Keep map evaluation as mock view state; do not build production condition engine.</li>
+<li><input disabled="" type="checkbox"> Verify no chapter menu was added.</li>
+<li><input disabled="" type="checkbox"> Run <code>npm run check</code>.</li>
+<li><input disabled="" type="checkbox"> Test map by keyboard, pointer, and 375px touch viewport.</li>
+<li><input disabled="" type="checkbox"> Commit only after gate passes.</li>
+</ul>
+<hr>
+<h2>Section 8 — Pre-battle briefing and mock battle boundary</h2>
+<p><strong>Suggested commit:</strong> <code>feat(prototype): add mock battle handoff</code></p>
+<h3>RED — tests first</h3>
+<ul>
+<li><input disabled="" type="checkbox"> Add <code>tests/component/prototype/BattleHandoff.test.ts</code>.</li>
+<li><input disabled="" type="checkbox"> Test briefing shows opponent, stakes, deck labels, objective/format.</li>
+<li><input disabled="" type="checkbox"> Test Start Duel enters battle handoff once.</li>
+<li><input disabled="" type="checkbox"> Test Return to Map appears only when allowed.</li>
+<li><input disabled="" type="checkbox"> Test mock pre-battle save confirmation appears.</li>
+<li><input disabled="" type="checkbox"> Test reviewer controls simulate win, loss, abort, technical failure.</li>
+<li><input disabled="" type="checkbox"> Test reviewer controls are clearly labeled non-player tooling.</li>
+<li><input disabled="" type="checkbox"> Test win and loss produce distinct normalized prototype outcomes.</li>
+<li><input disabled="" type="checkbox"> Test abort offers retry/return without progression.</li>
+<li><input disabled="" type="checkbox"> Test technical failure offers retry/return without story defeat.</li>
+<li><input disabled="" type="checkbox"> Test no mock action imports or invokes real Worker.</li>
+<li><input disabled="" type="checkbox"> Run <code>npx vitest run tests/component/prototype/BattleHandoff.test.ts</code>; confirm RED.</li>
+</ul>
+<h3>GREEN — minimum implementation</h3>
+<ul>
+<li><input disabled="" type="checkbox"> Add <code>src/prototype/screens/PreBattleScreen.svelte</code>.</li>
+<li><input disabled="" type="checkbox"> Add <code>src/prototype/screens/BattleHandoffScreen.svelte</code>.</li>
+<li><input disabled="" type="checkbox"> Add one strong but reduced-motion-safe battle transition.</li>
+<li><input disabled="" type="checkbox"> Frame current duel experience as placeholder without reproducing duel field.</li>
+<li><input disabled="" type="checkbox"> Add reviewer-only outcome selector.</li>
+<li><input disabled="" type="checkbox"> Route win/loss/abort/failure through pure reducer.</li>
+<li><input disabled="" type="checkbox"> Keep technical failure visually and semantically separate from authored loss.</li>
+<li><input disabled="" type="checkbox"> Re-run battle-handoff component test; confirm GREEN.</li>
+</ul>
+<h3>Refactor and validation</h3>
+<ul>
+<li><input disabled="" type="checkbox"> Remove any accidental duel-domain import.</li>
+<li><input disabled="" type="checkbox"> Re-run prototype boundary unit test.</li>
+<li><input disabled="" type="checkbox"> Run <code>npm run check</code>.</li>
+<li><input disabled="" type="checkbox"> Confirm network log shows no duel runtime/WASM fetch on prototype flow.</li>
+<li><input disabled="" type="checkbox"> Commit only after gate passes.</li>
+</ul>
+<hr>
+<h2>Section 9 — Outcome, reward, progression, prototype persistence</h2>
+<p><strong>Suggested commit:</strong> <code>feat(prototype): add outcomes and progression feedback</code></p>
+<h3>RED — tests first</h3>
+<ul>
+<li><input disabled="" type="checkbox"> Add <code>tests/component/prototype/OutcomeProgression.test.ts</code>.</li>
+<li><input disabled="" type="checkbox"> Test player win renders win-specific scene.</li>
+<li><input disabled="" type="checkbox"> Test player loss renders loss-specific scene.</li>
+<li><input disabled="" type="checkbox"> Test both resolved branches can continue.</li>
+<li><input disabled="" type="checkbox"> Test abort/failure recovery never renders reward.</li>
+<li><input disabled="" type="checkbox"> Test reward/flag reveal occurs once.</li>
+<li><input disabled="" type="checkbox"> Test objective copy changes after resolved battle.</li>
+<li><input disabled="" type="checkbox"> Test illustrated-map completed/available state changes after reward acknowledgment.</li>
+<li><input disabled="" type="checkbox"> Test autosave indicator appears only at stable boundary.</li>
+<li><input disabled="" type="checkbox"> Test manual Save writes mock state.</li>
+<li><input disabled="" type="checkbox"> Test storage failure preserves playable in-memory state.</li>
+<li><input disabled="" type="checkbox"> Add <code>tests/unit/prototype/prototype-storage.test.ts</code>.</li>
+<li><input disabled="" type="checkbox"> Test localStorage adapter exact parsing, missing value, invalid value, reset.</li>
+<li><input disabled="" type="checkbox"> Test adapter never reads/writes production DB or snapshot keys.</li>
+<li><input disabled="" type="checkbox"> Run focused component/unit tests; confirm RED.</li>
+</ul>
+<h3>GREEN — minimum implementation</h3>
+<ul>
+<li><input disabled="" type="checkbox"> Add <code>src/prototype/screens/OutcomeScreen.svelte</code>.</li>
+<li><input disabled="" type="checkbox"> Add <code>src/prototype/screens/RewardScreen.svelte</code>.</li>
+<li><input disabled="" type="checkbox"> Add <code>src/prototype/storage/prototype-storage.ts</code> using namespaced <code>localStorage</code> key.</li>
+<li><input disabled="" type="checkbox"> Add one compact reward/progression treatment.</li>
+<li><input disabled="" type="checkbox"> Add explicit objective update.</li>
+<li><input disabled="" type="checkbox"> Update illustrated-map mock state after resolved outcome.</li>
+<li><input disabled="" type="checkbox"> Add non-blocking autosave feedback.</li>
+<li><input disabled="" type="checkbox"> Add manual Save success, overwrite, and failure feedback.</li>
+<li><input disabled="" type="checkbox"> Keep <code>Continue Without Saving</code> available after simulated failure.</li>
+<li><input disabled="" type="checkbox"> Re-run focused tests; confirm GREEN.</li>
+</ul>
+<h3>Refactor and validation</h3>
+<ul>
+<li><input disabled="" type="checkbox"> Keep serialization shape local and disposable.</li>
+<li><input disabled="" type="checkbox"> Confirm no IndexedDB/save-domain abstraction was introduced.</li>
+<li><input disabled="" type="checkbox"> Run <code>npm run check</code>.</li>
+<li><input disabled="" type="checkbox"> Reload browser and verify mock Continue/Load behavior.</li>
+<li><input disabled="" type="checkbox"> Commit only after gate passes.</li>
+</ul>
+<hr>
+<h2>Section 10 — Reviewer launcher, state controls, shareable links</h2>
+<p><strong>Suggested commit:</strong> <code>feat(prototype): add reviewer state tooling</code></p>
+<h3>RED — tests first</h3>
+<ul>
+<li><input disabled="" type="checkbox"> Add <code>tests/component/prototype/ReviewerTools.test.ts</code>.</li>
+<li><input disabled="" type="checkbox"> Test every state-matrix entry is reachable within two actions from launcher/review drawer.</li>
+<li><input disabled="" type="checkbox"> Test jump-to-screen.</li>
+<li><input disabled="" type="checkbox"> Test set choice result.</li>
+<li><input disabled="" type="checkbox"> Test map available/locked/hidden/completed/available-completed controls.</li>
+<li><input disabled="" type="checkbox"> Test battle result selector.</li>
+<li><input disabled="" type="checkbox"> Test missing-asset toggle.</li>
+<li><input disabled="" type="checkbox"> Test save/storage-failure toggle.</li>
+<li><input disabled="" type="checkbox"> Test reduced-motion preview toggle.</li>
+<li><input disabled="" type="checkbox"> Test reset.</li>
+<li><input disabled="" type="checkbox"> Test readable current-state JSON.</li>
+<li><input disabled="" type="checkbox"> Test reviewer controls remain clearly separate from player UI.</li>
+<li><input disabled="" type="checkbox"> Add <code>tests/unit/prototype/review-link.test.ts</code>.</li>
+<li><input disabled="" type="checkbox"> Test supported state serializes into bounded URL query.</li>
+<li><input disabled="" type="checkbox"> Test malformed/unknown query values fall back safely.</li>
+<li><input disabled="" type="checkbox"> Test copied link restores same supported review state.</li>
+<li><input disabled="" type="checkbox"> Run focused tests; confirm RED.</li>
+</ul>
+<h3>GREEN — minimum implementation</h3>
+<ul>
+<li><input disabled="" type="checkbox"> Add <code>src/prototype/review/ReviewLauncher.svelte</code>.</li>
+<li><input disabled="" type="checkbox"> Add <code>src/prototype/review/ReviewDrawer.svelte</code>.</li>
+<li><input disabled="" type="checkbox"> Add <code>src/prototype/review/review-link.ts</code>.</li>
+<li><input disabled="" type="checkbox"> Expose all required state-matrix variants.</li>
+<li><input disabled="" type="checkbox"> Add state JSON view.</li>
+<li><input disabled="" type="checkbox"> Add reset action.</li>
+<li><input disabled="" type="checkbox"> Add bounded shareable review link.</li>
+<li><input disabled="" type="checkbox"> Ignore unknown/unsafe query data.</li>
+<li><input disabled="" type="checkbox"> Add persistent <code>Reviewer tools</code> label/chrome distinct from player UI.</li>
+<li><input disabled="" type="checkbox"> Re-run focused tests; confirm GREEN.</li>
+</ul>
+<h3>Refactor and validation</h3>
+<ul>
+<li><input disabled="" type="checkbox"> Remove duplicate state-construction logic; reuse tested prototype fixtures.</li>
+<li><input disabled="" type="checkbox"> Confirm reviewer query does not contain arbitrary JSON/code.</li>
+<li><input disabled="" type="checkbox"> Run <code>npm run check</code>.</li>
+<li><input disabled="" type="checkbox"> Manually verify every matrix state in at most two actions.</li>
+<li><input disabled="" type="checkbox"> Commit only after gate passes.</li>
+</ul>
+<hr>
+<h2>Section 11 — Responsive, accessibility, motion hardening</h2>
+<p><strong>Suggested commit:</strong> <code>fix(prototype): harden responsive and accessible UX</code></p>
+<h3>RED — tests first</h3>
+<ul>
+<li><input disabled="" type="checkbox"> Add <code>tests/unit/prototype/contrast.test.ts</code>.</li>
+<li><input disabled="" type="checkbox"> Test normal text token pairs meet 4.5:1.</li>
+<li><input disabled="" type="checkbox"> Test large text/non-text state pairs meet required contrast.</li>
+<li><input disabled="" type="checkbox"> Extend component tests for heading hierarchy, dialog labels, button names, state text, and focus restoration.</li>
+<li><input disabled="" type="checkbox"> Add <code>e2e/prototype-accessibility.spec.ts</code>.</li>
+<li><input disabled="" type="checkbox"> Test full core flow by keyboard only.</li>
+<li><input disabled="" type="checkbox"> Test no horizontal document overflow at 1280 × 720.</li>
+<li><input disabled="" type="checkbox"> Test no horizontal document overflow at 768 × 1024.</li>
+<li><input disabled="" type="checkbox"> Test no horizontal document overflow at 375 × 667.</li>
+<li><input disabled="" type="checkbox"> Test no horizontal document overflow at 667 × 375.</li>
+<li><input disabled="" type="checkbox"> Test 44 × 44 minimum interactive map/control targets at touch viewports.</li>
+<li><input disabled="" type="checkbox"> Test overlays remain inside viewport and scroll internally.</li>
+<li><input disabled="" type="checkbox"> Test long dialogue and location names do not clip.</li>
+<li><input disabled="" type="checkbox"> Test 200% text zoom retains core actions.</li>
+<li><input disabled="" type="checkbox"> Test reduced-motion media query removes movement-dependent transitions.</li>
+<li><input disabled="" type="checkbox"> Test screen changes place focus on meaningful heading/action.</li>
+<li><input disabled="" type="checkbox"> Run focused tests; confirm RED for current gaps.</li>
+</ul>
+<h3>GREEN — minimum implementation</h3>
+<ul>
+<li><input disabled="" type="checkbox"> Fix scoped prototype tokens until contrast tests pass.</li>
+<li><input disabled="" type="checkbox"> Add structural responsive breakpoints for narrative, map, overlays, launcher.</li>
+<li><input disabled="" type="checkbox"> Add safe-area padding.</li>
+<li><input disabled="" type="checkbox"> Ensure map location list remains visible on mobile.</li>
+<li><input disabled="" type="checkbox"> Ensure dialogue/choice controls remain readable above mobile viewport controls.</li>
+<li><input disabled="" type="checkbox"> Ensure all touch targets meet minimum size.</li>
+<li><input disabled="" type="checkbox"> Add <code>prefers-reduced-motion</code> alternatives.</li>
+<li><input disabled="" type="checkbox"> Fix heading/focus order and overlay restoration gaps.</li>
+<li><input disabled="" type="checkbox"> Add textual locked/completed/error state cues independent of color.</li>
+<li><input disabled="" type="checkbox"> Re-run focused unit/component/E2E tests; confirm GREEN.</li>
+</ul>
+<h3>Refactor and validation</h3>
+<ul>
+<li><input disabled="" type="checkbox"> Remove one-off responsive overrides made obsolete by structural layout.</li>
+<li><input disabled="" type="checkbox"> Run <code>npm run check</code>.</li>
+<li><input disabled="" type="checkbox"> Manually inspect desktop, tablet, mobile portrait, mobile landscape.</li>
+<li><input disabled="" type="checkbox"> Manually inspect with OS/browser reduced motion enabled.</li>
+<li><input disabled="" type="checkbox"> Commit only after gate passes.</li>
+</ul>
+<hr>
+<h2>Section 12 — Full-flow E2E, docs, review handoff</h2>
+<p><strong>Suggested commit:</strong> <code>test(prototype): complete review-ready flow</code></p>
+<h3>RED — tests first</h3>
+<ul>
+<li><input disabled="" type="checkbox"> Add <code>e2e/prototype-flow.spec.ts</code>.</li>
+<li><input disabled="" type="checkbox"> Test launcher → New Game → narrative → choice → illustrated map → briefing → win → reward → updated map → save → end.</li>
+<li><input disabled="" type="checkbox"> Test Load path reaches narrative.</li>
+<li><input disabled="" type="checkbox"> Test loss path reaches distinct outcome and continues.</li>
+<li><input disabled="" type="checkbox"> Test abort path offers retry/return without reward.</li>
+<li><input disabled="" type="checkbox"> Test technical-failure path offers recovery without loss semantics.</li>
+<li><input disabled="" type="checkbox"> Test hotspot path.</li>
+<li><input disabled="" type="checkbox"> Test equivalent location-list path.</li>
+<li><input disabled="" type="checkbox"> Test missing-asset fallback path.</li>
+<li><input disabled="" type="checkbox"> Test save failure plus Continue Without Saving.</li>
+<li><input disabled="" type="checkbox"> Test reset returns pristine launcher/title state.</li>
+<li><input disabled="" type="checkbox"> Test root direct-duel entry remains unchanged.</li>
+<li><input disabled="" type="checkbox"> Run <code>npx playwright test e2e/prototype-flow.spec.ts --project=chromium</code>; confirm RED for unfinished flow/docs markers.</li>
+</ul>
+<h3>GREEN — completion work</h3>
+<ul>
+<li><input disabled="" type="checkbox"> Fix only missing end-to-end wiring exposed by RED tests.</li>
+<li><input disabled="" type="checkbox"> Add <code>src/prototype/README.md</code>.</li>
+<li><input disabled="" type="checkbox"> Document launch command, <code>/prototype.html</code> URL, reset method, reviewer tools, known limits.</li>
+<li><input disabled="" type="checkbox"> Add <code>docs/card-game-vn-handoff/prototype-review-notes.md</code> template.</li>
+<li><input disabled="" type="checkbox"> Include accepted, rejected, unresolved, evidence, next-round sections.</li>
+<li><input disabled="" type="checkbox"> Add placeholder-asset provenance notes.</li>
+<li><input disabled="" type="checkbox"> Ensure Auto/Skip/audio limitations are explicit.</li>
+<li><input disabled="" type="checkbox"> Ensure real duel integration remains listed as optional next round.</li>
+<li><input disabled="" type="checkbox"> Re-run full-flow E2E; confirm GREEN.</li>
+</ul>
+<h3>Final validation</h3>
+<ul>
+<li><input disabled="" type="checkbox"> Run <code>npm run format</code>.</li>
+<li><input disabled="" type="checkbox"> Run <code>npm run format:check</code>.</li>
+<li><input disabled="" type="checkbox"> Run <code>npm run lint</code>.</li>
+<li><input disabled="" type="checkbox"> Run <code>npm run typecheck</code>.</li>
+<li><input disabled="" type="checkbox"> Run <code>npm test</code>.</li>
+<li><input disabled="" type="checkbox"> Run <code>npm run build</code>.</li>
+<li><input disabled="" type="checkbox"> Run <code>npm run build:reproducible</code>.</li>
+<li><input disabled="" type="checkbox"> Run <code>npm run test:e2e</code>.</li>
+<li><input disabled="" type="checkbox"> Run <code>npm run check</code>.</li>
+<li><input disabled="" type="checkbox"> Confirm production package remains private-only.</li>
+<li><input disabled="" type="checkbox"> Confirm prototype page performs no Worker/WASM/runtime fetch.</li>
+<li><input disabled="" type="checkbox"> Confirm every scope acceptance criterion has automated or recorded manual evidence.</li>
+<li><input disabled="" type="checkbox"> Confirm all required review states are reachable within two actions.</li>
+<li><input disabled="" type="checkbox"> Commit only after all gates pass.</li>
+</ul>
+<hr>
+<h2>4. Expected file map</h2>
+<p>This map is guidance, not permission to create unused abstractions.</p>
+<pre><code class="hljs language-text">prototype.html
+src/prototype/
+├── main.ts
+├── PrototypeApp.svelte
+├── styles.css
+├── README.md
+├── assets/
+├── content/
+│   └── prologue.ts
+├── model/
+│   ├── prototype-state.ts
+│   └── prototype-reducer.ts
+├── storage/
+│   └── prototype-storage.ts
+├── review/
+│   ├── ReviewLauncher.svelte
+│   ├── ReviewDrawer.svelte
+│   └── review-link.ts
+├── screens/
+│   ├── TitleScreen.svelte
+│   ├── LoadScreen.svelte
+│   ├── NarrativeScreen.svelte
+│   ├── IllustratedMapScreen.svelte
+│   ├── PreBattleScreen.svelte
+│   ├── BattleHandoffScreen.svelte
+│   ├── OutcomeScreen.svelte
+│   └── RewardScreen.svelte
+├── overlays/
+│   ├── HistoryOverlay.svelte
+│   ├── SettingsOverlay.svelte
+│   ├── PauseOverlay.svelte
+│   └── SaveLoadOverlay.svelte
+└── components/
+    └── VisualDirectionBoards.svelte
+
+tests/unit/prototype/
+tests/component/prototype/
+e2e/
+├── prototype-entry.spec.ts
+├── prototype-accessibility.spec.ts
+└── prototype-flow.spec.ts</code></pre><ul>
+<li><input disabled="" type="checkbox"> Create file only when owning section first needs it.</li>
+<li><input disabled="" type="checkbox"> Keep tiny private helpers beside sole consumer.</li>
+<li><input disabled="" type="checkbox"> Remove files/components rendered unnecessary by simpler implementation.</li>
+</ul>
+<h2>5. Final definition of done</h2>
+<ul>
+<li><input disabled="" type="checkbox"> All 13 sections completed in order.</li>
+<li><input disabled="" type="checkbox"> Every behavior started from observed RED test.</li>
+<li><input disabled="" type="checkbox"> Every section ended with focused GREEN plus full <code>npm run check</code>.</li>
+<li><input disabled="" type="checkbox"> Each implementation section is represented by standalone commit.</li>
+<li><input disabled="" type="checkbox"> Illustrated map is primary chapter navigation.</li>
+<li><input disabled="" type="checkbox"> Accessible location list remains equivalent selection surface.</li>
+<li><input disabled="" type="checkbox"> Full prototype flow has no dead ends.</li>
+<li><input disabled="" type="checkbox"> Win/loss/abort/failure semantics remain distinct.</li>
+<li><input disabled="" type="checkbox"> Reviewer tooling exposes complete state matrix.</li>
+<li><input disabled="" type="checkbox"> Desktop/mobile/keyboard/touch/reduced-motion paths pass.</li>
+<li><input disabled="" type="checkbox"> Existing direct-duel app and runtime remain unchanged.</li>
+<li><input disabled="" type="checkbox"> Prototype stays private, isolated, disposable.</li>
+<li><input disabled="" type="checkbox"> Review notes capture product decisions before production architecture work begins.</li>
+</ul>
+
+<footer class="artifact-footer">source: C:\Users\Natha\coding\ygo-story-duel-simulator</footer>
+</article>
+
+<script>
+(function () {
+  var slug = "visual-novel-prototype-tdd-implementation-plan";
+  var es = new EventSource("/events");
+  es.addEventListener("reload", function (e) {
+    try { if (e.data === slug || e.data === "*") location.reload(); } catch (_) {}
+  });
+})();
+</script>
+</body>
+</html>

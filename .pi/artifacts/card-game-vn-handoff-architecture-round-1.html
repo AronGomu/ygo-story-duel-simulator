@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="artifact-kind" content="html">
+<meta name="artifact-generated" content="1784885333870">
+<meta name="artifact-project" content="C:\Users\Natha\coding\ygo-story-duel-simulator">
+<title>Card Game VN Handoff Architecture — Round 1</title>
+<style data-base>:root { color-scheme: light dark;
+  --bg: #ffffff;
+  --fg: #1c1c1a;
+  --muted: #6b6862;
+  --border: #e7e5e0;
+  --code-bg: #f7f6f4;
+  --accent: #b95730;
+  --add-bg: #e9f7ee;
+  --add-word-bg: #c8ecd3;
+  --add-fg: #1a7f37;
+  --del-bg: #feeff1;
+  --del-word-bg: #f8d2d7;
+  --del-fg: #c93c4c;
+  --hl-comment: #6e7781;
+  --hl-keyword: #cf222e;
+  --hl-string: #0a3069;
+  --hl-number: #0550ae;
+  --hl-title: #8250df;
+  --hl-type: #953800;
+  --hl-attr: #0550ae;
+}
+@media (prefers-color-scheme: dark) { :root {
+  --bg: #171614;
+  --fg: #e6e3de;
+  --muted: #94918a;
+  --border: #2e2d29;
+  --code-bg: #201f1c;
+  --accent: #d67858;
+  --add-bg: #1d2a20;
+  --add-word-bg: #2b4232;
+  --add-fg: #85c793;
+  --del-bg: #2e1c1e;
+  --del-word-bg: #4a292c;
+  --del-fg: #e28a91;
+  --hl-comment: #8b949e;
+  --hl-keyword: #ff7b72;
+  --hl-string: #a5d6ff;
+  --hl-number: #79c0ff;
+  --hl-title: #d2a8ff;
+  --hl-type: #ffa657;
+  --hl-attr: #79c0ff;
+} }
+
+* { box-sizing: border-box; }
+html { font-size: 15px; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+article { max-width: 860px; margin: 0 auto; padding: 2.75rem 1.5rem 4rem; }
+h1, h2, h3, h4 { line-height: 1.3; letter-spacing: -0.01em; color: var(--fg); }
+h1 { font-size: 1.45rem; font-weight: 650; margin: 0 0 1rem; }
+h2 { font-size: 1.15rem; font-weight: 650; margin: 2.2em 0 .7em; padding-bottom: .35em; border-bottom: 1px solid var(--border); }
+h3 { font-size: 1rem; font-weight: 600; margin: 1.8em 0 .5em; }
+h4 { font-size: .9rem; font-weight: 600; margin: 1.5em 0 .4em; }
+p { margin: .8em 0; }
+a { color: var(--accent); text-decoration: underline; text-decoration-color: color-mix(in srgb, var(--accent) 35%, transparent); text-underline-offset: 2px; }
+a:hover { text-decoration-color: var(--accent); }
+strong { font-weight: 600; }
+ul, ol { margin: .8em 0; padding-left: 1.5em; }
+li { margin: .3em 0; }
+li > ul, li > ol { margin: .2em 0; }
+hr { border: none; border-top: 1px solid var(--border); margin: 2.5em 0; }
+img, svg, video { max-width: 100%; }
+::selection { background: color-mix(in srgb, var(--accent) 25%, transparent); }
+
+blockquote {
+  margin: 1.2em 0;
+  padding: .1em 1.1em;
+  border-left: 3px solid color-mix(in srgb, var(--accent) 55%, transparent);
+  color: var(--muted);
+}
+blockquote > :first-child { margin-top: .4em; }
+blockquote > :last-child { margin-bottom: .4em; }
+
+table { border-collapse: collapse; width: 100%; margin: 1.2em 0; font-size: .9rem; }
+th {
+  text-align: left; font-weight: 600; font-size: .74rem;
+  text-transform: uppercase; letter-spacing: .06em; color: var(--muted);
+  padding: .5em .75em; border-bottom: 1px solid var(--border);
+}
+td { padding: .55em .75em; border-bottom: 1px solid var(--border); vertical-align: top; }
+tr:last-child td { border-bottom: none; }
+
+code, kbd, samp { font-family: ui-monospace, "SF Mono", "JetBrains Mono", "Cascadia Code", Menlo, Consolas, "Liberation Mono", monospace; }
+code { font-size: .85em; background: var(--code-bg); padding: .15em .4em; border-radius: 4px; }
+pre {
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 1em 1.2em;
+  overflow-x: auto;
+  font-size: .82rem;
+  line-height: 1.55;
+  margin: 1.2em 0;
+}
+pre code { background: transparent; padding: 0; font-size: inherit; }
+
+input[type="checkbox"] { accent-color: var(--accent); margin-right: .4em; }
+
+
+.artifact-header {
+  display: flex; align-items: baseline; gap: .75rem; flex-wrap: wrap;
+  margin-bottom: 2rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border);
+}
+.artifact-header h1 { margin: 0; }
+.artifact-badge {
+  font-family: ui-monospace, "SF Mono", "JetBrains Mono", "Cascadia Code", Menlo, Consolas, "Liberation Mono", monospace; font-size: .66rem; text-transform: uppercase;
+  letter-spacing: .08em; color: var(--accent);
+  border: 1px solid color-mix(in srgb, var(--accent) 35%, transparent);
+  border-radius: 999px; padding: .2em .7em; white-space: nowrap;
+}
+.artifact-meta { margin-left: auto; color: var(--muted); font-size: .72rem; font-family: ui-monospace, "SF Mono", "JetBrains Mono", "Cascadia Code", Menlo, Consolas, "Liberation Mono", monospace; }
+.artifact-footer {
+  margin-top: 4rem; padding-top: 1rem; border-top: 1px solid var(--border);
+  color: var(--muted); font-size: .72rem; font-family: ui-monospace, "SF Mono", "JetBrains Mono", "Cascadia Code", Menlo, Consolas, "Liberation Mono", monospace;
+}
+.artifact-mermaid { text-align: center; margin: 1.5rem 0; }
+</style>
+</head>
+<body>
+<article>
+<header class="artifact-header">
+<h1>Card Game VN Handoff Architecture — Round 1</h1>
+<span class="artifact-badge">html</span>
+<span class="artifact-meta">2026-07-24 09:28:53</span>
+</header>
+<style>
+  .handoff-report { max-width: 980px; margin: 0 auto; }
+  .handoff-report header { padding: 1rem 0 2rem; border-bottom: 1px solid var(--border); }
+  .handoff-report h1 { margin-bottom: .45rem; letter-spacing: -.025em; }
+  .handoff-report h2 { margin-top: 2.5rem; }
+  .handoff-report h3 { margin: 0 0 .75rem; }
+  .lede, .muted { color: var(--muted); }
+  .lede { max-width: 72ch; font-size: 1.05rem; }
+  .status-row { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: 1rem; }
+  .tag { border: 1px solid var(--border); border-radius: 999px; padding: .25rem .65rem; font-size: .82rem; }
+  .tag.accent { color: var(--accent); border-color: var(--accent); }
+  .comparison { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .8rem; }
+  .fact { border: 1px solid var(--border); border-radius: 10px; padding: 1rem; }
+  .fact h3 { font-size: .96rem; }
+  .fact p { margin: .35rem 0; }
+  .refs { margin-top: .7rem; color: var(--muted); font-size: .79rem; line-height: 1.45; }
+  .delta-table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
+  .delta-table th, .delta-table td { border-bottom: 1px solid var(--border); padding: .75rem .6rem; text-align: left; vertical-align: top; }
+  .delta-table th { font-size: .82rem; color: var(--muted); }
+  .tree { border-left: 3px solid var(--accent); padding: .85rem 1rem; background: var(--code-bg); border-radius: 0 8px 8px 0; }
+  .round { margin-top: 1.25rem; }
+  .question { border: 1px solid var(--border); border-radius: 12px; padding: 1.15rem; margin: 1rem 0; }
+  .question-number { color: var(--accent); font-weight: 700; font-size: .82rem; text-transform: uppercase; letter-spacing: .06em; }
+  .question fieldset { border: 0; padding: 0; margin: .9rem 0 0; }
+  .question label.choice { display: grid; grid-template-columns: auto 1fr; gap: .65rem; align-items: start; padding: .65rem .7rem; margin: .45rem 0; border: 1px solid var(--border); border-radius: 8px; cursor: pointer; }
+  .question label.choice:hover { border-color: var(--accent); }
+  .question input[type="radio"] { margin-top: .2rem; accent-color: var(--accent); }
+  .choice strong { display: block; }
+  .choice small { display: block; color: var(--muted); margin-top: .2rem; line-height: 1.4; }
+  .recommended { color: var(--accent); font-size: .75rem; font-weight: 700; margin-left: .35rem; }
+  .custom-answer, .notes { box-sizing: border-box; width: 100%; margin-top: .55rem; padding: .7rem; border: 1px solid var(--border); border-radius: 8px; color: var(--fg); background: var(--bg); }
+  .custom-answer:focus, .notes:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .answer-panel { margin-top: 2.5rem; border: 1px solid var(--border); border-radius: 12px; padding: 1.1rem; }
+  .answer-output { box-sizing: border-box; width: 100%; min-height: 260px; resize: vertical; padding: .8rem; border: 1px solid var(--border); border-radius: 8px; color: var(--fg); background: var(--code-bg); font-family: ui-monospace, SFMono-Regular, Consolas, monospace; line-height: 1.5; }
+  .actions { display: flex; flex-wrap: wrap; gap: .6rem; margin-top: .8rem; }
+  button { border: 1px solid var(--accent); border-radius: 8px; padding: .65rem .9rem; color: var(--bg); background: var(--accent); font-weight: 650; cursor: pointer; }
+  button.secondary { color: var(--fg); background: var(--bg); border-color: var(--border); }
+  #copy-status { align-self: center; color: var(--muted); font-size: .86rem; }
+  .stop-note { margin-top: 1.2rem; padding: .85rem 1rem; border: 1px dashed var(--border); border-radius: 8px; color: var(--muted); }
+  code { overflow-wrap: anywhere; }
+  @media (max-width: 720px) {
+    .comparison { grid-template-columns: 1fr; }
+    .delta-table, .delta-table tbody, .delta-table tr, .delta-table td { display: block; }
+    .delta-table thead { display: none; }
+    .delta-table tr { padding: .65rem 0; border-bottom: 1px solid var(--border); }
+    .delta-table td { border: 0; padding: .25rem 0; }
+    .delta-table td::before { content: attr(data-label) ": "; color: var(--muted); font-weight: 650; }
+  }
+</style>
+
+<article class="handoff-report">
+  <header>
+    <p class="muted">Architecture comparison · dependency-gated design interview</p>
+    <h1>Card Game VN Handoff</h1>
+    <p class="lede">Proposed handoff compared with current canonical docs + implemented browser duel. Round 1 contains complete current decision frontier. No downstream question appears before prerequisites settle.</p>
+    <div class="status-row">
+      <span class="tag accent">Round 1 open</span>
+      <span class="tag">4 root decisions</span>
+      <span class="tag">0 facts delegated to user</span>
+      <span class="tag">No answer preselected</span>
+    </div>
+  </header>
+
+  <section aria-labelledby="comparison-heading">
+    <h2 id="comparison-heading">Comparison baseline</h2>
+    <div class="comparison">
+      <div class="fact">
+        <h3>Compatible foundation</h3>
+        <p>Both designs use Svelte 5, Vite, TypeScript, browser delivery, existing vendor battle engine, typed boundaries, IndexedDB, Cache Storage.</p>
+        <p class="refs"><code>docs/card-game-vn-handoff/07-technical-decisions.md:5–16</code><br><code>docs/architecture/01-product/technology-selection.md:5–16</code></p>
+      </div>
+      <div class="fact">
+        <h3>Scope expansion</h3>
+        <p>Proposed target adds campaign, narrative, illustrated maps, deck mgmt, gameplay saves, progressive content packs. Current accepted MVP excludes these; completed gate now permits post-MVP planning.</p>
+        <p class="refs"><code>docs/card-game-vn-handoff/01-product-scope.md:5–29</code><br><code>docs/architecture/01-product/scope.md:20–23</code><br><code>docs/MVP_IMPLEMENTATION_HANDOFF.md:284</code></p>
+      </div>
+      <div class="fact">
+        <h3>Structural change</h3>
+        <p>Current impl = single package under <code>src/</code>. Proposal = workspace-style <code>apps/</code>, <code>packages/</code>, <code>contracts/</code>, <code>content/</code> with enforced package isolation.</p>
+        <p class="refs"><code>docs/card-game-vn-handoff/03-modules-and-contracts.md:3–42</code><br><code>context.md:52–95</code></p>
+      </div>
+      <div class="fact">
+        <h3>Distribution constraint</h3>
+        <p>Current build remains private-only pending data, source-availability, image, content rights review. Proposed PWA direction does not resolve this gate.</p>
+        <p class="refs"><code>docs/architecture/07-governance/licensing-and-distribution.md:3–12</code><br><code>docs/MVP_IMPLEMENTATION_HANDOFF.md:272–280</code></p>
+      </div>
+    </div>
+
+    <table class="delta-table" aria-label="Architecture deltas">
+      <thead><tr><th>Area</th><th>Current fact</th><th>Proposed fact</th><th>Unsettled boundary</th></tr></thead>
+      <tbody>
+        <tr><td data-label="Area">Battle</td><td data-label="Current fact">Interactive Worker cmd/event session; Svelte controls; Phaser field</td><td data-label="Proposed fact"><code>startBattle()</code> returns one terminal Promise</td><td data-label="Unsettled boundary">Who owns prompts, state, UI, cancel, diagnostics, disposal</td></tr>
+        <tr><td data-label="Area">Assets</td><td data-label="Current fact">Engine + catalog + scripts + strings + image manifest = atomic snapshot</td><td data-label="Proposed fact">Independent progressive content packs</td><td data-label="Unsettled boundary">Rules-pack compatibility, activation, rollback, hash requirements</td></tr>
+        <tr><td data-label="Area">Persistence</td><td data-label="Current fact">Snapshot pointers, prefs, debug metadata; no gameplay saves</td><td data-label="Proposed fact"><code>SaveRepository</code> + save/load feature</td><td data-label="Unsettled boundary">Save schema, migration, content/runtime pinning, battle resume</td></tr>
+        <tr><td data-label="Area">Narrative</td><td data-label="Current fact">No runtime</td><td data-label="Proposed fact">Commands emit map/battle requests</td><td data-label="Unsettled boundary">Effect stream, ack, idempotency, resume, errors</td></tr>
+        <tr><td data-label="Area">Maps</td><td data-label="Current fact">Deferred extension mentioned Phaser maps + NPC interaction</td><td data-label="Proposed fact">Illustrated map + positioned buttons; no free movement</td><td data-label="Unsettled boundary">Availability owner, selected value, cancel/back, stale selection</td></tr>
+        <tr><td data-label="Area">Governance</td><td data-label="Current fact">Canonical architecture forbids competing current decisions</td><td data-label="Proposed fact">Handoff labels direction “locked”</td><td data-label="Unsettled boundary">Proposal status vs canonical source</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section aria-labelledby="tree-heading">
+    <h2 id="tree-heading">Design tree state</h2>
+    <div class="tree">
+      <strong>Current frontier:</strong> doc authority · product identity · presentation scope · baseline preservation<br>
+      <span class="muted">Blocked branches: milestone scope, repo migration, battle contract, campaign state, narrative format, map contract, saves, deck mgmt, content packs, PWA impl, distribution, tests, AI package rules.</span>
+    </div>
+  </section>
+
+  <section class="round" aria-labelledby="round-heading">
+    <h2 id="round-heading">Round 1 — foundation</h2>
+
+    <form id="round-one-form">
+      <section class="question" data-question="1">
+        <p class="question-number">Question 1</p>
+        <h3>What status should <code>docs/card-game-vn-handoff/</code> have relative to <code>docs/architecture/architecture.md</code>?</h3>
+        <fieldset>
+          <legend class="muted">Choose one.</legend>
+          <label class="choice"><input type="radio" name="q1" value="Proposed post-MVP target; current canonical architecture remains authoritative until an approved migration updates it."><span><strong>Proposed post-MVP target <span class="recommended">Recommended</span></strong><small>Use handoff as desired destination. Keep current docs authoritative during staged migration.</small></span></label>
+          <label class="choice"><input type="radio" name="q1" value="Immediate canonical replacement; handoff decisions override conflicting current architecture now."><span><strong>Immediate canonical replacement</strong><small>Handoff becomes source of truth before migration details exist.</small></span></label>
+          <label class="choice"><input type="radio" name="q1" value="Exploratory reference only; no architecture decision is accepted yet."><span><strong>Exploratory reference</strong><small>Use handoff only as design input.</small></span></label>
+          <label class="choice"><input type="radio" name="q1" value="Custom"><span><strong>Custom status</strong><small>Define authority + conflict rule below.</small></span></label>
+          <textarea class="custom-answer" data-for="q1" rows="2" placeholder="Custom answer for Question 1"></textarea>
+        </fieldset>
+      </section>
+
+      <section class="question" data-question="2">
+        <p class="question-number">Question 2</p>
+        <h3>Which product identity should target architecture serve?</h3>
+        <fieldset>
+          <legend class="muted">Choose one.</legend>
+          <label class="choice"><input type="radio" name="q2" value="Yu-Gi-Oh!-specific product; generalize only internal seams where it reduces coupling."><span><strong>Yu-Gi-Oh!-specific product <span class="recommended">Recommended</span></strong><small>Keep current rules, card data, decks, terminology, test fixtures. Generic names remain internal where useful.</small></span></label>
+          <label class="choice"><input type="radio" name="q2" value="Engine-agnostic card-game visual-novel platform; Yu-Gi-Oh! is first adapter/content set."><span><strong>Engine-agnostic platform</strong><small>Contracts must support multiple battle engines + content domains.</small></span></label>
+          <label class="choice"><input type="radio" name="q2" value="Different specific card-game identity."><span><strong>Different specific card game</strong><small>Name target identity below.</small></span></label>
+          <label class="choice"><input type="radio" name="q2" value="Custom"><span><strong>Custom identity</strong></span></label>
+          <textarea class="custom-answer" data-for="q2" rows="2" placeholder="Custom answer for Question 2"></textarea>
+        </fieldset>
+      </section>
+
+      <section class="question" data-question="3">
+        <p class="question-number">Question 3</p>
+        <h3>Which screens are covered by “pure visual-novel presentation”?</h3>
+        <fieldset>
+          <legend class="muted">Choose one.</legend>
+          <label class="choice"><input type="radio" name="q3" value="Narrative, campaign, map, menu, and transition screens only; existing Svelte + Phaser duel field remains battle presentation."><span><strong>Non-battle screens only <span class="recommended">Recommended</span></strong><small>VN shell surrounds completed spatial battle surface.</small></span></label>
+          <label class="choice"><input type="radio" name="q3" value="All screens share visual-novel styling, but battle keeps its spatial field and interactive prompt UI."><span><strong>Shared styling; spatial battle retained</strong><small>Presentation language applies globally; battle interaction model stays.</small></span></label>
+          <label class="choice"><input type="radio" name="q3" value="All screens including battle; current spatial duel field is replaced by visual-novel presentation."><span><strong>All screens including battle</strong><small>Existing Phaser battle presentation becomes migration/removal scope.</small></span></label>
+          <label class="choice"><input type="radio" name="q3" value="Custom"><span><strong>Custom screen boundary</strong></span></label>
+          <textarea class="custom-answer" data-for="q3" rows="2" placeholder="Custom answer for Question 3"></textarea>
+        </fieldset>
+      </section>
+
+      <section class="question" data-question="4">
+        <p class="question-number">Question 4</p>
+        <h3>Which current accepted guarantees must target architecture preserve?</h3>
+        <fieldset>
+          <legend class="muted">Choose one.</legend>
+          <label class="choice"><input type="radio" name="q4" value="Preserve all current duel guarantees and release gates; permit shell decomposition and file/package moves with behavior parity."><span><strong>All duel guarantees + gates <span class="recommended">Recommended</span></strong><small>Retain Worker authority, hidden-info filtering, typed protocol, atomic runtime snapshot, diagnostics, deterministic tests, browser/reproducibility gates.</small></span></label>
+          <label class="choice"><input type="radio" name="q4" value="Preserve engine Worker authority, privacy, and protocol correctness; other current UI, storage, packaging, and test guarantees may change."><span><strong>Engine safety core only</strong><small>Keep rule/security boundary. Re-evaluate remaining baseline.</small></span></label>
+          <label class="choice"><input type="radio" name="q4" value="Treat current implementation as disposable reference; target architecture may replace any guarantee."><span><strong>Disposable reference</strong><small>No compatibility baseline beyond explicitly reselected behavior.</small></span></label>
+          <label class="choice"><input type="radio" name="q4" value="Custom"><span><strong>Custom preservation boundary</strong></span></label>
+          <textarea class="custom-answer" data-for="q4" rows="3" placeholder="List guarantees to preserve or permit changing"></textarea>
+        </fieldset>
+      </section>
+
+      <label for="round-notes"><strong>Round 1 notes</strong></label>
+      <textarea id="round-notes" class="notes" rows="4" placeholder="Optional constraints, rationale, or corrections"></textarea>
+    </form>
+  </section>
+
+  <section class="answer-panel" aria-labelledby="answers-heading">
+    <h2 id="answers-heading">Copyable answer packet</h2>
+    <p class="muted">Selections generate AI-ready text. Send packet back unchanged or edit it first.</p>
+    <textarea id="answer-output" class="answer-output" readonly></textarea>
+    <div class="actions">
+      <button type="button" id="copy-answers">Copy answers</button>
+      <button type="button" id="reset-answers" class="secondary">Reset</button>
+      <span id="copy-status" role="status" aria-live="polite"></span>
+    </div>
+  </section>
+
+  <p class="stop-note"><strong>Stop gate:</strong> no architecture change starts from this document. After Round 1 answers return, AI recomputes frontier, updates artifact with Round 2, then repeats until frontier empty. Final implementation requires explicit shared-understanding confirmation.</p>
+</article>
+
+<script>
+(() => {
+  const form = document.getElementById('round-one-form');
+  const output = document.getElementById('answer-output');
+  const status = document.getElementById('copy-status');
+  const labels = {
+    q1: 'Handoff document status',
+    q2: 'Target product identity',
+    q3: 'Pure visual-novel presentation scope',
+    q4: 'Current guarantee preservation boundary'
+  };
+
+  function answerFor(name) {
+    const selected = form.querySelector(`input[name="${name}"]:checked`);
+    if (!selected) return '[UNANSWERED]';
+    if (selected.value !== 'Custom') return selected.value;
+    const custom = form.querySelector(`textarea[data-for="${name}"]`).value.trim();
+    return custom || '[CUSTOM — TEXT REQUIRED]';
+  }
+
+  function updatePacket() {
+    const notes = document.getElementById('round-notes').value.trim();
+    const lines = [
+      '# Card Game VN Handoff — Round 1 answers',
+      '',
+      ...Object.entries(labels).flatMap(([name, label], index) => [
+        `${index + 1}. ${label}:`,
+        answerFor(name),
+        ''
+      ]),
+      'Round 1 notes:',
+      notes || '[NONE]',
+      '',
+      'Instruction: Recompute design-tree frontier from these answers. Generate next questionnaire round only. Do not implement yet.'
+    ];
+    output.value = lines.join('\n');
+    status.textContent = '';
+  }
+
+  form.addEventListener('input', updatePacket);
+  document.getElementById('copy-answers').addEventListener('click', async () => {
+    updatePacket();
+    try {
+      await navigator.clipboard.writeText(output.value);
+      status.textContent = 'Copied.';
+    } catch {
+      output.removeAttribute('readonly');
+      output.select();
+      document.execCommand('copy');
+      output.setAttribute('readonly', '');
+      status.textContent = 'Copied.';
+    }
+  });
+  document.getElementById('reset-answers').addEventListener('click', () => {
+    form.reset();
+    form.querySelectorAll('textarea').forEach((area) => { area.value = ''; });
+    updatePacket();
+    status.textContent = 'Reset.';
+  });
+  updatePacket();
+})();
+</script>
+<footer class="artifact-footer">source: C:\Users\Natha\coding\ygo-story-duel-simulator</footer>
+</article>
+
+<script>
+(function () {
+  var slug = "card-game-vn-handoff-architecture-round-1";
+  var es = new EventSource("/events");
+  es.addEventListener("reload", function (e) {
+    try { if (e.data === slug || e.data === "*") location.reload(); } catch (_) {}
+  });
+})();
+</script>
+</body>
+</html>
