@@ -64,6 +64,8 @@ export function parseYdk(source: string): ParsedDeck {
     if (!/^\d+$/.test(line))
       throw new Error(`Invalid card code at deck line ${index + 1}: ${line}`);
     const numeric = Number(line);
+    if (!Number.isSafeInteger(numeric) || numeric <= 0)
+      throw new Error(`Invalid card code at deck line ${index + 1}: ${line}`);
     sections[section].push(cardCode(numeric));
   }
 

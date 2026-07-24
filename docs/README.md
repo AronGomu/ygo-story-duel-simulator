@@ -26,6 +26,12 @@ architecture/
 └── 07-governance/           # Security, licensing, future extensions
 ```
 
+## Approved future architecture handoff
+
+[`card-game-vn-handoff/`](card-game-vn-handoff/) defines the approved post-MVP visual-novel campaign target and phased implementation plan. It preserves the completed duel architecture but is not evidence that story, map, save, deck-library, content-pack, or PWA work is implemented. Current runtime behavior remains governed by [`architecture/`](architecture/) until each handoff phase lands and updates its owning canonical decision.
+
+Start with [`card-game-vn-handoff/00-index.md`](card-game-vn-handoff/00-index.md), then use [`card-game-vn-handoff/08-phased-implementation-plan.md`](card-game-vn-handoff/08-phased-implementation-plan.md) for implementation order.
+
 ## Historical material
 
 [`archive/`](archive/) contains superseded research and rejected directions. Use it for rationale/history only; it cannot override current architecture or the MVP plan.

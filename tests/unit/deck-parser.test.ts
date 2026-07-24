@@ -39,6 +39,15 @@ describe("YDK parsing", () => {
     expect(deck).toEqual({ main: [123, 123], extra: [456], side: [] });
   });
 
+  it("reports exact lines for zero and unsafe numeric card codes", () => {
+    expect(() => parseYdk("#main\n0\n#extra\n!side")).toThrow(
+      "Invalid card code at deck line 2: 0",
+    );
+    expect(() => parseYdk("#main\n9007199254740992\n#extra\n!side")).toThrow(
+      "Invalid card code at deck line 2: 9007199254740992",
+    );
+  });
+
   it("rejects malformed and missing card codes", () => {
     expect(() => parseYdk("#main\nabc\n#extra\n!side")).toThrow(
       /Invalid card code/,
