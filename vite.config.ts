@@ -81,6 +81,12 @@ export default defineConfig({
   },
   build: {
     target: "es2023",
+    rollupOptions: {
+      input: {
+        app: path.join(projectRoot, "index.html"),
+        prototype: path.join(projectRoot, "prototype.html"),
+      },
+    },
     // Phaser is isolated in an on-demand presentation chunk.
     chunkSizeWarningLimit: 1_500,
   },

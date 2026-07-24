@@ -18,6 +18,7 @@ const outputRoot = path.join(projectRoot, "dist");
 const runtimeRoot = path.join(outputRoot, "runtime");
 const assetRoot = path.join(runtimeRoot, "assets/current");
 await stat(path.join(outputRoot, "index.html"));
+await stat(path.join(outputRoot, "prototype.html"));
 
 const runtimeManifestBytes = await readFile(
   path.join(runtimeRoot, "current/manifest.json"),
@@ -142,6 +143,7 @@ if (workerFile === undefined) {
   throw new Error("Browser build did not emit the dedicated duel Worker");
 }
 await verifySizeBudgets(javaScriptFiles, workerFile);
+await verifyPrototypeIsolation(javaScriptFiles);
 const workerSource = await readFile(workerFile, "utf8");
 if (!workerSource.includes(runtimeManifestSha256)) {
   throw new Error("Browser Worker does not embed the packaged manifest digest");
@@ -259,13 +261,22 @@ async function verifySizeBudgets(
       path.basename(file).startsWith("create-phaser-presentation-bridge-"),
     )
     .reduce((total, [, bytes]) => total + bytes, 0);
-  const initialScriptBytes = [...sizes]
-    .filter(
-      ([file]) =>
-        file !== workerFile &&
-        !path.basename(file).startsWith("create-phaser-presentation-bridge-"),
-    )
-    .reduce((total, [, bytes]) => total + bytes, 0);
+  const appInitialFiles = await staticHtmlScriptClosure(
+    "index.html",
+    javaScriptFiles,
+  );
+  const prototypeInitialFiles = await staticHtmlScriptClosure(
+    "prototype.html",
+    javaScriptFiles,
+  );
+  const initialScriptBytes = appInitialFiles.reduce(
+    (total, file) => total + (sizes.get(file) ?? 0),
+    0,
+  );
+  const prototypeScriptBytes = prototypeInitialFiles.reduce(
+    (total, file) => total + (sizes.get(file) ?? 0),
+    0,
+  );
   const runtimeBytes = await totalFileBytes(
     path.join(runtimeRoot, "assets/current"),
   );
@@ -278,6 +289,7 @@ async function verifySizeBudgets(
   const budgets = [
     ["aggregate cold-start transfer", coldStartBytes, 10_000_000],
     ["initial JavaScript", initialScriptBytes, 300_000],
+    ["prototype initial JavaScript", prototypeScriptBytes, 200_000],
     ["Duel Worker JavaScript", sizes.get(workerFile) ?? 0, 200_000],
     ["lazy Phaser presentation", presentationBytes, 1_600_000],
     ["active runtime closure", runtimeBytes, 6_500_000],
@@ -288,6 +300,63 @@ async function verifySizeBudgets(
     throw new Error(
       `${exceeded[0]} exceeds its production budget: ${exceeded[1]} > ${exceeded[2]} bytes`,
     );
+}
+
+async function staticHtmlScriptClosure(
+  htmlName: string,
+  javaScriptFiles: readonly string[],
+): Promise<string[]> {
+  const html = await readFile(path.join(outputRoot, htmlName), "utf8");
+  const byName = new Map(
+    javaScriptFiles.map((file) => [path.basename(file), file] as const),
+  );
+  const pending = [
+    ...html.matchAll(/<script[^>]+src=["'][^"']*\/([^/"']+\.js)["']/g),
+  ]
+    .map((match) => byName.get(match[1]!))
+    .filter((file): file is string => file !== undefined);
+  const closure = new Set<string>();
+  while (pending.length > 0) {
+    const file = pending.pop()!;
+    if (closure.has(file)) continue;
+    closure.add(file);
+    const source = await readFile(file, "utf8");
+    for (const match of source.matchAll(
+      /(?:from\s*|import\s*)["']\.\/([^"']+\.js)["']/g,
+    )) {
+      const dependency = byName.get(match[1]!);
+      if (dependency !== undefined && !closure.has(dependency))
+        pending.push(dependency);
+    }
+  }
+  if (closure.size === 0)
+    throw new Error(`Browser build ${htmlName} has no module entry script`);
+  return [...closure];
+}
+
+async function verifyPrototypeIsolation(
+  javaScriptFiles: readonly string[],
+): Promise<void> {
+  const files = await staticHtmlScriptClosure(
+    "prototype.html",
+    javaScriptFiles,
+  );
+  const forbiddenPrototypeMarkers = [
+    "duel.worker-browser",
+    "runtime/current/manifest.json",
+    "ocgcore.sync.wasm",
+    "new Worker(",
+  ];
+  for (const file of files) {
+    const source = await readFile(file, "utf8");
+    const marker = forbiddenPrototypeMarkers.find((value) =>
+      source.includes(value),
+    );
+    if (marker !== undefined)
+      throw new Error(
+        `Prototype initial bundle ${path.basename(file)} contains duel runtime marker: ${marker}`,
+      );
+  }
 }
 
 async function totalFileBytes(root: string): Promise<number> {

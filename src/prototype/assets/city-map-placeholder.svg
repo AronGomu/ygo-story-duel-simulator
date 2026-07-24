@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 700" role="img">
+  <defs><linearGradient id="water" x2="1" y2="1"><stop stop-color="#16364d"/><stop offset="1" stop-color="#07131f"/></linearGradient></defs>
+  <rect width="1200" height="700" fill="url(#water)"/>
+  <path d="M0 500 C260 360 360 580 610 410 S980 220 1200 330 V700 H0Z" fill="#132a35" stroke="#5a8195" stroke-width="8"/>
+  <path d="M80 420 L380 190 L650 250 L910 100 L1120 300" fill="none" stroke="#7bb7bc" stroke-width="18" opacity=".55"/>
+  <circle cx="340" cy="370" r="95" fill="#203f51" stroke="#d3b76b" stroke-width="8"/>
+  <rect x="790" y="180" width="170" height="150" rx="12" fill="#1e3543" stroke="#7f93a1" stroke-width="8"/>
+  <g fill="#bed9e2" font-family="sans-serif" font-size="34"><text x="260" y="495">OLD ARENA</text><text x="790" y="370">ARCHIVE</text></g>
+</svg>
