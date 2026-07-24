@@ -1,0 +1,60 @@
+5:38:52 PM [vite-plugin-svelte] no Svelte config found at C:/Users/Natha/coding/ygo-story-duel-simulator - using default configuration.
+
+ RUN  v4.1.10 C:/Users/Natha/coding/ygo-story-duel-simulator
+
+ ❯ tests/unit/prototype/prototype-storage.test.ts (0 test)
+
+⎯⎯⎯⎯⎯⎯ Failed Suites 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/unit/prototype/prototype-storage.test.ts [ tests/unit/prototype/prototype-storage.test.ts ]
+Error: Cannot find module '../../../src/prototype/storage/prototype-storage.ts' imported from C:/Users/Natha/coding/ygo-story-duel-simulator/tests/unit/prototype/prototype-storage.test.ts
+ ❯ tests/unit/prototype/prototype-storage.test.ts:3:1
+      1| import { describe, expect, it } from "vitest";
+      2| import { createInitialPrototypeState } from "../../../src/prototype/mo…
+      3| import { PROTOTYPE_STORAGE_KEY, loadPrototypeState, resetPrototypeStor…
+       | ^
+      4|
+      5| class MemoryStorage implements Storage {
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  no tests
+   Start at  17:38:52
+   Duration  828ms (transform 494ms, setup 703ms, import 0ms, tests 0ms, environment 0ms)
+
+5:38:54 PM [vite-plugin-svelte] no Svelte config found at C:/Users/Natha/coding/ygo-story-duel-simulator - using default configuration.
+
+ RUN  v4.1.10 C:/Users/Natha/coding/ygo-story-duel-simulator
+
+ ❯ tests/component/prototype/OutcomeProgression.test.ts (0 test)
+
+⎯⎯⎯⎯⎯⎯ Failed Suites 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/component/prototype/OutcomeProgression.test.ts [ tests/component/prototype/OutcomeProgression.test.ts ]
+Error: Failed to resolve import "../../../src/prototype/screens/OutcomeScreen.svelte" from "tests/component/prototype/OutcomeProgression.test.ts". Does the file exist?
+  Plugin: vite:import-analysis
+  File: C:/Users/Natha/coding/ygo-story-duel-simulator/tests/component/prototype/OutcomeProgression.test.ts:7:26
+  5  |  import { createInitialPrototypeState } from "../../../src/prototype/model/prototype-state.ts";
+  6  |  import { reducePrototype } from "../../../src/prototype/model/prototype-reducer.ts";
+  7  |  import OutcomeScreen from "../../../src/prototype/screens/OutcomeScreen.svelte";
+     |                             ^
+  8  |  import RewardScreen from "../../../src/prototype/screens/RewardScreen.svelte";
+  9  |  afterEach(() => cleanup());
+ ❯ TransformPluginContext._formatLog node_modules/vite/dist/node/chunks/node.js:30366:39
+ ❯ TransformPluginContext.error node_modules/vite/dist/node/chunks/node.js:30363:14
+ ❯ normalizeUrl node_modules/vite/dist/node/chunks/node.js:27393:18
+ ❯ node_modules/vite/dist/node/chunks/node.js:27456:30
+ ❯ TransformPluginContext.transform node_modules/vite/dist/node/chunks/node.js:27424:4
+ ❯ EnvironmentPluginContainer.transform node_modules/vite/dist/node/chunks/node.js:30151:14
+ ❯ loadAndTransform node_modules/vite/dist/node/chunks/node.js:20098:26
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  no tests
+   Start at  17:38:54
+   Duration  1.49s (transform 472ms, setup 678ms, import 0ms, tests 0ms, environment 662ms)
+

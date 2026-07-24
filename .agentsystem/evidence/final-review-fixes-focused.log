@@ -1,0 +1,27 @@
+6:53:43 PM [vite-plugin-svelte] no Svelte config found at C:/Users/Natha/coding/ygo-story-duel-simulator - using default configuration.
+
+ RUN  v4.1.10 C:/Users/Natha/coding/ygo-story-duel-simulator
+
+ ❯ tests/component/prototype/NarrativeScreen.test.ts (4 tests | 1 failed) 487ms
+     × advances once from Enter, Space, and scene click while controls block global advance 121ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/component/prototype/NarrativeScreen.test.ts > NarrativeScreen > advances once from Enter, Space, and scene click while controls block global advance
+AssertionError: expected "vi.fn()" to be called 3 times, but got 1 times
+ ❯ tests/component/prototype/NarrativeScreen.test.ts:60:23
+     58|     history.focus();
+     59|     await fireEvent.keyDown(history, { key: "Enter" });
+     60|     expect(onadvance).toHaveBeenCalledTimes(3);
+       |                       ^
+     61|   });
+     62|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed | 12 passed (13)
+      Tests  1 failed | 63 passed (64)
+   Start at  18:53:43
+   Duration  3.20s (transform 8.52s, setup 11.86s, import 2.27s, tests 3.91s, environment 8.51s)
+

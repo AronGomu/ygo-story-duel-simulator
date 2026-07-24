@@ -1,0 +1,12 @@
+5:36:57 PM [vite-plugin-svelte] no Svelte config found at C:/Users/Natha/coding/ygo-story-duel-simulator - using default configuration.
+
+ RUN  v4.1.10 C:/Users/Natha/coding/ygo-story-duel-simulator
+
+5:36:58 PM [vite-plugin-svelte] src/prototype/screens/IllustratedMapScreen.svelte:75:32 Redundant role 'region'
+https://svelte.dev/e/a11y_no_redundant_roles
+
+ Test Files  1 passed (1)
+      Tests  3 passed (3)
+   Start at  17:36:57
+   Duration  1.77s (transform 528ms, setup 660ms, import 119ms, tests 190ms, environment 691ms)
+

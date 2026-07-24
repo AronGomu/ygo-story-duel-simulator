@@ -1,0 +1,304 @@
+
+> ygo-story-duel-simulator@0.1.0 check
+> npm run check:headless && npm run check:browser
+
+
+> ygo-story-duel-simulator@0.1.0 check:headless
+> npm run format:check && npm run lint && npm run typecheck && npm run test:legacy && npm run test:unit && npm run test:integration && npm run vendor:verify && npm run assets:verify && npm run snapshot:verify
+
+
+> ygo-story-duel-simulator@0.1.0 format:check
+> prettier --check "src/**/*.{ts,svelte,css}" "tests/{unit,integration,component,fixtures}/**/*.{ts,svelte}" "scripts/{verify-vendor,verify-browser-build,verify-reproducible-build,generate-runtime-snapshot,verify-runtime-snapshot}.ts" "scripts/lib/{active-card-text-manifest,active-image-manifest,active-runtime-files,vite-runtime-assets,vite-sync-core}.ts" "e2e/**/*.ts" "*.html" "*.{js,json,ts}"
+
+Checking formatting...
+All matched files use Prettier code style!
+
+> ygo-story-duel-simulator@0.1.0 lint
+> eslint .
+
+
+> ygo-story-duel-simulator@0.1.0 typecheck
+> tsc --noEmit && svelte-check --tsconfig ./tsconfig.json
+
+Loading svelte-check in workspace: c:\Users\Natha\coding\ygo-story-duel-simulator
+Getting Svelte diagnostics...
+
+[32msvelte-check found 0 errors and 0 warnings
+[39m
+> ygo-story-duel-simulator@0.1.0 test:legacy
+> node --test tests/*.test.ts
+
+✔ readCatalog converts a YGOPro-compatible CDB (40.7977ms)
+✔ isJpeg requires complete JPEG start and end markers (0.7505ms)
+✔ MVP asset command runs every online acquisition and verification stage in order (1.4518ms)
+✔ offline MVP asset command performs no network image stage (0.2902ms)
+✔ MVP asset options enforce the provider request ceiling (1.1855ms)
+✔ resolveProjectSubpath allows paths inside the approved project directory (1.8098ms)
+✔ resolveProjectSubpath rejects traversal and absolute paths (0.9622ms)
+✔ asset run lock prevents overlapping processes and can be reacquired (101.5105ms)
+✔ asset run lock safely reclaims a dead owner's lock (27.8906ms)
+✔ atomic JSON writer publishes complete status documents (12.3139ms)
+✔ Git source refs accept branches, tags and commit hashes (1.0783ms)
+✔ pinned source revisions must match the checked-out commit (0.5377ms)
+✔ Git source refs reject option and refspec injection (0.2071ms)
+✔ parseStringsConf imports supported Project Ignis string sections (1.5564ms)
+✔ readTarFiles extracts regular package files (1.7626ms)
+✔ readTarFiles rejects paths outside the package root (0.5013ms)
+✔ unpackSetcodes extracts packed 16-bit archetype codes (1.2809ms)
+✔ unpackSetcodes preserves unsigned high-bit values exposed as signed SQLite integers (0.1507ms)
+✔ transformCard preserves unsigned 64-bit race flags (0.233ms)
+✔ transformCard decodes level, pendulum scales and link marker (0.158ms)
+✔ numeric identifiers map to stable shards (0.5131ms)
+ℹ tests 21
+ℹ suites 0
+ℹ pass 21
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 368.7925
+
+> ygo-story-duel-simulator@0.1.0 test:unit
+> vitest run tests/unit
+
+7:32:53 PM [vite-plugin-svelte] no Svelte config found at C:/Users/Natha/coding/ygo-story-duel-simulator - using default configuration.
+
+ RUN  v4.1.10 C:/Users/Natha/coding/ygo-story-duel-simulator
+
+
+ Test Files  48 passed (48)
+      Tests  257 passed (257)
+   Start at  19:32:53
+   Duration  5.02s (transform 14.35s, setup 38.42s, import 5.20s, tests 1.34s, environment 8ms)
+
+
+> ygo-story-duel-simulator@0.1.0 test:integration
+> vitest run tests/integration
+
+7:32:59 PM [vite-plugin-svelte] no Svelte config found at C:/Users/Natha/coding/ygo-story-duel-simulator - using default configuration.
+
+ RUN  v4.1.10 C:/Users/Natha/coding/ygo-story-duel-simulator
+
+
+ Test Files  7 passed (7)
+      Tests  18 passed (18)
+   Start at  19:32:59
+   Duration  4.75s (transform 7.89s, setup 11.41s, import 1.39s, tests 5.91s, environment 1ms)
+
+
+> ygo-story-duel-simulator@0.1.0 vendor:verify
+> node scripts/verify-vendor.ts
+
+{
+  "status": "ok",
+  "package": "ocgcore-wasm",
+  "version": "0.1.2",
+  "files": 21
+}
+
+> ygo-story-duel-simulator@0.1.0 assets:verify
+> node scripts/verify-assets.ts
+
+{
+  "status": "ok",
+  "root": "C:\\Users\\Natha\\coding\\ygo-story-duel-simulator\\generated\\assets\\current",
+  "generatedAt": "2026-07-14T10:07:26.001Z",
+  "counts": {
+    "cards": 14794,
+    "texts": 14794,
+    "officialScripts": 13399,
+    "preReleaseScripts": 125,
+    "globalScripts": 25,
+    "systemStrings": 835,
+    "victoryStrings": 33,
+    "counterStrings": 134,
+    "setNameStrings": 756,
+    "imageRecords": 14794
+  }
+}
+
+> ygo-story-duel-simulator@0.1.0 snapshot:verify
+> node scripts/verify-runtime-snapshot.ts
+
+{
+  "status": "ok",
+  "snapshotId": "a562f5ad6794e377157d91adba6a51d73960d5384a00b25fd8bf1236b0f69fb2"
+}
+
+> ygo-story-duel-simulator@0.1.0 check:browser
+> npm run test:component && npm run build && npm run build:reproducible && npm run test:e2e
+
+
+> ygo-story-duel-simulator@0.1.0 test:component
+> vitest run tests/component
+
+7:33:07 PM [vite-plugin-svelte] no Svelte config found at C:/Users/Natha/coding/ygo-story-duel-simulator - using default configuration.
+
+ RUN  v4.1.10 C:/Users/Natha/coding/ygo-story-duel-simulator
+
+
+ Test Files  29 passed (29)
+      Tests  92 passed (92)
+   Start at  19:33:07
+   Duration  6.28s (transform 16.14s, setup 23.29s, import 10.09s, tests 13.22s, environment 36.73s)
+
+
+> ygo-story-duel-simulator@0.1.0 build
+> npm run vendor:verify && npm run snapshot:verify && npm run build:app && npm run build:verify
+
+
+> ygo-story-duel-simulator@0.1.0 vendor:verify
+> node scripts/verify-vendor.ts
+
+{
+  "status": "ok",
+  "package": "ocgcore-wasm",
+  "version": "0.1.2",
+  "files": 21
+}
+
+> ygo-story-duel-simulator@0.1.0 snapshot:verify
+> node scripts/verify-runtime-snapshot.ts
+
+{
+  "status": "ok",
+  "snapshotId": "a562f5ad6794e377157d91adba6a51d73960d5384a00b25fd8bf1236b0f69fb2"
+}
+
+> ygo-story-duel-simulator@0.1.0 build:app
+> vite build --mode private
+
+7:33:15 PM [vite-plugin-svelte] no Svelte config found at C:/Users/Natha/coding/ygo-story-duel-simulator - using default configuration.
+[36mvite v8.1.4 [32mbuilding client environment for private...[36m[39m
+[2Ktransforming...✓ 235 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/assets/chunk-L5TW24SS-CYAOB92A.js                         0.54 kB
+dist/index.html                                                0.79 kB │ gzip:   0.40 kB
+dist/prototype.html                                            0.90 kB │ gzip:   0.43 kB
+dist/assets/ocgcore.sync-MMMSWPBB-ykLRlS6r.js                 20.88 kB
+dist/assets/duel.worker-browser-D1RrcfJt.js                  114.48 kB
+dist/assets/App-ChDzEdU4.css                                   3.95 kB │ gzip:   1.16 kB
+dist/assets/app-CfSKsqya.css                                   5.19 kB │ gzip:   1.87 kB
+dist/assets/DeckBuilderPrototype-CHr3o2V7.css                 14.95 kB │ gzip:   3.22 kB
+dist/assets/prototype-BgYetZAu.css                            19.45 kB │ gzip:   4.92 kB
+dist/assets/legacy-CVlNoc75.js                                 0.11 kB │ gzip:   0.13 kB
+dist/assets/modulepreload-polyfill-Dezn_h7o.js                 0.69 kB │ gzip:   0.39 kB
+dist/assets/preload-helper-Czpn1I53.js                         1.19 kB │ gzip:   0.67 kB
+dist/assets/app-k6cHmmxu.js                                    1.54 kB │ gzip:   0.74 kB
+dist/assets/assert-never-DYKCLIt4.js                           3.38 kB │ gzip:   1.45 kB
+dist/assets/index-client-Bm7uzotH.js                           6.31 kB │ gzip:   2.34 kB
+dist/assets/index-client-FIdoSbxx.js                          44.70 kB │ gzip:  17.37 kB
+dist/assets/prototype-5uCyolEZ.js                             63.73 kB │ gzip:  20.20 kB
+dist/assets/DeckBuilderPrototype-C7ZBh1Jx.js                  87.59 kB │ gzip:  25.84 kB
+dist/assets/App-Dkv9h7b2.js                                  109.82 kB │ gzip:  32.20 kB
+dist/assets/create-phaser-presentation-bridge-C0KmYjEZ.js  1,384.50 kB │ gzip: 361.10 kB
+
+[32m✓ built in 890ms[39m
+
+> ygo-story-duel-simulator@0.1.0 build:verify
+> node scripts/verify-browser-build.ts
+
+{
+  "status": "ok",
+  "snapshotId": "a562f5ad6794e377157d91adba6a51d73960d5384a00b25fd8bf1236b0f69fb2",
+  "runtimeFiles": 70,
+  "worker": "duel.worker-browser-D1RrcfJt.js"
+}
+
+> ygo-story-duel-simulator@0.1.0 build:reproducible
+> node scripts/verify-reproducible-build.ts
+
+{
+  "status": "ok",
+  "files": 122
+}
+
+> ygo-story-duel-simulator@0.1.0 test:e2e
+> playwright test
+
+
+Running 80 tests using 1 worker
+
+  ✓   1 [chromium] › e2e\deck-builder-prototype.spec.ts:5:1 › default route still starts direct duel (756ms)
+  ✓   2 [chromium] › e2e\deck-builder-prototype.spec.ts:11:1 › deck builder prototype persists edits and exposes review states (2.0s)
+  ✓   3 [chromium] › e2e\deck-builder-prototype.spec.ts:178:1 › Deck Library imports one persisted undoable update (438ms)
+  ✓   4 [chromium] › e2e\deck-builder-prototype.spec.ts:210:1 › deck builder recovers real save failures and revision conflicts (923ms)
+  ✓   5 [chromium] › e2e\deck-builder-prototype.spec.ts:296:1 › deck builder prototype declares desktop-only viewport (293ms)
+  ✓   6 [chromium] › e2e\duel-smoke.spec.ts:77:1 › production bundle initializes the real Worker and sends one opaque choice once (1.2s)
+  ✓   7 [chromium] › e2e\duel-smoke.spec.ts:178:1 › repeated restart replaces the Worker and clears presentation state (2.6s)
+  ✓   8 [chromium] › e2e\duel-smoke.spec.ts:217:1 › refresh during loading and after completion starts a clean duel (2.0s)
+  ✓   9 [chromium] › e2e\duel-smoke.spec.ts:275:1 › missing active images use deterministic placeholders without blocking input (802ms)
+  ✓  10 [chromium] › e2e\duel-smoke.spec.ts:292:1 › forced Worker initialization timeout terminates and replaces the Worker (252ms)
+  ✓  11 [chromium] › e2e\duel-smoke.spec.ts:320:1 › visual field startup failure announces the semantic fallback and retry (987ms)
+  ✓  12 [chromium] › e2e\duel-smoke.spec.ts:340:1 › mobile layout preserves controls and honors reduced motion (1.0s)
+  ✓  13 [chromium] › e2e\duel-smoke.spec.ts:367:1 › a full preset duel can be completed using keyboard controls only (22.0s)
+  ✓  14 [chromium] › e2e\prototype-accessibility.spec.ts:26:3 › prototype has no document overflow at 1280x720 (190ms)
+  ✓  15 [chromium] › e2e\prototype-accessibility.spec.ts:26:3 › prototype has no document overflow at 768x1024 (186ms)
+  ✓  16 [chromium] › e2e\prototype-accessibility.spec.ts:26:3 › prototype has no document overflow at 375x667 (193ms)
+  ✓  17 [chromium] › e2e\prototype-accessibility.spec.ts:26:3 › prototype has no document overflow at 667x375 (181ms)
+  ✓  18 [chromium] › e2e\prototype-accessibility.spec.ts:50:1 › overlays fit viewport, restore focus, and expose labels (230ms)
+  ✓  19 [chromium] › e2e\prototype-accessibility.spec.ts:73:1 › load and delete dialogs keep only top overlay active (319ms)
+  ✓  20 [chromium] › e2e\prototype-accessibility.spec.ts:95:1 › long content survives 200% text zoom and reduced motion (286ms)
+  ✓  21 [chromium] › e2e\prototype-accessibility.spec.ts:121:1 › core flow is keyboard reachable and screen changes focus meaningful content (580ms)
+  ✓  22 [chromium] › e2e\prototype-entry.spec.ts:3:1 › isolated visual novel prototype entry loads without changing root duel (298ms)
+  ✓  23 [chromium] › e2e\prototype-flow.spec.ts:14:1 › full flow reaches updated map, save, and end (822ms)
+  ✓  24 [chromium] › e2e\prototype-flow.spec.ts:60:1 › autosave persists reward independently and retries after simulated failure (598ms)
+  ✓  25 [chromium] › e2e\prototype-flow.spec.ts:84:1 › manual delete removes only manual progress across reload (612ms)
+  ✓  26 [chromium] › e2e\prototype-flow.spec.ts:104:1 › Load path reaches narrative (346ms)
+  ✓  27 [chromium] › e2e\prototype-flow.spec.ts:113:1 › loss reaches distinct outcome and continues (304ms)
+  ✓  28 [chromium] › e2e\prototype-flow.spec.ts:129:3 › Abort offers recovery without reward (364ms)
+  ✓  29 [chromium] › e2e\prototype-flow.spec.ts:129:3 › Technical Failure offers recovery without reward (359ms)
+  ✓  30 [chromium] › e2e\prototype-flow.spec.ts:155:1 › hotspot and location list both reach briefing (270ms)
+  ✓  31 [chromium] › e2e\prototype-flow.spec.ts:170:1 › missing assets and save failure retain playable recovery (280ms)
+  ✓  32 [chromium] › e2e\prototype-flow.spec.ts:184:1 › reviewer presets expose matrix-only overlay and state variants (811ms)
+  ✓  33 [chromium] › e2e\prototype-flow.spec.ts:255:1 › reset returns pristine launcher (334ms)
+  ✓  34 [chromium] › e2e\prototype-flow.spec.ts:265:1 › root remains direct-duel entry (719ms)
+  ✓  35 [chromium] › e2e\prototype-review-presets.spec.ts:53:1 › review preset inventory remains complete (0ms)
+  ✓  36 [chromium] › e2e\prototype-review-presets.spec.ts:58:3 › review preset: Launcher · fresh (317ms)
+  ✓  37 [chromium] › e2e\prototype-review-presets.spec.ts:58:3 › review preset: Launcher · progress exists (283ms)
+  ✓  38 [chromium] › e2e\prototype-review-presets.spec.ts:58:3 › review preset: Title · new player (399ms)
+  ✓  39 [chromium] › e2e\prototype-review-presets.spec.ts:58:3 › review preset: Title · Continue available (390ms)
+  ✓  40 [chromium] › e2e\prototype-review-presets.spec.ts:58:3 › review preset: Load · occupied/autosave/empty (330ms)
+  ✓  41 [chromium] › e2e\prototype-review-presets.spec.ts:58:3 › review preset: Load · incompatible/corrupt (299ms)
+  ✓  42 [chromium] › e2e\prototype-review-presets.spec.ts:58:3 › review preset: Narrative · narration (355ms)
+  ✓  43 [chromium] › e2e\prototype-review-presets.spec.ts:58:3 › review preset: Narrative · named dialogue / one character (340ms)
+  ✓  44 [chromium] › e2e\prototype-review-presets.spec.ts:58:3 › review preset: Narrative · protagonist thought (367ms)
+  ✓  45 [chromium] › e2e\prototype-review-presets.spec.ts:58:3 › review preset: Narrative · two characters (336ms)
+  ✓  46 [chromium] › e2e\prototype-review-presets.spec.ts:58:3 › review preset: Narrative · long text / changed background (302ms)
+  ✓  47 [chromium] › e2e\prototype-review-presets.spec.ts:58:3 › review preset: Narrative · missing assets (275ms)
+  ✓  48 [chromium] › e2e\prototype-review-presets.spec.ts:58:3 › review preset: Choice · unresolved (336ms)
+  ✓  49 [chromium] › e2e\prototype-review-presets.spec.ts:58:3 › review preset: Choice · resolved (346ms)
+  ✓  50 [chromium] › e2e\prototype-review-presets.spec.ts:58:3 › review preset: History · empty (264ms)
+  ✓  51 [chromium] › e2e\prototype-review-presets.spec.ts:58:3 › review preset: History · entries (267ms)
+  ✓  52 [chromium] › e2e\prototype-review-presets.spec.ts:58:3 › review preset: Settings · unchanged (260ms)
+  ✓  53 [chromium] › e2e\prototype-review-presets.spec.ts:58:3 › review preset: Settings · changed (266ms)
+  ✓  54 [chromium] › e2e\prototype-review-presets.spec.ts:58:3 › review preset: Settings · reset (264ms)
+  ✓  55 [chromium] › e2e\prototype-review-presets.spec.ts:58:3 › review preset: Settings · audio unavailable (256ms)
+  ✓  56 [chromium] › e2e\prototype-review-presets.spec.ts:58:3 › review preset: Map · available (277ms)
+  ✓  57 [chromium] › e2e\prototype-review-presets.spec.ts:58:3 › review preset: Map · locked (300ms)
+  ✓  58 [chromium] › e2e\prototype-review-presets.spec.ts:58:3 › review preset: Map · hidden (290ms)
+  ✓  59 [chromium] › e2e\prototype-review-presets.spec.ts:58:3 › review preset: Map · completed (279ms)
+  ✓  60 [chromium] › e2e\prototype-review-presets.spec.ts:58:3 › review preset: Map · available + completed (278ms)
+  ✓  61 [chromium] › e2e\prototype-review-presets.spec.ts:58:3 › review preset: Pre-battle · ready / return / checkpoint (247ms)
+  ✓  62 [chromium] › e2e\prototype-review-presets.spec.ts:58:3 › review preset: Battle mock · ready (265ms)
+  ✓  63 [chromium] › e2e\prototype-review-presets.spec.ts:58:3 › review preset: Battle mock · win (272ms)
+  ✓  64 [chromium] › e2e\prototype-review-presets.spec.ts:58:3 › review preset: Battle mock · loss (252ms)
+  ✓  65 [chromium] › e2e\prototype-review-presets.spec.ts:58:3 › review preset: Battle mock · abort (276ms)
+  ✓  66 [chromium] › e2e\prototype-review-presets.spec.ts:58:3 › review preset: Battle mock · technical failure (263ms)
+  ✓  67 [chromium] › e2e\prototype-review-presets.spec.ts:58:3 › review preset: Outcome · win branch (277ms)
+  ✓  68 [chromium] › e2e\prototype-review-presets.spec.ts:58:3 › review preset: Outcome · loss branch (274ms)
+  ✓  69 [chromium] › e2e\prototype-review-presets.spec.ts:58:3 › review preset: Outcome · recovery branch (289ms)
+  ✓  70 [chromium] › e2e\prototype-review-presets.spec.ts:58:3 › review preset: Reward · new reward (302ms)
+  ✓  71 [chromium] › e2e\prototype-review-presets.spec.ts:58:3 › review preset: Reward · acknowledged / updated map (283ms)
+  ✓  72 [chromium] › e2e\prototype-review-presets.spec.ts:58:3 › review preset: Save · idle (254ms)
+  ✓  73 [chromium] › e2e\prototype-review-presets.spec.ts:58:3 › review preset: Save · saving (247ms)
+  ✓  74 [chromium] › e2e\prototype-review-presets.spec.ts:58:3 › review preset: Save · success (266ms)
+  ✓  75 [chromium] › e2e\prototype-review-presets.spec.ts:58:3 › review preset: Save · overwrite (265ms)
+  ✓  76 [chromium] › e2e\prototype-review-presets.spec.ts:58:3 › review preset: Save · failure (256ms)
+  ✓  77 [chromium] › e2e\prototype-review-presets.spec.ts:58:3 › review preset: Motion · default (336ms)
+  ✓  78 [chromium] › e2e\prototype-review-presets.spec.ts:58:3 › review preset: Motion · reduced (314ms)
+  ✓  79 [firefox-smoke] › e2e\duel-smoke.spec.ts:77:1 › production bundle initializes the real Worker and sends one opaque choice once (2.2s)
+  ✓  80 [webkit-smoke] › e2e\duel-smoke.spec.ts:77:1 › production bundle initializes the real Worker and sends one opaque choice once (1.8s)
+
+  80 passed (1.1m)

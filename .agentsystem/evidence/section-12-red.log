@@ -1,0 +1,58 @@
+
+Running 9 tests using 1 worker
+
+  ✓  1 [chromium] › e2e\prototype-flow.spec.ts:11:1 › full flow reaches updated map, save, and end (799ms)
+  ✘  2 [chromium] › e2e\prototype-flow.spec.ts:34:1 › Load path reaches narrative (31.2s)
+  ✓  3 [chromium] › e2e\prototype-flow.spec.ts:41:1 › loss reaches distinct outcome and continues (358ms)
+  ✓  4 [chromium] › e2e\prototype-flow.spec.ts:52:3 › Abort offers recovery without reward (252ms)
+  ✓  5 [chromium] › e2e\prototype-flow.spec.ts:52:3 › Technical Failure offers recovery without reward (244ms)
+  ✓  6 [chromium] › e2e\prototype-flow.spec.ts:62:1 › hotspot and location list both reach briefing (275ms)
+  ✓  7 [chromium] › e2e\prototype-flow.spec.ts:71:1 › missing assets and save failure retain playable recovery (294ms)
+  ✓  8 [chromium] › e2e\prototype-flow.spec.ts:81:1 › reset returns pristine launcher (324ms)
+  ✓  9 [chromium] › e2e\prototype-flow.spec.ts:89:1 › root remains direct-duel entry (925ms)
+
+
+  1) [chromium] › e2e\prototype-flow.spec.ts:34:1 › Load path reaches narrative ────────────────────
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: getByText(/Kael traced the signal|Tournament posters/)
+    Expected: visible
+    Timeout: 30000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toBeVisible" with timeout 30000ms
+      - waiting for getByText(/Kael traced the signal|Tournament posters/)
+
+
+      36 |   await page.getByRole("button", { name: "Load" }).click();
+      37 |   await page.getByRole("button", { name: "Load manual slot 1" }).click();
+    > 38 |   await expect(page.getByText(/Kael traced the signal|Tournament posters/)).toBeVisible();
+         |                                                                             ^
+      39 | });
+      40 |
+      41 | test("loss reaches distinct outcome and continues", async ({ page }) => {
+        at C:\Users\Natha\coding\ygo-story-duel-simulator\e2e\prototype-flow.spec.ts:38:77
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\prototype-flow-Load-path-reaches-narrative-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results\prototype-flow-Load-path-reaches-narrative-chromium\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\prototype-flow-Load-path-reaches-narrative-chromium\error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\prototype-flow-Load-path-reaches-narrative-chromium\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\prototype-flow-Load-path-reaches-narrative-chromium\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  1 failed
+    [chromium] › e2e\prototype-flow.spec.ts:34:1 › Load path reaches narrative ─────────────────────
+  8 passed (40.7s)

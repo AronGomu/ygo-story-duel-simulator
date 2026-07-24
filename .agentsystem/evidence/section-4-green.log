@@ -1,0 +1,10 @@
+5:31:53 PM [vite-plugin-svelte] no Svelte config found at C:/Users/Natha/coding/ygo-story-duel-simulator - using default configuration.
+
+ RUN  v4.1.10 C:/Users/Natha/coding/ygo-story-duel-simulator
+
+
+ Test Files  1 passed (1)
+      Tests  3 passed (3)
+   Start at  17:31:53
+   Duration  1.91s (transform 526ms, setup 674ms, import 113ms, tests 303ms, environment 700ms)
+

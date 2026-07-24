@@ -1,0 +1,97 @@
+
+> ygo-story-duel-simulator@0.1.0 format:check
+> prettier --check "src/**/*.{ts,svelte,css}" "tests/{unit,integration,component,fixtures}/**/*.{ts,svelte}" "scripts/{verify-vendor,verify-browser-build,verify-reproducible-build,generate-runtime-snapshot,verify-runtime-snapshot}.ts" "scripts/lib/{active-card-text-manifest,active-image-manifest,active-runtime-files,vite-runtime-assets,vite-sync-core}.ts" "e2e/**/*.ts" "*.html" "*.{js,json,ts}"
+
+Checking formatting...
+All matched files use Prettier code style!
+
+> ygo-story-duel-simulator@0.1.0 lint
+> eslint .
+
+
+> ygo-story-duel-simulator@0.1.0 typecheck
+> tsc --noEmit && svelte-check --tsconfig ./tsconfig.json
+
+Loading svelte-check in workspace: c:\Users\Natha\coding\ygo-story-duel-simulator
+Getting Svelte diagnostics...
+
+[32msvelte-check found 0 errors and 0 warnings
+[39m
+> ygo-story-duel-simulator@0.1.0 test
+> npm run test:legacy && npm run test:unit && npm run test:component && npm run test:integration
+
+
+> ygo-story-duel-simulator@0.1.0 test:legacy
+> node --test tests/*.test.ts
+
+✔ readCatalog converts a YGOPro-compatible CDB (80.4457ms)
+✔ isJpeg requires complete JPEG start and end markers (0.7598ms)
+✔ MVP asset command runs every online acquisition and verification stage in order (1.4267ms)
+✔ offline MVP asset command performs no network image stage (0.2973ms)
+✔ MVP asset options enforce the provider request ceiling (0.725ms)
+✔ resolveProjectSubpath allows paths inside the approved project directory (0.8334ms)
+✔ resolveProjectSubpath rejects traversal and absolute paths (0.5195ms)
+✔ asset run lock prevents overlapping processes and can be reacquired (29.7097ms)
+✔ asset run lock safely reclaims a dead owner's lock (18.6407ms)
+✔ atomic JSON writer publishes complete status documents (4.594ms)
+✔ Git source refs accept branches, tags and commit hashes (2.3938ms)
+✔ pinned source revisions must match the checked-out commit (0.4828ms)
+✔ Git source refs reject option and refspec injection (0.9028ms)
+✔ parseStringsConf imports supported Project Ignis string sections (3.4941ms)
+✔ readTarFiles extracts regular package files (1.9071ms)
+✔ readTarFiles rejects paths outside the package root (0.6284ms)
+✔ unpackSetcodes extracts packed 16-bit archetype codes (1.4515ms)
+✔ unpackSetcodes preserves unsigned high-bit values exposed as signed SQLite integers (0.2634ms)
+✔ transformCard preserves unsigned 64-bit race flags (0.4334ms)
+✔ transformCard decodes level, pendulum scales and link marker (0.2223ms)
+✔ numeric identifiers map to stable shards (0.7383ms)
+ℹ tests 21
+ℹ suites 0
+ℹ pass 21
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 279.4079
+
+> ygo-story-duel-simulator@0.1.0 test:unit
+> vitest run tests/unit
+
+7:11:46 PM [vite-plugin-svelte] no Svelte config found at C:/Users/Natha/coding/ygo-story-duel-simulator - using default configuration.
+
+ RUN  v4.1.10 C:/Users/Natha/coding/ygo-story-duel-simulator
+
+
+ Test Files  48 passed (48)
+      Tests  257 passed (257)
+   Start at  19:11:46
+   Duration  5.46s (transform 15.38s, setup 45.92s, import 5.77s, tests 1.60s, environment 7ms)
+
+
+> ygo-story-duel-simulator@0.1.0 test:component
+> vitest run tests/component
+
+7:11:53 PM [vite-plugin-svelte] no Svelte config found at C:/Users/Natha/coding/ygo-story-duel-simulator - using default configuration.
+
+ RUN  v4.1.10 C:/Users/Natha/coding/ygo-story-duel-simulator
+
+
+ Test Files  29 passed (29)
+      Tests  91 passed (91)
+   Start at  19:11:53
+   Duration  10.29s (transform 27.83s, setup 35.24s, import 15.91s, tests 18.29s, environment 65.69s)
+
+
+> ygo-story-duel-simulator@0.1.0 test:integration
+> vitest run tests/integration
+
+7:12:04 PM [vite-plugin-svelte] no Svelte config found at C:/Users/Natha/coding/ygo-story-duel-simulator - using default configuration.
+
+ RUN  v4.1.10 C:/Users/Natha/coding/ygo-story-duel-simulator
+
+
+ Test Files  7 passed (7)
+      Tests  18 passed (18)
+   Start at  19:12:04
+   Duration  3.06s (transform 3.82s, setup 5.45s, import 904ms, tests 4.85s, environment 0ms)
+

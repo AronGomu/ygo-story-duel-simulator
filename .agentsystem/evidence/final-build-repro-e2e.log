@@ -1,0 +1,433 @@
+
+> ygo-story-duel-simulator@0.1.0 build
+> npm run vendor:verify && npm run snapshot:verify && npm run build:app && npm run build:verify
+
+
+> ygo-story-duel-simulator@0.1.0 vendor:verify
+> node scripts/verify-vendor.ts
+
+{
+  "status": "ok",
+  "package": "ocgcore-wasm",
+  "version": "0.1.2",
+  "files": 21
+}
+
+> ygo-story-duel-simulator@0.1.0 snapshot:verify
+> node scripts/verify-runtime-snapshot.ts
+
+{
+  "status": "ok",
+  "snapshotId": "a562f5ad6794e377157d91adba6a51d73960d5384a00b25fd8bf1236b0f69fb2"
+}
+
+> ygo-story-duel-simulator@0.1.0 build:app
+> vite build --mode private
+
+7:12:21 PM [vite-plugin-svelte] no Svelte config found at C:/Users/Natha/coding/ygo-story-duel-simulator - using default configuration.
+[36mvite v8.1.4 [32mbuilding client environment for private...[36m[39m
+[2Ktransforming...✓ 235 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/assets/chunk-L5TW24SS-CYAOB92A.js                         0.54 kB
+dist/index.html                                                0.79 kB │ gzip:   0.40 kB
+dist/prototype.html                                            0.90 kB │ gzip:   0.43 kB
+dist/assets/ocgcore.sync-MMMSWPBB-ykLRlS6r.js                 20.88 kB
+dist/assets/duel.worker-browser-D1RrcfJt.js                  114.48 kB
+dist/assets/App-ChDzEdU4.css                                   3.95 kB │ gzip:   1.16 kB
+dist/assets/app-CfSKsqya.css                                   5.19 kB │ gzip:   1.87 kB
+dist/assets/DeckBuilderPrototype-CHr3o2V7.css                 14.95 kB │ gzip:   3.22 kB
+dist/assets/prototype-BgYetZAu.css                            19.45 kB │ gzip:   4.92 kB
+dist/assets/legacy-CVlNoc75.js                                 0.11 kB │ gzip:   0.13 kB
+dist/assets/modulepreload-polyfill-Dezn_h7o.js                 0.69 kB │ gzip:   0.39 kB
+dist/assets/preload-helper-Czpn1I53.js                         1.19 kB │ gzip:   0.67 kB
+dist/assets/app-BO-b3fEv.js                                    1.54 kB │ gzip:   0.74 kB
+dist/assets/assert-never-DYKCLIt4.js                           3.38 kB │ gzip:   1.45 kB
+dist/assets/index-client-Bm7uzotH.js                           6.31 kB │ gzip:   2.34 kB
+dist/assets/index-client-FIdoSbxx.js                          44.70 kB │ gzip:  17.37 kB
+dist/assets/prototype-DAA4bCog.js                             63.77 kB │ gzip:  20.21 kB
+dist/assets/DeckBuilderPrototype-wyTR-Fkn.js                  87.32 kB │ gzip:  25.74 kB
+dist/assets/App-Dkv9h7b2.js                                  109.82 kB │ gzip:  32.20 kB
+dist/assets/create-phaser-presentation-bridge-C0KmYjEZ.js  1,384.50 kB │ gzip: 361.10 kB
+
+[32m✓ built in 996ms[39m
+
+> ygo-story-duel-simulator@0.1.0 build:verify
+> node scripts/verify-browser-build.ts
+
+{
+  "status": "ok",
+  "snapshotId": "a562f5ad6794e377157d91adba6a51d73960d5384a00b25fd8bf1236b0f69fb2",
+  "runtimeFiles": 70,
+  "worker": "duel.worker-browser-D1RrcfJt.js"
+}
+
+> ygo-story-duel-simulator@0.1.0 build:reproducible
+> node scripts/verify-reproducible-build.ts
+
+{
+  "status": "ok",
+  "files": 122
+}
+
+> ygo-story-duel-simulator@0.1.0 test:e2e
+> playwright test
+
+
+Running 79 tests using 1 worker
+
+  ✓   1 [chromium] › e2e\deck-builder-prototype.spec.ts:5:1 › default route still starts direct duel (1.4s)
+  ✓   2 [chromium] › e2e\deck-builder-prototype.spec.ts:11:1 › deck builder prototype persists edits and exposes review states (2.2s)
+  ✓   3 [chromium] › e2e\deck-builder-prototype.spec.ts:178:1 › Deck Library imports one persisted undoable update (472ms)
+  ✓   4 [chromium] › e2e\deck-builder-prototype.spec.ts:210:1 › deck builder recovers real save failures and revision conflicts (936ms)
+  ✓   5 [chromium] › e2e\deck-builder-prototype.spec.ts:296:1 › deck builder prototype declares desktop-only viewport (322ms)
+  ✓   6 [chromium] › e2e\duel-smoke.spec.ts:77:1 › production bundle initializes the real Worker and sends one opaque choice once (1.3s)
+  ✓   7 [chromium] › e2e\duel-smoke.spec.ts:178:1 › repeated restart replaces the Worker and clears presentation state (2.8s)
+  ✓   8 [chromium] › e2e\duel-smoke.spec.ts:217:1 › refresh during loading and after completion starts a clean duel (2.6s)
+  ✓   9 [chromium] › e2e\duel-smoke.spec.ts:275:1 › missing active images use deterministic placeholders without blocking input (1.4s)
+  ✓  10 [chromium] › e2e\duel-smoke.spec.ts:292:1 › forced Worker initialization timeout terminates and replaces the Worker (285ms)
+  ✓  11 [chromium] › e2e\duel-smoke.spec.ts:320:1 › visual field startup failure announces the semantic fallback and retry (1.2s)
+  ✓  12 [chromium] › e2e\duel-smoke.spec.ts:340:1 › mobile layout preserves controls and honors reduced motion (1.8s)
+  ✓  13 [chromium] › e2e\duel-smoke.spec.ts:367:1 › a full preset duel can be completed using keyboard controls only (23.7s)
+  ✘  14 [chromium] › e2e\prototype-accessibility.spec.ts:26:3 › prototype has no document overflow at 1280x720 (30.1s)
+  ✘  15 [chromium] › e2e\prototype-accessibility.spec.ts:26:3 › prototype has no document overflow at 768x1024 (30.2s)
+  ✓  16 [chromium] › e2e\prototype-accessibility.spec.ts:26:3 › prototype has no document overflow at 375x667 (361ms)
+  ✓  17 [chromium] › e2e\prototype-accessibility.spec.ts:26:3 › prototype has no document overflow at 667x375 (261ms)
+  ✓  18 [chromium] › e2e\prototype-accessibility.spec.ts:50:1 › overlays fit viewport, restore focus, and expose labels (398ms)
+  ✓  19 [chromium] › e2e\prototype-accessibility.spec.ts:73:1 › load and delete dialogs keep only top overlay active (448ms)
+  ✓  20 [chromium] › e2e\prototype-accessibility.spec.ts:95:1 › long content survives 200% text zoom and reduced motion (414ms)
+  ✓  21 [chromium] › e2e\prototype-accessibility.spec.ts:121:1 › core flow is keyboard reachable and screen changes focus meaningful content (989ms)
+  ✓  22 [chromium] › e2e\prototype-entry.spec.ts:3:1 › isolated visual novel prototype entry loads without changing root duel (518ms)
+  ✓  23 [chromium] › e2e\prototype-flow.spec.ts:14:1 › full flow reaches updated map, save, and end (1.2s)
+  ✓  24 [chromium] › e2e\prototype-flow.spec.ts:60:1 › autosave persists reward independently and retries after simulated failure (806ms)
+  ✓  25 [chromium] › e2e\prototype-flow.spec.ts:84:1 › manual delete removes only manual progress across reload (744ms)
+  ✓  26 [chromium] › e2e\prototype-flow.spec.ts:104:1 › Load path reaches narrative (488ms)
+  ✓  27 [chromium] › e2e\prototype-flow.spec.ts:113:1 › loss reaches distinct outcome and continues (449ms)
+  ✓  28 [chromium] › e2e\prototype-flow.spec.ts:129:3 › Abort offers recovery without reward (487ms)
+  ✓  29 [chromium] › e2e\prototype-flow.spec.ts:129:3 › Technical Failure offers recovery without reward (487ms)
+  ✓  30 [chromium] › e2e\prototype-flow.spec.ts:154:1 › hotspot and location list both reach briefing (359ms)
+  ✓  31 [chromium] › e2e\prototype-flow.spec.ts:169:1 › missing assets and save failure retain playable recovery (379ms)
+  ✘  32 [chromium] › e2e\prototype-flow.spec.ts:183:1 › reviewer presets expose matrix-only overlay and state variants (3.1m)
+  ✘  33 [chromium] › e2e\prototype-flow.spec.ts:229:1 › reset returns pristine launcher (2.3s)
+  ✘  34 [chromium] › e2e\prototype-flow.spec.ts:239:1 › root remains direct-duel entry (2.3s)
+  ✘  35 [chromium] › e2e\prototype-review-presets.spec.ts:8:3 › review preset: Launcher · fresh (2.2s)
+  ✘  36 [chromium] › e2e\prototype-review-presets.spec.ts:8:3 › review preset: Launcher · progress exists (2.3s)
+  ✓  37 [chromium] › e2e\prototype-review-presets.spec.ts:8:3 › review preset: Title · new player (382ms)
+  ✓  38 [chromium] › e2e\prototype-review-presets.spec.ts:8:3 › review preset: Title · Continue available (344ms)
+  ✓  39 [chromium] › e2e\prototype-review-presets.spec.ts:8:3 › review preset: Load · occupied/autosave/empty (272ms)
+  ✓  40 [chromium] › e2e\prototype-review-presets.spec.ts:8:3 › review preset: Load · incompatible/corrupt (291ms)
+  ✓  41 [chromium] › e2e\prototype-review-presets.spec.ts:8:3 › review preset: Narrative · narration (387ms)
+  ✓  42 [chromium] › e2e\prototype-review-presets.spec.ts:8:3 › review preset: Narrative · named dialogue / one character (342ms)
+  ✓  43 [chromium] › e2e\prototype-review-presets.spec.ts:8:3 › review preset: Narrative · protagonist thought (373ms)
+  ✓  44 [chromium] › e2e\prototype-review-presets.spec.ts:8:3 › review preset: Narrative · two characters (301ms)
+  ✓  45 [chromium] › e2e\prototype-review-presets.spec.ts:8:3 › review preset: Narrative · long text / changed background (284ms)
+  ✓  46 [chromium] › e2e\prototype-review-presets.spec.ts:8:3 › review preset: Narrative · missing assets (270ms)
+  ✓  47 [chromium] › e2e\prototype-review-presets.spec.ts:8:3 › review preset: Choice · unresolved (346ms)
+  ✓  48 [chromium] › e2e\prototype-review-presets.spec.ts:8:3 › review preset: Choice · resolved (340ms)
+  ✓  49 [chromium] › e2e\prototype-review-presets.spec.ts:8:3 › review preset: History · empty (289ms)
+  ✓  50 [chromium] › e2e\prototype-review-presets.spec.ts:8:3 › review preset: History · entries (278ms)
+  ✓  51 [chromium] › e2e\prototype-review-presets.spec.ts:8:3 › review preset: Settings · unchanged (277ms)
+  ✓  52 [chromium] › e2e\prototype-review-presets.spec.ts:8:3 › review preset: Settings · changed (275ms)
+  ✓  53 [chromium] › e2e\prototype-review-presets.spec.ts:8:3 › review preset: Settings · reset (273ms)
+  ✓  54 [chromium] › e2e\prototype-review-presets.spec.ts:8:3 › review preset: Settings · audio unavailable (268ms)
+  ✓  55 [chromium] › e2e\prototype-review-presets.spec.ts:8:3 › review preset: Map · available (292ms)
+  ✓  56 [chromium] › e2e\prototype-review-presets.spec.ts:8:3 › review preset: Map · locked (353ms)
+  ✓  57 [chromium] › e2e\prototype-review-presets.spec.ts:8:3 › review preset: Map · hidden (320ms)
+  ✓  58 [chromium] › e2e\prototype-review-presets.spec.ts:8:3 › review preset: Map · completed (390ms)
+  ✓  59 [chromium] › e2e\prototype-review-presets.spec.ts:8:3 › review preset: Map · available + completed (374ms)
+  ✓  60 [chromium] › e2e\prototype-review-presets.spec.ts:8:3 › review preset: Pre-battle · ready / return / checkpoint (301ms)
+  ✓  61 [chromium] › e2e\prototype-review-presets.spec.ts:8:3 › review preset: Battle mock · ready (319ms)
+  ✓  62 [chromium] › e2e\prototype-review-presets.spec.ts:8:3 › review preset: Battle mock · win (382ms)
+  ✓  63 [chromium] › e2e\prototype-review-presets.spec.ts:8:3 › review preset: Battle mock · loss (425ms)
+  ✓  64 [chromium] › e2e\prototype-review-presets.spec.ts:8:3 › review preset: Battle mock · abort (298ms)
+  ✓  65 [chromium] › e2e\prototype-review-presets.spec.ts:8:3 › review preset: Battle mock · technical failure (403ms)
+  ✓  66 [chromium] › e2e\prototype-review-presets.spec.ts:8:3 › review preset: Outcome · win branch (337ms)
+  ✓  67 [chromium] › e2e\prototype-review-presets.spec.ts:8:3 › review preset: Outcome · loss branch (346ms)
+  ✓  68 [chromium] › e2e\prototype-review-presets.spec.ts:8:3 › review preset: Outcome · recovery branch (335ms)
+  ✓  69 [chromium] › e2e\prototype-review-presets.spec.ts:8:3 › review preset: Reward · new reward (348ms)
+  ✓  70 [chromium] › e2e\prototype-review-presets.spec.ts:8:3 › review preset: Reward · acknowledged / updated map (370ms)
+  ✓  71 [chromium] › e2e\prototype-review-presets.spec.ts:8:3 › review preset: Save · idle (395ms)
+  ✓  72 [chromium] › e2e\prototype-review-presets.spec.ts:8:3 › review preset: Save · saving (284ms)
+  ✓  73 [chromium] › e2e\prototype-review-presets.spec.ts:8:3 › review preset: Save · success (331ms)
+  ✓  74 [chromium] › e2e\prototype-review-presets.spec.ts:8:3 › review preset: Save · overwrite (346ms)
+  ✓  75 [chromium] › e2e\prototype-review-presets.spec.ts:8:3 › review preset: Save · failure (288ms)
+  ✓  76 [chromium] › e2e\prototype-review-presets.spec.ts:8:3 › review preset: Motion · default (419ms)
+  ✓  77 [chromium] › e2e\prototype-review-presets.spec.ts:8:3 › review preset: Motion · reduced (400ms)
+  ✓  78 [firefox-smoke] › e2e\duel-smoke.spec.ts:77:1 › production bundle initializes the real Worker and sends one opaque choice once (3.0s)
+  ✓  79 [webkit-smoke] › e2e\duel-smoke.spec.ts:77:1 › production bundle initializes the real Worker and sends one opaque choice once (2.8s)
+
+
+  1) [chromium] › e2e\prototype-accessibility.spec.ts:26:3 › prototype has no document overflow at 1280x720 
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: getByRole('heading', { name: 'City signal map' })
+    Expected: visible
+    Timeout: 30000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toBeVisible" with timeout 30000ms
+      - waiting for getByRole('heading', { name: 'City signal map' })
+
+
+      31 |     await expect(
+      32 |       page.getByRole("heading", { name: "City signal map" }),
+    > 33 |     ).toBeVisible();
+         |       ^
+      34 |     const sizes = await page.evaluate(() => ({
+      35 |       documentWidth: document.documentElement.scrollWidth,
+      36 |       viewportWidth: innerWidth,
+        at C:\Users\Natha\coding\ygo-story-duel-simulator\e2e\prototype-accessibility.spec.ts:33:7
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\prototype-accessibility-pr-1ce5e-cument-overflow-at-1280x720-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\prototype-accessibility-pr-1ce5e-cument-overflow-at-1280x720-chromium\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\prototype-accessibility-pr-1ce5e-cument-overflow-at-1280x720-chromium\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\prototype-accessibility-pr-1ce5e-cument-overflow-at-1280x720-chromium\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  2) [chromium] › e2e\prototype-accessibility.spec.ts:26:3 › prototype has no document overflow at 768x1024 
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: getByRole('heading', { name: 'City signal map' })
+    Expected: visible
+    Timeout: 30000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toBeVisible" with timeout 30000ms
+      - waiting for getByRole('heading', { name: 'City signal map' })
+
+
+      31 |     await expect(
+      32 |       page.getByRole("heading", { name: "City signal map" }),
+    > 33 |     ).toBeVisible();
+         |       ^
+      34 |     const sizes = await page.evaluate(() => ({
+      35 |       documentWidth: document.documentElement.scrollWidth,
+      36 |       viewportWidth: innerWidth,
+        at C:\Users\Natha\coding\ygo-story-duel-simulator\e2e\prototype-accessibility.spec.ts:33:7
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\prototype-accessibility-pr-45f0f-cument-overflow-at-768x1024-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\prototype-accessibility-pr-45f0f-cument-overflow-at-768x1024-chromium\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\prototype-accessibility-pr-45f0f-cument-overflow-at-768x1024-chromium\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\prototype-accessibility-pr-45f0f-cument-overflow-at-768x1024-chromium\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  3) [chromium] › e2e\prototype-flow.spec.ts:183:1 › reviewer presets expose matrix-only overlay and state variants 
+
+    Test timeout of 180000ms exceeded.
+
+    Error: locator.click: Test timeout of 180000ms exceeded.
+    Call log:
+      - waiting for getByRole('button', { name: 'Hide UI' })
+        - locator resolved to <button type="button" class="secondary compact svelte-148433c">Hide UI</button>
+      - attempting click action
+        2 × waiting for element to be visible, enabled and stable
+          - element is visible, enabled and stable
+          - scrolling into view if needed
+          - done scrolling
+          - <button type="button" aria-expanded="true" class="drawer-toggle svelte-b28bw8">Reviewer tools</button> from <aside class="svelte-b28bw8 open" aria-label="Reviewer tools">…</aside> subtree intercepts pointer events
+        - retrying click action
+        - waiting 20ms
+        2 × waiting for element to be visible, enabled and stable
+          - element is visible, enabled and stable
+          - scrolling into view if needed
+          - done scrolling
+          - <button type="button" aria-expanded="true" class="drawer-toggle svelte-b28bw8">Reviewer tools</button> from <aside class="svelte-b28bw8 open" aria-label="Reviewer tools">…</aside> subtree intercepts pointer events
+        - retrying click action
+          - waiting 100ms
+        351 × waiting for element to be visible, enabled and stable
+            - element is visible, enabled and stable
+            - scrolling into view if needed
+            - done scrolling
+            - <button type="button" aria-expanded="true" class="drawer-toggle svelte-b28bw8">Reviewer tools</button> from <aside class="svelte-b28bw8 open" aria-label="Reviewer tools">…</aside> subtree intercepts pointer events
+          - retrying click action
+            - waiting 500ms
+
+
+      222 |   ).toBeVisible();
+      223 |   await presets.selectOption("narrative-narration");
+    > 224 |   await page.getByRole("button", { name: "Hide UI" }).click();
+          |                                                       ^
+      225 |   await presets.selectOption("narrative-dialogue");
+      226 |   await expect(page.getByText(/You came/)).toBeVisible();
+      227 | });
+        at C:\Users\Natha\coding\ygo-story-duel-simulator\e2e\prototype-flow.spec.ts:224:55
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\prototype-flow-reviewer-pr-66f13--overlay-and-state-variants-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results\prototype-flow-reviewer-pr-66f13--overlay-and-state-variants-chromium\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\prototype-flow-reviewer-pr-66f13--overlay-and-state-variants-chromium\error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\prototype-flow-reviewer-pr-66f13--overlay-and-state-variants-chromium\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\prototype-flow-reviewer-pr-66f13--overlay-and-state-variants-chromium\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  4) [chromium] › e2e\prototype-flow.spec.ts:229:1 › reset returns pristine launcher ───────────────
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://127.0.0.1:4173/ygo-story-duel/prototype.html?screen=map&choice=trust-rin
+    Call log:
+      - navigating to "http://127.0.0.1:4173/ygo-story-duel/prototype.html?screen=map&choice=trust-rin", waiting until "load"
+
+
+      228 |
+      229 | test("reset returns pristine launcher", async ({ page }) => {
+    > 230 |   await page.goto("./prototype.html?screen=map&choice=trust-rin");
+          |              ^
+      231 |   await page.getByRole("button", { name: "Reviewer tools" }).click();
+      232 |   await page.getByRole("button", { name: "Reset prototype" }).click();
+      233 |   await expect(
+        at C:\Users\Natha\coding\ygo-story-duel-simulator\e2e\prototype-flow.spec.ts:230:14
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\prototype-flow-reset-returns-pristine-launcher-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results\prototype-flow-reset-returns-pristine-launcher-chromium\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\prototype-flow-reset-returns-pristine-launcher-chromium\error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\prototype-flow-reset-returns-pristine-launcher-chromium\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\prototype-flow-reset-returns-pristine-launcher-chromium\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  5) [chromium] › e2e\prototype-flow.spec.ts:239:1 › root remains direct-duel entry ────────────────
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://127.0.0.1:4173/ygo-story-duel/
+    Call log:
+      - navigating to "http://127.0.0.1:4173/ygo-story-duel/", waiting until "load"
+
+
+      238 |
+      239 | test("root remains direct-duel entry", async ({ page }) => {
+    > 240 |   await page.goto("./");
+          |              ^
+      241 |   await expect(
+      242 |     page.getByRole("heading", { name: "YGO Story Duel Simulator" }),
+      243 |   ).toBeVisible({ timeout: 120_000 });
+        at C:\Users\Natha\coding\ygo-story-duel-simulator\e2e\prototype-flow.spec.ts:240:14
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\prototype-flow-root-remains-direct-duel-entry-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results\prototype-flow-root-remains-direct-duel-entry-chromium\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\prototype-flow-root-remains-direct-duel-entry-chromium\error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\prototype-flow-root-remains-direct-duel-entry-chromium\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\prototype-flow-root-remains-direct-duel-entry-chromium\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  6) [chromium] › e2e\prototype-review-presets.spec.ts:8:3 › review preset: Launcher · fresh ───────
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://127.0.0.1:4173/ygo-story-duel/prototype.html
+    Call log:
+      - navigating to "http://127.0.0.1:4173/ygo-story-duel/prototype.html", waiting until "load"
+
+
+       7 | for (const [preset, label] of REVIEW_PRESETS) {
+       8 |   test(`review preset: ${label}`, async ({ page }) => {
+    >  9 |     await page.goto("./prototype.html");
+         |                ^
+      10 |     await page.getByRole("button", { name: "Reviewer tools" }).click();
+      11 |     await page.getByLabel("State matrix preset").selectOption(preset);
+      12 |     await assertPreset(page, preset);
+        at C:\Users\Natha\coding\ygo-story-duel-simulator\e2e\prototype-review-presets.spec.ts:9:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\prototype-review-presets-review-preset-Launcher-·-fresh-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\prototype-review-presets-review-preset-Launcher-·-fresh-chromium\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\prototype-review-presets-review-preset-Launcher-·-fresh-chromium\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\prototype-review-presets-review-preset-Launcher-·-fresh-chromium\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  7) [chromium] › e2e\prototype-review-presets.spec.ts:8:3 › review preset: Launcher · progress exists 
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://127.0.0.1:4173/ygo-story-duel/prototype.html
+    Call log:
+      - navigating to "http://127.0.0.1:4173/ygo-story-duel/prototype.html", waiting until "load"
+
+
+       7 | for (const [preset, label] of REVIEW_PRESETS) {
+       8 |   test(`review preset: ${label}`, async ({ page }) => {
+    >  9 |     await page.goto("./prototype.html");
+         |                ^
+      10 |     await page.getByRole("button", { name: "Reviewer tools" }).click();
+      11 |     await page.getByLabel("State matrix preset").selectOption(preset);
+      12 |     await assertPreset(page, preset);
+        at C:\Users\Natha\coding\ygo-story-duel-simulator\e2e\prototype-review-presets.spec.ts:9:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\prototype-review-presets-r-2179d--Launcher-·-progress-exists-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results\prototype-review-presets-r-2179d--Launcher-·-progress-exists-chromium\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\prototype-review-presets-r-2179d--Launcher-·-progress-exists-chromium\error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\prototype-review-presets-r-2179d--Launcher-·-progress-exists-chromium\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\prototype-review-presets-r-2179d--Launcher-·-progress-exists-chromium\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  7 failed
+    [chromium] › e2e\prototype-accessibility.spec.ts:26:3 › prototype has no document overflow at 1280x720 
+    [chromium] › e2e\prototype-accessibility.spec.ts:26:3 › prototype has no document overflow at 768x1024 
+    [chromium] › e2e\prototype-flow.spec.ts:183:1 › reviewer presets expose matrix-only overlay and state variants 
+    [chromium] › e2e\prototype-flow.spec.ts:229:1 › reset returns pristine launcher ────────────────
+    [chromium] › e2e\prototype-flow.spec.ts:239:1 › root remains direct-duel entry ─────────────────
+    [chromium] › e2e\prototype-review-presets.spec.ts:8:3 › review preset: Launcher · fresh ────────
+    [chromium] › e2e\prototype-review-presets.spec.ts:8:3 › review preset: Launcher · progress exists 
+  72 passed (5.6m)

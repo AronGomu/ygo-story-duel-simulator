@@ -1,0 +1,200 @@
+FORMAT CHECK
+
+> ygo-story-duel-simulator@0.1.0 format:check
+> prettier --check "src/**/*.{ts,svelte,css}" "tests/{unit,integration,component,fixtures}/**/*.{ts,svelte}" "scripts/{verify-vendor,verify-browser-build,verify-reproducible-build,generate-runtime-snapshot,verify-runtime-snapshot}.ts" "scripts/lib/{active-card-text-manifest,active-image-manifest,active-runtime-files,vite-runtime-assets,vite-sync-core}.ts" "e2e/**/*.ts" "*.html" "*.{js,json,ts}"
+
+Checking formatting...
+[[33mwarn[39m] src/decks/deck-repository.ts
+[[33mwarn[39m] src/decks/indexeddb-deck-repository.ts
+[[33mwarn[39m] src/prototypes/deck-builder/components/YdkImport.svelte
+[[33mwarn[39m] Code style issues found in 3 files. Run Prettier with --write to fix.
+LINT
+
+> ygo-story-duel-simulator@0.1.0 lint
+> eslint .
+
+
+C:\Users\Natha\coding\ygo-story-duel-simulator\src\prototypes\deck-builder\deck-builder-store.ts
+  202:9  error  The value assigned to 'deck' is not used in subsequent statements  no-useless-assignment
+
+✖ 1 problem (1 error, 0 warnings)
+
+TYPECHECK
+
+> ygo-story-duel-simulator@0.1.0 typecheck
+> tsc --noEmit && svelte-check --tsconfig ./tsconfig.json
+
+Loading svelte-check in workspace: c:\Users\Natha\coding\ygo-story-duel-simulator
+Getting Svelte diagnostics...
+
+[32msvelte-check found 0 errors and 0 warnings
+[39mTEST
+
+> ygo-story-duel-simulator@0.1.0 test
+> npm run test:legacy && npm run test:unit && npm run test:component && npm run test:integration
+
+
+> ygo-story-duel-simulator@0.1.0 test:legacy
+> node --test tests/*.test.ts
+
+✔ readCatalog converts a YGOPro-compatible CDB (25.3317ms)
+✔ isJpeg requires complete JPEG start and end markers (0.8451ms)
+✔ MVP asset command runs every online acquisition and verification stage in order (1.3961ms)
+✔ offline MVP asset command performs no network image stage (0.2022ms)
+✔ MVP asset options enforce the provider request ceiling (0.413ms)
+✔ resolveProjectSubpath allows paths inside the approved project directory (0.8043ms)
+✔ resolveProjectSubpath rejects traversal and absolute paths (0.5517ms)
+✔ asset run lock prevents overlapping processes and can be reacquired (12.9882ms)
+✔ asset run lock safely reclaims a dead owner's lock (6.1321ms)
+✔ atomic JSON writer publishes complete status documents (3.7079ms)
+✔ Git source refs accept branches, tags and commit hashes (0.896ms)
+✔ pinned source revisions must match the checked-out commit (0.4204ms)
+✔ Git source refs reject option and refspec injection (0.1695ms)
+✔ parseStringsConf imports supported Project Ignis string sections (1.2102ms)
+✔ readTarFiles extracts regular package files (1.399ms)
+✔ readTarFiles rejects paths outside the package root (0.3379ms)
+✔ unpackSetcodes extracts packed 16-bit archetype codes (1.2421ms)
+✔ unpackSetcodes preserves unsigned high-bit values exposed as signed SQLite integers (0.1558ms)
+✔ transformCard preserves unsigned 64-bit race flags (0.2298ms)
+✔ transformCard decodes level, pendulum scales and link marker (0.1516ms)
+✔ numeric identifiers map to stable shards (0.4868ms)
+ℹ tests 21
+ℹ suites 0
+ℹ pass 21
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 142.9496
+
+> ygo-story-duel-simulator@0.1.0 test:unit
+> vitest run tests/unit
+
+7:03:28 PM [vite-plugin-svelte] no Svelte config found at C:/Users/Natha/coding/ygo-story-duel-simulator - using default configuration.
+
+ RUN  v4.1.10 C:/Users/Natha/coding/ygo-story-duel-simulator
+
+
+ Test Files  48 passed (48)
+      Tests  257 passed (257)
+   Start at  19:03:28
+   Duration  3.35s (transform 9.47s, setup 28.89s, import 3.80s, tests 1.15s, environment 6ms)
+
+
+> ygo-story-duel-simulator@0.1.0 test:component
+> vitest run tests/component
+
+7:03:32 PM [vite-plugin-svelte] no Svelte config found at C:/Users/Natha/coding/ygo-story-duel-simulator - using default configuration.
+
+ RUN  v4.1.10 C:/Users/Natha/coding/ygo-story-duel-simulator
+
+ ❯ tests/component/deck-builder/prototype-entry.test.ts (1 test | 1 failed) 30028ms
+     × opens last-opened deck and clears stale pointers 30027ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/component/deck-builder/prototype-entry.test.ts > prototype entry > opens last-opened deck and clears stale pointers
+DeckStorageError: Cannot open a missing deck
+ ❯ IndexedDbDeckRepository.setLastOpened src/decks/indexeddb-deck-repository.ts:243:15
+    241|     try {
+    242|       if ((await transaction.objectStore("decks").get(id)) === undefin…
+    243|         throw new DeckStorageError("Cannot open a missing deck");
+       |               ^
+    244|       await transaction.objectStore("preferences").put({
+    245|         key: LAST_OPENED_KEY,
+ ❯ tests/component/deck-builder/prototype-entry.test.ts:46:5
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  tests/component/deck-builder/prototype-entry.test.ts > prototype entry > opens last-opened deck and clears stale pointers
+Error: Hook timed out in 30000ms.
+If this is a long-running hook, pass a timeout value as the last argument or configure it globally with "hookTimeout".
+ ❯ tests/component/deck-builder/prototype-entry.test.ts:17:1
+     15|
+     16| const names: string[] = [];
+     17| afterEach(async () =>
+       | ^
+     18|   Promise.all(names.splice(0).map((name) => deleteDB(name))),
+     19| );
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+
+ Test Files  1 failed | 28 passed (29)
+      Tests  1 failed | 90 passed (91)
+   Start at  19:03:32
+   Duration  35.55s (transform 15.00s, setup 22.02s, import 9.19s, tests 42.55s, environment 32.66s)
+
+BUILD
+
+> ygo-story-duel-simulator@0.1.0 build
+> npm run vendor:verify && npm run snapshot:verify && npm run build:app && npm run build:verify
+
+
+> ygo-story-duel-simulator@0.1.0 vendor:verify
+> node scripts/verify-vendor.ts
+
+{
+  "status": "ok",
+  "package": "ocgcore-wasm",
+  "version": "0.1.2",
+  "files": 21
+}
+
+> ygo-story-duel-simulator@0.1.0 snapshot:verify
+> node scripts/verify-runtime-snapshot.ts
+
+{
+  "status": "ok",
+  "snapshotId": "a562f5ad6794e377157d91adba6a51d73960d5384a00b25fd8bf1236b0f69fb2"
+}
+
+> ygo-story-duel-simulator@0.1.0 build:app
+> vite build --mode private
+
+7:04:10 PM [vite-plugin-svelte] no Svelte config found at C:/Users/Natha/coding/ygo-story-duel-simulator - using default configuration.
+[36mvite v8.1.4 [32mbuilding client environment for private...[36m[39m
+[2Ktransforming...✓ 235 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/assets/chunk-L5TW24SS-CYAOB92A.js                         0.54 kB
+dist/index.html                                                0.79 kB │ gzip:   0.40 kB
+dist/prototype.html                                            0.90 kB │ gzip:   0.43 kB
+dist/assets/ocgcore.sync-MMMSWPBB-ykLRlS6r.js                 20.88 kB
+dist/assets/duel.worker-browser-D1RrcfJt.js                  114.48 kB
+dist/assets/App-ChDzEdU4.css                                   3.95 kB │ gzip:   1.16 kB
+dist/assets/app-CfSKsqya.css                                   5.19 kB │ gzip:   1.87 kB
+dist/assets/DeckBuilderPrototype-CHr3o2V7.css                 14.95 kB │ gzip:   3.22 kB
+dist/assets/prototype-BgYetZAu.css                            19.45 kB │ gzip:   4.92 kB
+dist/assets/legacy-CVlNoc75.js                                 0.11 kB │ gzip:   0.13 kB
+dist/assets/modulepreload-polyfill-Dezn_h7o.js                 0.69 kB │ gzip:   0.39 kB
+dist/assets/preload-helper-Czpn1I53.js                         1.19 kB │ gzip:   0.67 kB
+dist/assets/app-DB-7km5A.js                                    1.54 kB │ gzip:   0.74 kB
+dist/assets/assert-never-DYKCLIt4.js                           3.38 kB │ gzip:   1.45 kB
+dist/assets/index-client-Bm7uzotH.js                           6.31 kB │ gzip:   2.34 kB
+dist/assets/index-client-FIdoSbxx.js                          44.70 kB │ gzip:  17.37 kB
+dist/assets/prototype-DtY0qOaT.js                             63.66 kB │ gzip:  20.20 kB
+dist/assets/DeckBuilderPrototype-D-X-I_Fp.js                  86.81 kB │ gzip:  25.55 kB
+dist/assets/App-Dkv9h7b2.js                                  109.82 kB │ gzip:  32.20 kB
+dist/assets/create-phaser-presentation-bridge-C0KmYjEZ.js  1,384.50 kB │ gzip: 361.10 kB
+
+[32m✓ built in 946ms[39m
+
+> ygo-story-duel-simulator@0.1.0 build:verify
+> node scripts/verify-browser-build.ts
+
+{
+  "status": "ok",
+  "snapshotId": "a562f5ad6794e377157d91adba6a51d73960d5384a00b25fd8bf1236b0f69fb2",
+  "runtimeFiles": 70,
+  "worker": "duel.worker-browser-D1RrcfJt.js"
+}
+REPRO
+
+> ygo-story-duel-simulator@0.1.0 build:reproducible
+> node scripts/verify-reproducible-build.ts
+
+{
+  "status": "ok",
+  "files": 122
+}

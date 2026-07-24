@@ -1,0 +1,69 @@
+5:46:53 PM [vite-plugin-svelte] no Svelte config found at C:/Users/Natha/coding/ygo-story-duel-simulator - using default configuration.
+
+ RUN  v4.1.10 C:/Users/Natha/coding/ygo-story-duel-simulator
+
+
+ Test Files  1 passed (1)
+      Tests  8 passed (8)
+   Start at  17:46:53
+   Duration  851ms (transform 512ms, setup 709ms, import 11ms, tests 19ms, environment 0ms)
+
+
+> ygo-story-duel-simulator@0.1.0 build
+> npm run vendor:verify && npm run snapshot:verify && npm run build:app && npm run build:verify
+
+
+> ygo-story-duel-simulator@0.1.0 vendor:verify
+> node scripts/verify-vendor.ts
+
+{
+  "status": "ok",
+  "package": "ocgcore-wasm",
+  "version": "0.1.2",
+  "files": 21
+}
+
+> ygo-story-duel-simulator@0.1.0 snapshot:verify
+> node scripts/verify-runtime-snapshot.ts
+
+{
+  "status": "ok",
+  "snapshotId": "a562f5ad6794e377157d91adba6a51d73960d5384a00b25fd8bf1236b0f69fb2"
+}
+
+> ygo-story-duel-simulator@0.1.0 build:app
+> vite build --mode private
+
+5:46:56 PM [vite-plugin-svelte] no Svelte config found at C:/Users/Natha/coding/ygo-story-duel-simulator - using default configuration.
+[36mvite v8.1.4 [32mbuilding client environment for private...[36m[39m
+[2Ktransforming...✓ 232 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/assets/chunk-L5TW24SS-CYAOB92A.js                         0.54 kB
+dist/prototype.html                                            0.79 kB │ gzip:   0.40 kB
+dist/index.html                                                0.86 kB │ gzip:   0.42 kB
+dist/assets/ocgcore.sync-MMMSWPBB-ykLRlS6r.js                 20.88 kB
+dist/assets/duel.worker-browser-D0F7yIYC.js                  114.39 kB
+dist/assets/app-BqctSrCG.css                                   9.15 kB │ gzip:   2.64 kB
+dist/assets/DeckBuilderPrototype-BXl-rKWp.css                 14.49 kB │ gzip:   3.13 kB
+dist/assets/prototype-w-MxaC7j.css                            18.81 kB │ gzip:   4.81 kB
+dist/assets/modulepreload-polyfill-Dezn_h7o.js                 0.69 kB │ gzip:   0.39 kB
+dist/assets/assert-never-DYKCLIt4.js                           3.38 kB │ gzip:   1.45 kB
+dist/assets/index-client-BgFRnQsL.js                           6.30 kB │ gzip:   2.34 kB
+dist/assets/legacy-DoZY_HVa.js                                44.58 kB │ gzip:  17.33 kB
+dist/assets/prototype-DgihGcNt.js                             51.87 kB │ gzip:  16.96 kB
+dist/assets/DeckBuilderPrototype-COWjJ_CO.js                  67.31 kB │ gzip:  20.07 kB
+dist/assets/app-BT2g0tXd.js                                  111.51 kB │ gzip:  32.91 kB
+dist/assets/create-phaser-presentation-bridge-C0KmYjEZ.js  1,384.50 kB │ gzip: 361.10 kB
+
+[32m✓ built in 864ms[39m
+
+> ygo-story-duel-simulator@0.1.0 build:verify
+> node scripts/verify-browser-build.ts
+
+{
+  "status": "ok",
+  "snapshotId": "a562f5ad6794e377157d91adba6a51d73960d5384a00b25fd8bf1236b0f69fb2",
+  "runtimeFiles": 70,
+  "worker": "duel.worker-browser-D0F7yIYC.js"
+}

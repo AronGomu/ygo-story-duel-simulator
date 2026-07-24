@@ -1,0 +1,18 @@
+
+Running 20 tests using 1 worker
+
+  ✓   1 [chromium] › e2e\prototype-accessibility.spec.ts:26:3 › prototype has no document overflow at 1280x720 (224ms)
+  ✓   2 [chromium] › e2e\prototype-accessibility.spec.ts:26:3 › prototype has no document overflow at 768x1024 (183ms)
+  ✓   3 [chromium] › e2e\prototype-accessibility.spec.ts:26:3 › prototype has no document overflow at 375x667 (191ms)
+  ✓   4 [chromium] › e2e\prototype-accessibility.spec.ts:26:3 › prototype has no document overflow at 667x375 (194ms)
+  ✓   5 [chromium] › e2e\prototype-accessibility.spec.ts:50:1 › overlays fit viewport, restore focus, and expose labels (242ms)
+  ✘   6 [chromium] › e2e\prototype-accessibility.spec.ts:73:1 › load and delete dialogs keep only top overlay active (31.0s)
+  ✓   7 [chromium] › e2e\prototype-accessibility.spec.ts:95:1 › long content survives 200% text zoom and reduced motion (284ms)
+  ✓   8 [chromium] › e2e\prototype-accessibility.spec.ts:121:1 › core flow is keyboard reachable and screen changes focus meaningful content (617ms)
+  ✓   9 [chromium] › e2e\prototype-entry.spec.ts:3:1 › isolated visual novel prototype entry loads without changing root duel (319ms)
+  ✓  10 [chromium] › e2e\prototype-flow.spec.ts:14:1 › full flow reaches updated map, save, and end (841ms)
+  ✘  11 [chromium] › e2e\prototype-flow.spec.ts:60:1 › autosave persists reward independently and retries after simulated failure (3.1m)
+  ✘  12 [chromium] › e2e\prototype-flow.spec.ts:84:1 › manual delete removes only manual progress across reload (3.0m)
+  ✘  13 [chromium] › e2e\prototype-flow.spec.ts:104:1 › Load path reaches narrative (3.1m)
+  ✘  14 [chromium] › e2e\prototype-flow.spec.ts:113:1 › loss reaches distinct outcome and continues (3.1m)
+  ✘  15 [chromium] › e2e\prototype-flow.spec.ts:129:3 › Abort offers recovery without reward (3.1m)

@@ -1,0 +1,17 @@
+6:07:05 PM [vite-plugin-svelte] no Svelte config found at C:/Users/Natha/coding/ygo-story-duel-simulator - using default configuration.
+
+ RUN  v4.1.10 C:/Users/Natha/coding/ygo-story-duel-simulator
+
+
+ Test Files  13 passed (13)
+      Tests  62 passed (62)
+   Start at  18:07:05
+   Duration  3.16s (transform 7.79s, setup 11.90s, import 2.09s, tests 3.63s, environment 9.20s)
+
+
+> ygo-story-duel-simulator@0.1.0 typecheck
+> tsc --noEmit && svelte-check --tsconfig ./tsconfig.json
+
+tests/component/deck-builder/deck-autosave.test.ts(120,5): error TS2349: This expression is not callable.
+  Type 'never' has no call signatures.
+tests/component/deck-builder/ydk-import.test.ts(41,56): error TS2339: Property 'toHaveAttribute' does not exist on type 'Assertion<HTMLElement>'.

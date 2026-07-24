@@ -1,0 +1,71 @@
+5:41:26 PM [vite-plugin-svelte] no Svelte config found at C:/Users/Natha/coding/ygo-story-duel-simulator - using default configuration.
+
+ RUN  v4.1.10 C:/Users/Natha/coding/ygo-story-duel-simulator
+
+
+ Test Files  1 passed (1)
+      Tests  3 passed (3)
+   Start at  17:41:26
+   Duration  873ms (transform 535ms, setup 735ms, import 12ms, tests 18ms, environment 0ms)
+
+5:41:28 PM [vite-plugin-svelte] no Svelte config found at C:/Users/Natha/coding/ygo-story-duel-simulator - using default configuration.
+
+ RUN  v4.1.10 C:/Users/Natha/coding/ygo-story-duel-simulator
+
+ ❯ tests/component/prototype/ReviewerTools.test.ts (2 tests | 1 failed) 178ms
+     × exposes choice/map/battle/assets/storage/motion controls, reset, JSON, and separate reviewer chrome 7ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/component/prototype/ReviewerTools.test.ts > reviewer tools > exposes choice/map/battle/assets/storage/motion controls, reset, JSON, and separate reviewer chrome
+TestingLibraryElementError: Unable to find a label with the text of: Choice result
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<aside[39m
+      [33maria-label[39m=[32m"Reviewer tools"[39m
+      [33mclass[39m=[32m"svelte-b28bw8"[39m
+    [36m>[39m
+      [36m<button[39m
+        [33maria-expanded[39m=[32m"false"[39m
+        [33mclass[39m=[32m"drawer-toggle svelte-b28bw8"[39m
+        [33mtype[39m=[32m"button"[39m
+      [36m>[39m
+        [0mReviewer tools[0m
+      [36m</button>[39m
+      [0m [0m
+    [36m</aside>[39m
+    [0m[0m
+  [36m</div>[39m
+[36m</body>[39m
+ ❯ Object.getElementError node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ getAllByLabelText node_modules/@testing-library/dom/dist/queries/label-text.js:111:38
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ tests/component/prototype/ReviewerTools.test.ts:28:21
+     26|     expect(screen.getByRole("complementary", { name: "Reviewer tools" …
+     27|     for (const label of ["Choice result", "Map state", "Battle result"…
+     28|       expect(screen.getByLabelText(label)).toBeTruthy();
+       |                     ^
+     29|     for (const text of ["available", "locked", "hidden", "completed", …
+     30|       expect(screen.getByLabelText("Map state").textContent).toContain…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 1 passed (2)
+   Start at  17:41:28
+   Duration  1.78s (transform 563ms, setup 668ms, import 151ms, tests 178ms, environment 667ms)
+
+5:41:43 PM [vite-plugin-svelte] no Svelte config found at C:/Users/Natha/coding/ygo-story-duel-simulator - using default configuration.
+
+ RUN  v4.1.10 C:/Users/Natha/coding/ygo-story-duel-simulator
+
+
+ Test Files  1 passed (1)
+      Tests  2 passed (2)
+   Start at  17:41:43
+   Duration  1.97s (transform 540ms, setup 641ms, import 151ms, tests 332ms, environment 723ms)
+

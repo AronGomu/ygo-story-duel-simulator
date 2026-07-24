@@ -1,0 +1,83 @@
+SECTION 1 UNIT RED
+5:24:56 PM [vite-plugin-svelte] no Svelte config found at C:/Users/Natha/coding/ygo-story-duel-simulator - using default configuration.
+
+ RUN  v4.1.10 C:/Users/Natha/coding/ygo-story-duel-simulator
+
+ ❯ tests/unit/prototype/prototype-boundaries.test.ts (1 test | 1 failed) 21ms
+     × exists under its isolated entry and imports no production domains 20ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/unit/prototype/prototype-boundaries.test.ts > prototype source boundary > exists under its isolated entry and imports no production domains
+AssertionError: promise rejected "Error: ENOENT: no such file or directory,… { …(4) }" instead of resolving
+ ❯ tests/unit/prototype/prototype-boundaries.test.ts:10:41
+      8| describe("prototype source boundary", () => {
+      9|   it("exists under its isolated entry and imports no production domain…
+     10|     await expect(stat("prototype.html")).resolves.toBeDefined();
+       |                                         ^
+     11|     await expect(stat(path.join(prototypeRoot, "main.ts"))).resolves.t…
+     12|     expect(path.normalize("src/prototype/main.ts")).not.toBe(
+
+Caused by: Error: ENOENT: no such file or directory, stat 'C:\Users\Natha\coding\ygo-story-duel-simulator\prototype.html'
+ ❯ tests/unit/prototype/prototype-boundaries.test.ts:10:5
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { errno: -4058, code: 'ENOENT', syscall: 'stat', path: 'C:\Users\Natha\coding\ygo-story-duel-simulator\prototype.html' }
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed (1)
+   Start at  17:24:56
+   Duration  866ms (transform 514ms, setup 722ms, import 7ms, tests 21ms, environment 0ms)
+
+SECTION 1 E2E RED
+
+Running 1 test using 1 worker
+
+  ✘  1 [chromium] › e2e\prototype-entry.spec.ts:3:1 › isolated visual novel prototype entry loads without changing root duel (31.0s)
+
+
+  1) [chromium] › e2e\prototype-entry.spec.ts:3:1 › isolated visual novel prototype entry loads without changing root duel 
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: getByRole('heading', { name: 'Visual novel prototype' })
+    Expected: visible
+    Timeout: 30000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toBeVisible" with timeout 30000ms
+      - waiting for getByRole('heading', { name: 'Visual novel prototype' })
+
+
+       7 |   await expect(
+       8 |     page.getByRole("heading", { name: "Visual novel prototype" }),
+    >  9 |   ).toBeVisible();
+         |     ^
+      10 |   await expect(page.getByRole("button", { name: "Start full flow" })).toBeVisible();
+      11 |   await expect(
+      12 |     page.getByRole("button", { name: "Jump to screen or state" }),
+        at C:\Users\Natha\coding\ygo-story-duel-simulator\e2e\prototype-entry.spec.ts:9:5
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\prototype-entry-isolated-v-a1a63--without-changing-root-duel-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results\prototype-entry-isolated-v-a1a63--without-changing-root-duel-chromium\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\prototype-entry-isolated-v-a1a63--without-changing-root-duel-chromium\error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\prototype-entry-isolated-v-a1a63--without-changing-root-duel-chromium\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\prototype-entry-isolated-v-a1a63--without-changing-root-duel-chromium\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  1 failed
+    [chromium] › e2e\prototype-entry.spec.ts:3:1 › isolated visual novel prototype entry loads without changing root duel 

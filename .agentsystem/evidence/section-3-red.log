@@ -1,0 +1,34 @@
+5:29:24 PM [vite-plugin-svelte] no Svelte config found at C:/Users/Natha/coding/ygo-story-duel-simulator - using default configuration.
+
+ RUN  v4.1.10 C:/Users/Natha/coding/ygo-story-duel-simulator
+
+ ❯ tests/component/prototype/VisualDirectionBoards.test.ts (0 test)
+
+⎯⎯⎯⎯⎯⎯ Failed Suites 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/component/prototype/VisualDirectionBoards.test.ts [ tests/component/prototype/VisualDirectionBoards.test.ts ]
+Error: Failed to resolve import "../../../src/prototype/components/VisualDirectionBoards.svelte" from "tests/component/prototype/VisualDirectionBoards.test.ts". Does the file exist?
+  Plugin: vite:import-analysis
+  File: C:/Users/Natha/coding/ygo-story-duel-simulator/tests/component/prototype/VisualDirectionBoards.test.ts:5:34
+  3  |  import { userEvent } from "@testing-library/user-event";
+  4  |  import { afterEach, describe, expect, it } from "vitest";
+  5  |  import VisualDirectionBoards from "../../../src/prototype/components/VisualDirectionBoards.svelte";
+     |                                     ^
+  6  |  afterEach(() => cleanup());
+  7  |  describe("VisualDirectionBoards", () => {
+ ❯ TransformPluginContext._formatLog node_modules/vite/dist/node/chunks/node.js:30366:39
+ ❯ TransformPluginContext.error node_modules/vite/dist/node/chunks/node.js:30363:14
+ ❯ normalizeUrl node_modules/vite/dist/node/chunks/node.js:27393:18
+ ❯ node_modules/vite/dist/node/chunks/node.js:27456:30
+ ❯ TransformPluginContext.transform node_modules/vite/dist/node/chunks/node.js:27424:4
+ ❯ EnvironmentPluginContainer.transform node_modules/vite/dist/node/chunks/node.js:30151:14
+ ❯ loadAndTransform node_modules/vite/dist/node/chunks/node.js:20098:26
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  no tests
+   Start at  17:29:25
+   Duration  1.54s (transform 474ms, setup 689ms, import 0ms, tests 0ms, environment 697ms)
+

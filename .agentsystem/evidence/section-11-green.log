@@ -1,0 +1,12 @@
+
+Running 7 tests using 1 worker
+
+  ✓  1 [chromium] › e2e\prototype-accessibility.spec.ts:9:3 › prototype has no document overflow at 1280x720 (249ms)
+  ✓  2 [chromium] › e2e\prototype-accessibility.spec.ts:9:3 › prototype has no document overflow at 768x1024 (183ms)
+  ✓  3 [chromium] › e2e\prototype-accessibility.spec.ts:9:3 › prototype has no document overflow at 375x667 (203ms)
+  ✓  4 [chromium] › e2e\prototype-accessibility.spec.ts:9:3 › prototype has no document overflow at 667x375 (200ms)
+  ✓  5 [chromium] › e2e\prototype-accessibility.spec.ts:26:1 › overlays fit viewport, restore focus, and expose labels (231ms)
+  ✓  6 [chromium] › e2e\prototype-accessibility.spec.ts:40:1 › long content survives 200% text zoom and reduced motion (293ms)
+  ✓  7 [chromium] › e2e\prototype-accessibility.spec.ts:52:1 › core flow is keyboard reachable and screen changes focus meaningful content (380ms)
+
+  7 passed (7.2s)

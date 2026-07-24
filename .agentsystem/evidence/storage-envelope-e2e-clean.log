@@ -1,0 +1,142 @@
+
+Running 19 tests using 1 worker
+
+  ✓   1 [chromium] › e2e\prototype-accessibility.spec.ts:26:3 › prototype has no document overflow at 1280x720 (224ms)
+  ✓   2 [chromium] › e2e\prototype-accessibility.spec.ts:26:3 › prototype has no document overflow at 768x1024 (185ms)
+  ✓   3 [chromium] › e2e\prototype-accessibility.spec.ts:26:3 › prototype has no document overflow at 375x667 (192ms)
+  ✓   4 [chromium] › e2e\prototype-accessibility.spec.ts:26:3 › prototype has no document overflow at 667x375 (195ms)
+  ✓   5 [chromium] › e2e\prototype-accessibility.spec.ts:50:1 › overlays fit viewport, restore focus, and expose labels (244ms)
+  ✘   6 [chromium] › e2e\prototype-accessibility.spec.ts:73:1 › load and delete dialogs keep only top overlay active (31.1s)
+  ✓   7 [chromium] › e2e\prototype-accessibility.spec.ts:95:1 › long content survives 200% text zoom and reduced motion (274ms)
+  ✓   8 [chromium] › e2e\prototype-accessibility.spec.ts:121:1 › core flow is keyboard reachable and screen changes focus meaningful content (618ms)
+  ✓   9 [chromium] › e2e\prototype-flow.spec.ts:14:1 › full flow reaches updated map, save, and end (848ms)
+  ✘  10 [chromium] › e2e\prototype-flow.spec.ts:60:1 › autosave persists reward independently and retries after simulated failure (3.1m)
+  ✘  11 [chromium] › e2e\prototype-flow.spec.ts:84:1 › manual delete removes only manual progress across reload (3.1m)
+  ✓  12 [chromium] › e2e\prototype-flow.spec.ts:104:1 › Load path reaches narrative (372ms)
+  ✓  13 [chromium] › e2e\prototype-flow.spec.ts:113:1 › loss reaches distinct outcome and continues (327ms)
+  ✓  14 [chromium] › e2e\prototype-flow.spec.ts:129:3 › Abort offers recovery without reward (379ms)
+  ✓  15 [chromium] › e2e\prototype-flow.spec.ts:129:3 › Technical Failure offers recovery without reward (363ms)
+  ✓  16 [chromium] › e2e\prototype-flow.spec.ts:154:1 › hotspot and location list both reach briefing (287ms)
+  ✓  17 [chromium] › e2e\prototype-flow.spec.ts:169:1 › missing assets and save failure retain playable recovery (276ms)
+  ✓  18 [chromium] › e2e\prototype-flow.spec.ts:183:1 › reset returns pristine launcher (319ms)
+  ✓  19 [chromium] › e2e\prototype-flow.spec.ts:193:1 › root remains direct-duel entry (730ms)
+
+
+  1) [chromium] › e2e\prototype-accessibility.spec.ts:73:1 › load and delete dialogs keep only top overlay active 
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: getByRole('dialog', { name: 'Load game' })
+    Expected: visible
+    Timeout: 30000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toBeVisible" with timeout 30000ms
+      - waiting for getByRole('dialog', { name: 'Load game' })
+
+
+      90 |   await page.keyboard.press("Escape");
+      91 |   await expect(deletion).toHaveCount(0);
+    > 92 |   await expect(page.getByRole("dialog", { name: "Load game" })).toBeVisible();
+         |                                                                 ^
+      93 | });
+      94 |
+      95 | test("long content survives 200% text zoom and reduced motion", async ({
+        at C:\Users\Natha\coding\ygo-story-duel-simulator\e2e\prototype-accessibility.spec.ts:92:65
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\prototype-accessibility-lo-55275-eep-only-top-overlay-active-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results\prototype-accessibility-lo-55275-eep-only-top-overlay-active-chromium\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\prototype-accessibility-lo-55275-eep-only-top-overlay-active-chromium\error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\prototype-accessibility-lo-55275-eep-only-top-overlay-active-chromium\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\prototype-accessibility-lo-55275-eep-only-top-overlay-active-chromium\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  2) [chromium] › e2e\prototype-flow.spec.ts:60:1 › autosave persists reward independently and retries after simulated failure 
+
+    Test timeout of 180000ms exceeded.
+
+    Error: locator.click: Test timeout of 180000ms exceeded.
+    Call log:
+      - waiting for getByRole('button', { name: 'Start full flow' })
+
+
+      66 |   await expect(page.getByText(/Autosave complete/)).toBeVisible();
+      67 |   await page.reload();
+    > 68 |   await page.getByRole("button", { name: "Start full flow" }).click();
+         |                                                               ^
+      69 |   await page.getByRole("button", { name: "Continue" }).click();
+      70 |   await expect(
+      71 |     page.getByRole("heading", { name: "Signal Cipher" }),
+        at C:\Users\Natha\coding\ygo-story-duel-simulator\e2e\prototype-flow.spec.ts:68:63
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\prototype-flow-autosave-pe-5e0c9-ies-after-simulated-failure-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results\prototype-flow-autosave-pe-5e0c9-ies-after-simulated-failure-chromium\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\prototype-flow-autosave-pe-5e0c9-ies-after-simulated-failure-chromium\error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\prototype-flow-autosave-pe-5e0c9-ies-after-simulated-failure-chromium\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\prototype-flow-autosave-pe-5e0c9-ies-after-simulated-failure-chromium\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  3) [chromium] › e2e\prototype-flow.spec.ts:84:1 › manual delete removes only manual progress across reload 
+
+    Test timeout of 180000ms exceeded.
+
+    Error: locator.click: Test timeout of 180000ms exceeded.
+    Call log:
+      - waiting for getByRole('button', { name: 'Start full flow' })
+
+
+       98 |   await page.getByRole("button", { name: "Close Load game" }).click();
+       99 |   await page.reload();
+    > 100 |   await page.getByRole("button", { name: "Start full flow" }).click();
+          |                                                               ^
+      101 |   await expect(page.getByRole("button", { name: "Continue" })).toHaveCount(0);
+      102 | });
+      103 |
+        at C:\Users\Natha\coding\ygo-story-duel-simulator\e2e\prototype-flow.spec.ts:100:63
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\prototype-flow-manual-dele-675c7-nual-progress-across-reload-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results\prototype-flow-manual-dele-675c7-nual-progress-across-reload-chromium\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\prototype-flow-manual-dele-675c7-nual-progress-across-reload-chromium\error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\prototype-flow-manual-dele-675c7-nual-progress-across-reload-chromium\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\prototype-flow-manual-dele-675c7-nual-progress-across-reload-chromium\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  3 failed
+    [chromium] › e2e\prototype-accessibility.spec.ts:73:1 › load and delete dialogs keep only top overlay active 
+    [chromium] › e2e\prototype-flow.spec.ts:60:1 › autosave persists reward independently and retries after simulated failure 
+    [chromium] › e2e\prototype-flow.spec.ts:84:1 › manual delete removes only manual progress across reload 
+  16 passed (6.9m)

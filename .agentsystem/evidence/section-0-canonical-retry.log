@@ -1,0 +1,41 @@
+
+> ygo-story-duel-simulator@0.1.0 check
+> npm run check:headless && npm run check:browser
+
+
+> ygo-story-duel-simulator@0.1.0 check:headless
+> npm run format:check && npm run lint && npm run typecheck && npm run test:legacy && npm run test:unit && npm run test:integration && npm run vendor:verify && npm run assets:verify && npm run snapshot:verify
+
+
+> ygo-story-duel-simulator@0.1.0 format:check
+> prettier --check "src/**/*.{ts,svelte,css}" "tests/{unit,integration,component,fixtures}/**/*.{ts,svelte}" "scripts/{verify-vendor,verify-browser-build,verify-reproducible-build,generate-runtime-snapshot,verify-runtime-snapshot}.ts" "scripts/lib/{active-card-text-manifest,active-image-manifest,active-runtime-files,vite-runtime-assets,vite-sync-core}.ts" "e2e/**/*.ts" "index.html" "*.{js,json,ts}"
+
+Checking formatting...
+[[33mwarn[39m] tests/component/deck-builder/card-catalog.test.ts
+[[33mwarn[39m] tests/component/deck-builder/card-details.test.ts
+[[33mwarn[39m] tests/component/deck-builder/deck-builder-a11y.test.ts
+[[33mwarn[39m] tests/component/deck-builder/deck-editor-shell.test.ts
+[[33mwarn[39m] tests/component/deck-builder/deck-validation-ui.test.ts
+[[33mwarn[39m] tests/component/deck-builder/deck-zone-grid.test.ts
+[[33mwarn[39m] tests/component/deck-builder/keyboard-drag.test.ts
+[[33mwarn[39m] tests/component/deck-builder/pointer-drag.test.ts
+[[33mwarn[39m] tests/component/deck-builder/prototype-shell.test.ts
+[[33mwarn[39m] tests/component/deck-builder/quantity-badge.test.ts
+[[33mwarn[39m] tests/fixtures/deck-builder.ts
+[[33mwarn[39m] tests/unit/decks/deck-catalog.test.ts
+[[33mwarn[39m] tests/unit/decks/deck-grid-plan.test.ts
+[[33mwarn[39m] tests/unit/decks/deck-model.test.ts
+[[33mwarn[39m] tests/unit/decks/deck-resolver.test.ts
+[[33mwarn[39m] tests/unit/decks/deck-validation.test.ts
+[[33mwarn[39m] tests/unit/decks/indexeddb-deck-repository.test.ts
+[[33mwarn[39m] tests/unit/decks/ocg-card-mapper.test.ts
+[[31merror[39m] tests/unit/decks/prototype-catalog-fixture.test.ts: SyntaxError: ')' expected. (13:6)
+[[31merror[39m]   11 |     expect(new Set(PROTOTYPE_CATALOG.map(({ family }) => family)).toEqual(
+[[31merror[39m]   12 |       new Set(["monster", "spell", "trap"]),
+[[31merror[39m] > 13 |     );
+[[31merror[39m]      |      ^
+[[31merror[39m]   14 |     for (const subtype of [
+[[31merror[39m]   15 |       "Fusion",
+[[31merror[39m]   16 |       "Synchro",
+[[33mwarn[39m] tests/unit/decks/ydk-adapter.test.ts
+Error occurred when checking code style in the above file.

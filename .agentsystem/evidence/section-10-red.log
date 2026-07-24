@@ -1,0 +1,59 @@
+5:40:19 PM [vite-plugin-svelte] no Svelte config found at C:/Users/Natha/coding/ygo-story-duel-simulator - using default configuration.
+
+ RUN  v4.1.10 C:/Users/Natha/coding/ygo-story-duel-simulator
+
+ ❯ tests/unit/prototype/review-link.test.ts (0 test)
+
+⎯⎯⎯⎯⎯⎯ Failed Suites 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/unit/prototype/review-link.test.ts [ tests/unit/prototype/review-link.test.ts ]
+Error: Cannot find module '../../../src/prototype/review/review-link.ts' imported from C:/Users/Natha/coding/ygo-story-duel-simulator/tests/unit/prototype/review-link.test.ts
+ ❯ tests/unit/prototype/review-link.test.ts:2:1
+      1| import { describe, expect, it } from "vitest";
+      2| import { parseReviewLink, serializeReviewLink, type ReviewState } from…
+       | ^
+      3|
+      4| const state: ReviewState = {
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  no tests
+   Start at  17:40:19
+   Duration  825ms (transform 488ms, setup 700ms, import 0ms, tests 0ms, environment 0ms)
+
+5:40:21 PM [vite-plugin-svelte] no Svelte config found at C:/Users/Natha/coding/ygo-story-duel-simulator - using default configuration.
+
+ RUN  v4.1.10 C:/Users/Natha/coding/ygo-story-duel-simulator
+
+ ❯ tests/component/prototype/ReviewerTools.test.ts (0 test)
+
+⎯⎯⎯⎯⎯⎯ Failed Suites 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/component/prototype/ReviewerTools.test.ts [ tests/component/prototype/ReviewerTools.test.ts ]
+Error: Failed to resolve import "../../../src/prototype/review/ReviewDrawer.svelte" from "tests/component/prototype/ReviewerTools.test.ts". Does the file exist?
+  Plugin: vite:import-analysis
+  File: C:/Users/Natha/coding/ygo-story-duel-simulator/tests/component/prototype/ReviewerTools.test.ts:6:25
+  4  |  import { afterEach, describe, expect, it, vi } from "vitest";
+  5  |  import { createInitialPrototypeState } from "../../../src/prototype/model/prototype-state.ts";
+  6  |  import ReviewDrawer from "../../../src/prototype/review/ReviewDrawer.svelte";
+     |                            ^
+  7  |  import ReviewLauncher from "../../../src/prototype/review/ReviewLauncher.svelte";
+  8  |  afterEach(() => cleanup());
+ ❯ TransformPluginContext._formatLog node_modules/vite/dist/node/chunks/node.js:30366:39
+ ❯ TransformPluginContext.error node_modules/vite/dist/node/chunks/node.js:30363:14
+ ❯ normalizeUrl node_modules/vite/dist/node/chunks/node.js:27393:18
+ ❯ node_modules/vite/dist/node/chunks/node.js:27456:30
+ ❯ TransformPluginContext.transform node_modules/vite/dist/node/chunks/node.js:27424:4
+ ❯ EnvironmentPluginContainer.transform node_modules/vite/dist/node/chunks/node.js:30151:14
+ ❯ loadAndTransform node_modules/vite/dist/node/chunks/node.js:20098:26
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  no tests
+   Start at  17:40:21
+   Duration  1.45s (transform 438ms, setup 635ms, import 0ms, tests 0ms, environment 670ms)
+

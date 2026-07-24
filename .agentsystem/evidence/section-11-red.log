@@ -1,0 +1,36 @@
+5:45:39 PM [vite-plugin-svelte] no Svelte config found at C:/Users/Natha/coding/ygo-story-duel-simulator - using default configuration.
+
+ RUN  v4.1.10 C:/Users/Natha/coding/ygo-story-duel-simulator
+
+ ❯ tests/unit/prototype/contrast.test.ts (0 test)
+
+⎯⎯⎯⎯⎯⎯ Failed Suites 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/unit/prototype/contrast.test.ts [ tests/unit/prototype/contrast.test.ts ]
+Error: Cannot find module '../../../src/prototype/prototype-colors.ts' imported from C:/Users/Natha/coding/ygo-story-duel-simulator/tests/unit/prototype/contrast.test.ts
+ ❯ tests/unit/prototype/contrast.test.ts:2:1
+      1| import { describe, expect, it } from "vitest";
+      2| import { PROTOTYPE_COLORS } from "../../../src/prototype/prototype-col…
+       | ^
+      3|
+      4| describe("prototype contrast tokens", () => {
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  no tests
+   Start at  17:45:40
+   Duration  825ms (transform 486ms, setup 699ms, import 0ms, tests 0ms, environment 0ms)
+
+[WebServer] file:///C:/Users/Natha/coding/ygo-story-duel-simulator/scripts/verify-browser-build.ts:289
+[WebServer]     throw new Error(
+[WebServer]           ^
+[WebServer] 
+[WebServer] Error: initial JavaScript exceeds its production budget: 307149 > 300000 bytes
+[WebServer]     at verifySizeBudgets (file:///C:/Users/Natha/coding/ygo-story-duel-simulator/scripts/verify-browser-build.ts:289:11)
+[WebServer]     at async file:///C:/Users/Natha/coding/ygo-story-duel-simulator/scripts/verify-browser-build.ts:145:1
+[WebServer] 
+[WebServer] Node.js v24.16.0
+Error: Process from config.webServer was not able to start. Exit code: 1
+

@@ -1,0 +1,16 @@
+5:26:58 PM [vite-plugin-svelte] no Svelte config found at C:/Users/Natha/coding/ygo-story-duel-simulator - using default configuration.
+
+ RUN  v4.1.10 C:/Users/Natha/coding/ygo-story-duel-simulator
+
+
+ Test Files  1 passed (1)
+      Tests  1 passed (1)
+   Start at  17:26:58
+   Duration  872ms (transform 524ms, setup 731ms, import 7ms, tests 20ms, environment 0ms)
+
+
+Running 1 test using 1 worker
+
+  ✓  1 [chromium] › e2e\prototype-entry.spec.ts:3:1 › isolated visual novel prototype entry loads without changing root duel (330ms)
+
+  1 passed (5.8s)

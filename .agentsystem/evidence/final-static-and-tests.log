@@ -1,0 +1,55 @@
+TARGET FORMAT CHECK
+Checking formatting...
+All matched files use Prettier code style!
+FULL FORMAT CHECK
+
+> ygo-story-duel-simulator@0.1.0 format:check
+> prettier --check "src/**/*.{ts,svelte,css}" "tests/{unit,integration,component,fixtures}/**/*.{ts,svelte}" "scripts/{verify-vendor,verify-browser-build,verify-reproducible-build,generate-runtime-snapshot,verify-runtime-snapshot}.ts" "scripts/lib/{active-card-text-manifest,active-image-manifest,active-runtime-files,vite-runtime-assets,vite-sync-core}.ts" "e2e/**/*.ts" "*.html" "*.{js,json,ts}"
+
+Checking formatting...
+[[33mwarn[39m] src/decks/deck-history.ts
+[[33mwarn[39m] src/prototypes/deck-builder/deck-builder-store.ts
+[[33mwarn[39m] Code style issues found in 2 files. Run Prettier with --write to fix.
+LINT
+
+> ygo-story-duel-simulator@0.1.0 lint
+> eslint .
+
+
+C:\Users\Natha\coding\ygo-story-duel-simulator\e2e\prototype-accessibility.spec.ts
+  1:29  error  'Page' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\Natha\coding\ygo-story-duel-simulator\src\prototype\overlays\HistoryOverlay.svelte
+  21:7  error  Each block should have a key  svelte/require-each-key
+
+C:\Users\Natha\coding\ygo-story-duel-simulator\src\prototype\review\ReviewDrawer.svelte
+  42:17  error  Found a mutable instance of the built-in URL class. Use SvelteURL instead  svelte/prefer-svelte-reactivity
+  69:12  error  Each block should have a key                                               svelte/require-each-key
+  92:12  error  Each block should have a key                                               svelte/require-each-key
+
+C:\Users\Natha\coding\ygo-story-duel-simulator\src\prototype\review\ReviewLauncher.svelte
+  43:9  error  Each block should have a key  svelte/require-each-key
+
+C:\Users\Natha\coding\ygo-story-duel-simulator\src\prototypes\deck-builder\deck-builder-store.ts
+  48:3  error  '#contextGeneration' is defined but never used  no-unused-private-class-members
+  49:3  error  '#createInFlight' is defined but never used     no-unused-private-class-members
+
+✖ 8 problems (8 errors, 0 warnings)
+
+TYPECHECK
+
+> ygo-story-duel-simulator@0.1.0 typecheck
+> tsc --noEmit && svelte-check --tsconfig ./tsconfig.json
+
+src/prototypes/deck-builder/deck-builder-store.ts(320,5): error TS2739: Type 'Readonly<{ deck: DeckRecord; history: DeckHistory; }>' is missing the following properties from type 'Readonly<{ deck: DeckRecord; history: DeckHistory; deckId: DeckId; expectedRevision: number; contextGeneration: number; }>': deckId, expectedRevision, contextGeneration
+PROTOTYPE TESTS
+5:50:43 PM [vite-plugin-svelte] no Svelte config found at C:/Users/Natha/coding/ygo-story-duel-simulator - using default configuration.
+
+ RUN  v4.1.10 C:/Users/Natha/coding/ygo-story-duel-simulator
+
+
+ Test Files  13 passed (13)
+      Tests  60 passed (60)
+   Start at  17:50:43
+   Duration  2.79s (transform 8.51s, setup 12.15s, import 2.13s, tests 2.70s, environment 8.78s)
+

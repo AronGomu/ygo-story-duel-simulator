@@ -1,0 +1,124 @@
+5:43:47 PM [vite-plugin-svelte] no Svelte config found at C:/Users/Natha/coding/ygo-story-duel-simulator - using default configuration.
+
+ RUN  v4.1.10 C:/Users/Natha/coding/ygo-story-duel-simulator
+
+
+ Test Files  12 passed (12)
+      Tests  52 passed (52)
+   Start at  17:43:47
+   Duration  2.69s (transform 7.69s, setup 10.73s, import 2.12s, tests 2.67s, environment 8.33s)
+
+
+> ygo-story-duel-simulator@0.1.0 typecheck
+> tsc --noEmit && svelte-check --tsconfig ./tsconfig.json
+
+Loading svelte-check in workspace: c:\Users\Natha\coding\ygo-story-duel-simulator
+Getting Svelte diagnostics...
+
+c:\Users\Natha\coding\ygo-story-duel-simulator\[32msrc\prototype\screens\IllustratedMapScreen.svelte[39m:16:6
+[31mError[39m: Block-scoped variable 'selectedId' used before its declaration. (ts)
+[36m  $: visibleLocations = locations.filter(({ access }) => access !== "hidden");
+  $: [35mselectedId[36m = selectedId ?? visibleLocations[0]?.id ?? null;
+  let selectedId: LocationId | null = null;[39m
+
+c:\Users\Natha\coding\ygo-story-duel-simulator\[32msrc\prototype\screens\NarrativeScreen.svelte[39m:154:45
+[33mWarn[39m: Unknown property: 'inset-bottom' (css)
+[36m  .visually-hidden { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+  @media (max-width: 40rem) { .characters { [35minset-bottom[36m: 14rem; } .character { width: 45vw; height: 50vh; } .dialogue { bottom: max(.5rem, env(safe-area-inset-bottom)); } .choices { bottom: 13rem; } .utility-bar { justify-content: start; } }
+  @media (prefers-reduced-motion: reduce) { .background { transition: none; } }[39m
+
+c:\Users\Natha\coding\ygo-story-duel-simulator\[32msrc\prototype\screens\NarrativeScreen.svelte[39m:7:14
+[31mError[39m: Type 'StoryBeat | undefined' is not assignable to type 'StoryBeat'.
+  Type 'undefined' is not assignable to type 'StoryBeat'. (ts)
+[36m
+  export let [35mbeat[36m: StoryBeat = PROLOGUE.beats[0];
+  export let narrativeIndex = 0;[39m
+
+c:\Users\Natha\coding\ygo-story-duel-simulator\[32mtests\component\prototype\NarrativeScreen.test.ts[39m:12:46
+[31mError[39m: Argument of type '{ beat: StoryBeat | undefined; }' is not assignable to parameter of type 'ComponentOptions<SvelteComponent<{ beat?: StoryBeat; narrativeIndex?: number; choices?: readonly { readonly id: ChoiceId; readonly label: string; }[]; selectedChoice?: ChoiceId | null; choiceResponse?: string | null; missingAssets?: boolean; onadvance?: () => void; onchoose?: (choice: ChoiceId) => void; onutility?: ...'.
+  Type '{ beat: StoryBeat | undefined; }' is not assignable to type '{ beat?: StoryBeat; narrativeIndex?: number; choices?: readonly { readonly id: ChoiceId; readonly label: string; }[]; selectedChoice?: ChoiceId | null; choiceResponse?: string | null; missingAssets?: boolean; onadvance?: () => void; onchoose?: (choice: ChoiceId) => void; onutility?: (utility: "load" | ... 3 more ......' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+    Types of property 'beat' are incompatible.
+      Type 'StoryBeat | undefined' is not assignable to type 'StoryBeat'.
+        Type 'undefined' is not assignable to type 'StoryBeat'. 
+[36m  it("renders narration, dialogue, thought, compositions, expression, exit, background, and full wrapped text", async () => {
+    const rendered = render(NarrativeScreen, [35m{ beat: PROLOGUE.beats[0] }[36m);
+    expect(screen.getByText(/Rain turned/)).toBeTruthy();[39m
+
+c:\Users\Natha\coding\ygo-story-duel-simulator\[32mtests\component\prototype\NarrativeScreen.test.ts[39m:14:29
+[31mError[39m: Argument of type '{ beat: StoryBeat | undefined; }' is not assignable to parameter of type 'Partial<{ beat?: StoryBeat; narrativeIndex?: number; choices?: readonly { readonly id: ChoiceId; readonly label: string; }[]; selectedChoice?: ChoiceId | null; choiceResponse?: string | null; missingAssets?: boolean; onadvance?: () => void; onchoose?: (choice: ChoiceId) => void; onutility?: (utility: "load" | ... 3 ...' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Types of property 'beat' are incompatible.
+    Type 'StoryBeat | undefined' is not assignable to type 'StoryBeat'.
+      Type 'undefined' is not assignable to type 'StoryBeat'. 
+[36m    expect(screen.getByText(/Rain turned/)).toBeTruthy();
+    await rendered.rerender([35m{ beat: PROLOGUE.beats[2] }[36m);
+    expect(screen.getByText("Rin")).toBeTruthy();[39m
+
+c:\Users\Natha\coding\ygo-story-duel-simulator\[32mtests\component\prototype\NarrativeScreen.test.ts[39m:17:29
+[31mError[39m: Argument of type '{ beat: StoryBeat | undefined; }' is not assignable to parameter of type 'Partial<{ beat?: StoryBeat; narrativeIndex?: number; choices?: readonly { readonly id: ChoiceId; readonly label: string; }[]; selectedChoice?: ChoiceId | null; choiceResponse?: string | null; missingAssets?: boolean; onadvance?: () => void; onchoose?: (choice: ChoiceId) => void; onutility?: (utility: "load" | ... 3 ...' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Types of property 'beat' are incompatible.
+    Type 'StoryBeat | undefined' is not assignable to type 'StoryBeat'.
+      Type 'undefined' is not assignable to type 'StoryBeat'. 
+[36m    expect(screen.getByRole("img", { name: /Rin neutral/i })).toBeTruthy();
+    await rendered.rerender([35m{ beat: PROLOGUE.beats[9] }[36m);
+    expect(within(screen.getByLabelText("Characters present")).getAllByRole("img")).toHaveLength(2);[39m
+
+c:\Users\Natha\coding\ygo-story-duel-simulator\[32mtests\component\prototype\NarrativeScreen.test.ts[39m:19:29
+[31mError[39m: Argument of type '{ beat: StoryBeat | undefined; }' is not assignable to parameter of type 'Partial<{ beat?: StoryBeat; narrativeIndex?: number; choices?: readonly { readonly id: ChoiceId; readonly label: string; }[]; selectedChoice?: ChoiceId | null; choiceResponse?: string | null; missingAssets?: boolean; onadvance?: () => void; onchoose?: (choice: ChoiceId) => void; onutility?: (utility: "load" | ... 3 ...' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Types of property 'beat' are incompatible.
+    Type 'StoryBeat | undefined' is not assignable to type 'StoryBeat'.
+      Type 'undefined' is not assignable to type 'StoryBeat'. 
+[36m    expect(within(screen.getByLabelText("Characters present")).getAllByRole("img")).toHaveLength(2);
+    await rendered.rerender([35m{ beat: PROLOGUE.beats[8] }[36m);
+    expect(screen.getByRole("img", { name: /Rin smile/i })).toBeTruthy();[39m
+
+c:\Users\Natha\coding\ygo-story-duel-simulator\[32mtests\component\prototype\NarrativeScreen.test.ts[39m:21:29
+[31mError[39m: Argument of type '{ beat: StoryBeat | undefined; }' is not assignable to parameter of type 'Partial<{ beat?: StoryBeat; narrativeIndex?: number; choices?: readonly { readonly id: ChoiceId; readonly label: string; }[]; selectedChoice?: ChoiceId | null; choiceResponse?: string | null; missingAssets?: boolean; onadvance?: () => void; onchoose?: (choice: ChoiceId) => void; onutility?: (utility: "load" | ... 3 ...' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Types of property 'beat' are incompatible.
+    Type 'StoryBeat | undefined' is not assignable to type 'StoryBeat'.
+      Type 'undefined' is not assignable to type 'StoryBeat'. 
+[36m    expect(screen.getByRole("img", { name: /Rin smile/i })).toBeTruthy();
+    await rendered.rerender([35m{ beat: PROLOGUE.beats[21] }[36m);
+    expect(screen.getByText(/complete duel/)).toBeTruthy();[39m
+
+c:\Users\Natha\coding\ygo-story-duel-simulator\[32mtests\component\prototype\NarrativeScreen.test.ts[39m:24:29
+[31mError[39m: Argument of type '{ beat: StoryBeat | undefined; }' is not assignable to parameter of type 'Partial<{ beat?: StoryBeat; narrativeIndex?: number; choices?: readonly { readonly id: ChoiceId; readonly label: string; }[]; selectedChoice?: ChoiceId | null; choiceResponse?: string | null; missingAssets?: boolean; onadvance?: () => void; onchoose?: (choice: ChoiceId) => void; onutility?: (utility: "load" | ... 3 ...' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Types of property 'beat' are incompatible.
+    Type 'StoryBeat | undefined' is not assignable to type 'StoryBeat'.
+      Type 'undefined' is not assignable to type 'StoryBeat'. 
+[36m    expect(screen.getByTestId("narrative-background").getAttribute("data-background")).toBe("arena");
+    await rendered.rerender([35m{ beat: PROLOGUE.beats[1] }[36m);
+    expect(screen.getByText("Protagonist").closest("article")?.getAttribute("data-kind")).toBe("thought");[39m
+
+c:\Users\Natha\coding\ygo-story-duel-simulator\[32mtests\component\prototype\NarrativeScreen.test.ts[39m:30:29
+[31mError[39m: Argument of type '{ beat: StoryBeat | undefined; onadvance: Mock<Procedure>; }' is not assignable to parameter of type 'ComponentOptions<SvelteComponent<{ beat?: StoryBeat; narrativeIndex?: number; choices?: readonly { readonly id: ChoiceId; readonly label: string; }[]; selectedChoice?: ChoiceId | null; choiceResponse?: string | null; missingAssets?: boolean; onadvance?: () => void; onchoose?: (choice: ChoiceId) => void; onutility?: ...'.
+  Type '{ beat: StoryBeat | undefined; onadvance: Mock<Procedure>; }' is not assignable to type '{ beat?: StoryBeat; narrativeIndex?: number; choices?: readonly { readonly id: ChoiceId; readonly label: string; }[]; selectedChoice?: ChoiceId | null; choiceResponse?: string | null; missingAssets?: boolean; onadvance?: () => void; onchoose?: (choice: ChoiceId) => void; onutility?: (utility: "load" | ... 3 more ......' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+    Types of property 'beat' are incompatible.
+      Type 'StoryBeat | undefined' is not assignable to type 'StoryBeat'.
+        Type 'undefined' is not assignable to type 'StoryBeat'. 
+[36m    const onadvance = vi.fn();
+    render(NarrativeScreen, [35m{ beat: PROLOGUE.beats[0], onadvance }[36m);
+    await fireEvent.keyDown(window, { key: "Enter", repeat: false });[39m
+
+c:\Users\Natha\coding\ygo-story-duel-simulator\[32mtests\component\prototype\NarrativeScreen.test.ts[39m:44:29
+[31mError[39m: Argument of type '{ beat: StoryBeat | undefined; choices: ({ id: "trust-rin"; label: string; } | { id: "challenge-rin"; label: string; } | { id: "observe-first"; label: string; })[]; onchoose: Mock<Procedure>; }' is not assignable to parameter of type 'ComponentOptions<SvelteComponent<{ beat?: StoryBeat; narrativeIndex?: number; choices?: readonly { readonly id: ChoiceId; readonly label: string; }[]; selectedChoice?: ChoiceId | null; choiceResponse?: string | null; missingAssets?: boolean; onadvance?: () => void; onchoose?: (choice: ChoiceId) => void; onutility?: ...'.
+  Type '{ beat: StoryBeat | undefined; choices: ({ id: "trust-rin"; label: string; } | { id: "challenge-rin"; label: string; } | { id: "observe-first"; label: string; })[]; onchoose: Mock<Procedure>; }' is not assignable to type '{ beat?: StoryBeat; narrativeIndex?: number; choices?: readonly { readonly id: ChoiceId; readonly label: string; }[]; selectedChoice?: ChoiceId | null; choiceResponse?: string | null; missingAssets?: boolean; onadvance?: () => void; onchoose?: (choice: ChoiceId) => void; onutility?: (utility: "load" | ... 3 more ......' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+    Types of property 'beat' are incompatible.
+      Type 'StoryBeat | undefined' is not assignable to type 'StoryBeat'.
+        Type 'undefined' is not assignable to type 'StoryBeat'. 
+[36m    const onchoose = vi.fn();
+    render(NarrativeScreen, [35m{ beat: PROLOGUE.beats[13], choices: PROLOGUE.choices, onchoose }[36m);
+    const first = screen.getByRole("button", { name: /I trust you/ });[39m
+
+c:\Users\Natha\coding\ygo-story-duel-simulator\[32mtests\component\prototype\NarrativeScreen.test.ts[39m:53:29
+[31mError[39m: Argument of type '{ beat: StoryBeat | undefined; narrativeIndex: number; missingAssets: true; }' is not assignable to parameter of type 'ComponentOptions<SvelteComponent<{ beat?: StoryBeat; narrativeIndex?: number; choices?: readonly { readonly id: ChoiceId; readonly label: string; }[]; selectedChoice?: ChoiceId | null; choiceResponse?: string | null; missingAssets?: boolean; onadvance?: () => void; onchoose?: (choice: ChoiceId) => void; onutility?: ...'.
+  Type '{ beat: StoryBeat | undefined; narrativeIndex: number; missingAssets: true; }' is not assignable to type '{ beat?: StoryBeat; narrativeIndex?: number; choices?: readonly { readonly id: ChoiceId; readonly label: string; }[]; selectedChoice?: ChoiceId | null; choiceResponse?: string | null; missingAssets?: boolean; onadvance?: () => void; onchoose?: (choice: ChoiceId) => void; onutility?: (utility: "load" | ... 3 more ......' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+    Types of property 'beat' are incompatible.
+      Type 'StoryBeat | undefined' is not assignable to type 'StoryBeat'.
+        Type 'undefined' is not assignable to type 'StoryBeat'. 
+[36m  it("hides and restores UI without mutating cursor and shows asset fallback", async () => {
+    render(NarrativeScreen, [35m{ beat: PROLOGUE.beats[2], narrativeIndex: 7, missingAssets: true }[36m);
+    expect(screen.getByRole("img", { name: /Missing character art/i })).toBeTruthy();[39m
+
+====================================
+[31msvelte-check found 11 errors and 1 warning in 3 files
+[39m

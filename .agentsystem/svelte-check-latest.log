@@ -1,0 +1,19 @@
+Loading svelte-check in workspace: c:\Users\Natha\coding\ygo-story-duel-simulator
+Getting Svelte diagnostics...
+
+c:\Users\Natha\coding\ygo-story-duel-simulator\[32msrc\prototypes\deck-builder\components\DeckEditor.svelte[39m:274:7
+[31mError[39m: Type 'string' is not assignable to type '"error" | "loading" | "live" | "empty" | undefined'. (ts)
+[36m      {ruleset}
+      [35mfixtureState[36m={catalogFixture}
+      {selectedCode}[39m
+
+c:\Users\Natha\coding\ygo-story-duel-simulator\[32mtests\component\deck-builder\deck-autosave.test.ts[39m:124:5
+[31mError[39m: This expression is not callable.
+  Type 'never' has no call signatures. 
+[36m    await controller.openDeck(second.deck.id);
+    [35mresolveSave[36m?.({
+      deck: { ...first.deck, main: [89631139], revision: 2 },[39m
+
+====================================
+[31msvelte-check found 2 errors and 0 warnings in 2 files
+[39m
