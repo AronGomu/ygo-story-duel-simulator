@@ -71,8 +71,6 @@ export function validateDeckDraft(
     issues.push(
       issue("empty-extra", "warning", "Extra Deck is empty.", "extra"),
     );
-  if (deck.side.length === 0)
-    issues.push(issue("empty-side", "warning", "Side Deck is empty.", "side"));
 
   const counts = new Map<number, number>();
   for (const code of [...deck.main, ...deck.extra, ...deck.side])

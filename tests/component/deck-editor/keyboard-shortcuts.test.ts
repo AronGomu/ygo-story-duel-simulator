@@ -66,6 +66,7 @@ describe("keyboard shortcuts", () => {
     const user = userEvent.setup();
     const onundo = vi.fn();
     renderEditor(stateWithUndoHistory(), onundo);
+    screen.getByRole("button", { name: "Duplicate" }).focus();
     await user.keyboard("{Control>}z{/Control}");
     expect(onundo).toHaveBeenCalledOnce();
   });
@@ -74,6 +75,7 @@ describe("keyboard shortcuts", () => {
     const user = userEvent.setup();
     const onredo = vi.fn();
     renderEditor(stateWithRedoHistory(), vi.fn(), onredo);
+    screen.getByRole("button", { name: "Duplicate" }).focus();
     await user.keyboard("{Control>}y{/Control}");
     expect(onredo).toHaveBeenCalledOnce();
   });
@@ -82,6 +84,7 @@ describe("keyboard shortcuts", () => {
     const user = userEvent.setup();
     const onredo = vi.fn();
     renderEditor(stateWithRedoHistory(), vi.fn(), onredo);
+    screen.getByRole("button", { name: "Duplicate" }).focus();
     await user.keyboard("{Control>}{Shift>}z{/Shift}{/Control}");
     expect(onredo).toHaveBeenCalledOnce();
   });

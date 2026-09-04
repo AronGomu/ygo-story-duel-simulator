@@ -29,6 +29,7 @@ export interface DeckValidationIssue {
     | "not-owned"
     | "unsupported-card"
     | "empty-extra"
+    /** Legacy persisted summary code; current validation never emits it. */
     | "empty-side"
     | "ruleset-changed"
     | "import-review";

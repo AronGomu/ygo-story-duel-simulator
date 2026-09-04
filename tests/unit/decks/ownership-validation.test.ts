@@ -257,7 +257,6 @@ describe("the granted starter deck", () => {
     ).toEqual([]);
     expect(summary.issues.map(({ code }) => code).sort()).toEqual([
       "empty-extra",
-      "empty-side",
     ]);
     expect(summary.status).toBe("warnings");
   });

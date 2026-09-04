@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { onDestroy } from "svelte";
+  import { onDestroy, onMount } from "svelte";
   import {
     catalogFilterOptions,
     EMPTY_CATALOG_FILTERS,
@@ -58,9 +58,8 @@
   export let onhoverend: () => void = () => undefined;
   export let oncontextadd: (card: DeckBuilderCardView) => void = () =>
     undefined;
-  /* Owned by the editor, because the routed click runs there. */
-  export let toSideboard = false;
-  export let ontosideboardchange: (value: boolean) => void = () => undefined;
+  export let onnameinputmount: (element: HTMLInputElement) => void = () =>
+    undefined;
 
   /* Without an observer nothing ever appends, so the window can only be what
      the first render mounts. Every result would be 14,551 tiles at once, which
@@ -69,6 +68,7 @@
   const FALLBACK_RESULT_CAP = 200;
 
   let resultsScroller: HTMLElement | null = null;
+  let nameInput: HTMLInputElement | null = null;
   let filters: DeckCatalogFilters = { ...EMPTY_CATALOG_FILTERS };
   let visibleCount = INITIAL_RESULT_WINDOW;
   let sentinel: HTMLElement | null = null;
@@ -139,6 +139,10 @@
 
   $: observeSentinel(sentinel, resultsScroller, filled);
 
+  onMount(() => {
+    if (nameInput !== null) onnameinputmount(nameInput);
+  });
+
   onDestroy(() => observer?.disconnect());
 
   function addable(card: DeckBuilderCardView): boolean {
@@ -181,15 +185,6 @@
     <span class="panel-title" data-cy="deck-catalog-result-count"
       >{results.length} results</span
     >
-    <label class="to-side" data-cy="deck-catalog-to-sideboard-field">
-      <input
-        type="checkbox"
-        checked={toSideboard}
-        data-cy="deck-catalog-to-sideboard"
-        onchange={(event) => ontosideboardchange(event.currentTarget.checked)}
-      />
-      <span data-cy="deck-catalog-to-sideboard-label">To sideboard</span>
-    </label>
   </header>
 
   <label data-cy="deck-catalog-name-field">
@@ -199,6 +194,7 @@
       value={filters.name}
       placeholder="Filter by card name"
       data-cy="deck-catalog-name-input"
+      bind:this={nameInput}
       oninput={(event) => setFilter("name", event.currentTarget.value)}
     />
   </label>
@@ -423,19 +419,6 @@
     font-weight: 400;
     letter-spacing: var(--ls-display);
     text-transform: uppercase;
-  }
-
-  .to-side {
-    display: flex;
-    align-items: center;
-    gap: 0.35rem;
-    margin: 0;
-    font-size: 0.76rem;
-  }
-
-  .to-side input {
-    min-height: auto;
-    width: auto;
   }
 
   label span {

@@ -191,9 +191,8 @@ describe("the bundled starter list", () => {
     expect(codes.filter((code) => !snapshot.has(code))).toEqual([]);
   });
 
-  /* Warnings, not clean: the starter deck genuinely has no Extra and no Side
-     deck, and a starting player has nothing to put in either. What must not be
-     here is an error — that is what stops a duel. */
+  /* Warning, not clean: starter deck genuinely has no Extra deck. What must not
+     be here is an error — that is what stops a duel. */
   it("is legal under the pinned ruleset", () => {
     const imported = importYdk(STARTER_DECK_LIST);
     expect(imported.type).toBe("ready");
@@ -208,7 +207,6 @@ describe("the bundled starter list", () => {
     ).toEqual([]);
     expect(summary.issues.map(({ code }) => code).sort()).toEqual([
       "empty-extra",
-      "empty-side",
     ]);
     expect(summary.status).toBe("warnings");
   });

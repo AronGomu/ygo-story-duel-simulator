@@ -37,22 +37,17 @@ export function deckCardClickIntent(): ClickIntent {
 export function catalogCardClickIntent(
   canonicalZone: "main" | "extra",
   counts: ZoneCounts,
-  toSideboard: boolean,
 ): ClickIntent {
-  const zone = toSideboard ? "side" : canonicalZone;
-  return isFull(zone, counts)
-    ? { kind: "blocked", reason: FULL_REASON[zone] }
-    : { kind: "add", zone };
+  return isFull(canonicalZone, counts)
+    ? { kind: "blocked", reason: FULL_REASON[canonicalZone] }
+    : { kind: "add", zone: canonicalZone };
 }
 
 export function catalogCardContextIntent(
   canonicalZone: "main" | "extra",
   counts: ZoneCounts,
-  toSideboard: boolean,
 ): ClickIntent {
-  const order: readonly DeckZone[] = toSideboard
-    ? ["side", canonicalZone]
-    : [canonicalZone, "side"];
+  const order: readonly DeckZone[] = [canonicalZone, "side"];
   const open = order.find((zone) => !isFull(zone, counts));
   return open === undefined
     ? { kind: "blocked", reason: "No space left." }

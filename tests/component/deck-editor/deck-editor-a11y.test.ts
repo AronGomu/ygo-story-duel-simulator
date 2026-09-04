@@ -31,7 +31,14 @@ describe("deck builder accessibility", () => {
       onreload: vi.fn(),
       onpreservecopy: vi.fn(),
     });
-    expect(screen.getByRole("searchbox", { name: "Name" })).toBeTruthy();
+    const catalogNameInput = screen.getByRole("searchbox", { name: "Name" });
+    expect(catalogNameInput).toBeTruthy();
+    expect(document.activeElement).toBe(catalogNameInput);
+    const deckNameInput = screen.getByRole("textbox", { name: "Deck name" });
+    expect(deckNameInput.getAttribute("placeholder")).toBe("Deck name");
+    expect(
+      document.querySelector('[data-cy="deck-editor-name-label"]'),
+    ).toBeNull();
     expect(screen.getByLabelText("Card type")).toBeTruthy();
     expect(screen.getByLabelText("Subtype")).toBeTruthy();
     expect(screen.getByLabelText("Attribute")).toBeTruthy();

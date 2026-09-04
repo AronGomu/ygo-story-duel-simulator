@@ -139,12 +139,12 @@ describe("desktop click editing", () => {
     });
   });
 
-  it("the to-sideboard checkbox routes the double-click add", async () => {
+  it("catalog activation always adds to the canonical zone", async () => {
     const onmutate = vi.fn<(command: DeckCommand) => void>();
     const { container } = render(DeckEditor, props(onmutate));
-    await fireEvent.click(
-      container.querySelector('[data-cy="deck-catalog-to-sideboard"]')!,
-    );
+    expect(
+      container.querySelector('[data-cy="deck-catalog-to-sideboard-field"]'),
+    ).toBeNull();
     await fireEvent.dblClick(
       container.querySelector(
         `[data-cy="deck-catalog-results"] [data-cy="catalog-tile-${MAIN_CODE}"]`,
@@ -153,10 +153,9 @@ describe("desktop click editing", () => {
     expect(onmutate).toHaveBeenCalledWith({
       type: "add",
       cardCode: MAIN_CODE,
-      zone: "side",
+      zone: "main",
     });
   });
-
   it("a catalog card can be dropped on the Side Deck", async () => {
     const onmutate = vi.fn<(command: DeckCommand) => void>();
     const { container } = render(DeckEditor, props(onmutate));

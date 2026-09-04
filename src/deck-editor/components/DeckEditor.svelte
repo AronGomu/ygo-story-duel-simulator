@@ -97,7 +97,6 @@
   let picked: PickedCard | null = null;
   let dropHandled = false;
   let announcement = "";
-  let toSideboard = false;
   let deckName = state.current?.deck.name ?? "";
   let pane: EditorPane = defaultPane();
   let tapped: { code: number; zone: DeckZone; index: number } | null = null;
@@ -180,14 +179,10 @@
   }
 
   /* Every tap runs the same command the drag and keyboard paths run, so undo,
-     redo and autosave cannot tell the three apart, and it aims where the click
-     path aims — including at the sideboard when that checkbox is ticked. */
+     redo and autosave cannot tell the three apart, and it aims at the card's
+     canonical zone. */
   function tapCatalogCard(card: DeckBuilderCardView): void {
-    const intent = catalogCardClickIntent(
-      card.canonicalZone,
-      zoneCounts(),
-      toSideboard,
-    );
+    const intent = catalogCardClickIntent(card.canonicalZone, zoneCounts());
     selectCard(card, card.code);
     applyIntent(intent, card.code, "catalog");
     if (intent.kind === "add") pane = paneAfterAdd(pane);
@@ -306,7 +301,7 @@
   function doubleClickCatalogCard(card: DeckBuilderCardView): void {
     selectCard(card, card.code);
     applyIntent(
-      catalogCardClickIntent(card.canonicalZone, zoneCounts(), toSideboard),
+      catalogCardClickIntent(card.canonicalZone, zoneCounts()),
       card.code,
       "catalog",
     );
@@ -401,10 +396,14 @@
 
   function contextAdd(card: DeckBuilderCardView): void {
     applyIntent(
-      catalogCardContextIntent(card.canonicalZone, zoneCounts(), toSideboard),
+      catalogCardContextIntent(card.canonicalZone, zoneCounts()),
       card.code,
       "catalog",
     );
+  }
+
+  function focusCatalogNameInput(input: HTMLInputElement): void {
+    if (!showLoad && !showImport && !confirmingDelete) input.focus();
   }
 
   function openCardContext(
@@ -530,11 +529,12 @@
 
 {#if deck}
   <header class="editor-header" data-cy="deck-editor-header">
-    <label class="name-field" data-cy="deck-editor-name-field">
-      <span data-cy="deck-editor-name-label">Deck name</span>
+    <div class="name-field" data-cy="deck-editor-name-field">
       <input
         id="deck-name"
         data-cy="deck-name-input"
+        aria-label="Deck name"
+        placeholder="Deck name"
         bind:value={deckName}
         maxlength={MAXIMUM_DECK_NAME_LENGTH}
         onblur={() => {
@@ -542,7 +542,7 @@
             onrename(deckName);
         }}
       />
-    </label>
+    </div>
     <div class="sort-actions" data-cy="deck-workspace-sort-actions">
       <select
         bind:value={sortMode}
@@ -795,8 +795,7 @@
           ondragcard={(card, event) => startCatalogDrag(card, event)}
           ondragcancel={endZoneDrag}
           oncontextadd={contextAdd}
-          {toSideboard}
-          ontosideboardchange={(value) => (toSideboard = value)}
+          onnameinputmount={focusCatalogNameInput}
           onblocked={(card, reason) => {
             selected = card;
             selectedCode = card.code;
@@ -953,11 +952,6 @@
   .name-field {
     display: grid;
     gap: 0.2rem;
-  }
-
-  .name-field span {
-    color: var(--muted);
-    font-size: 0.68rem;
   }
 
   .name-field input {

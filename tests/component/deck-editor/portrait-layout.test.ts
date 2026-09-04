@@ -101,23 +101,13 @@ describe("deck editor portrait layout", () => {
     expect(pane("catalog")).not.toBeNull();
   });
 
-  /* The touch tap and the desktop click run the same intent function, so the
-     sideboard checkbox cannot be a control that only desktop obeys. */
-  it("sends a tapped catalog card to the sideboard when the checkbox is ticked", async () => {
+  it("does not render catalog sideboard toggle", async () => {
     const user = userEvent.setup();
-    const onmutate = renderEditor("tabs");
+    renderEditor("tabs");
     await openCatalog(user);
-    await user.click(
-      document.querySelector('[data-cy="deck-catalog-to-sideboard"]')!,
-    );
-    await user.click(
-      screen.getByRole("button", { name: /Blue-Eyes White Dragon/ }),
-    );
-    expect(onmutate).toHaveBeenCalledWith({
-      type: "add",
-      cardCode: 89631139,
-      zone: "side",
-    });
+    expect(
+      document.querySelector('[data-cy="deck-catalog-to-sideboard-field"]'),
+    ).toBeNull();
   });
 
   it("announces the reason instead of adding a card at its copy limit", async () => {
