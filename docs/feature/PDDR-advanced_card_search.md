@@ -160,6 +160,14 @@
 - PARAMS: Comfortable scale 1; workspace veil 0.34; dialog open default; asymmetric matrix `words words / identity stats / spell stats / legality printing`.
 - DATE: 2026-09-04
 
+## Decision 21: Production entry state
+
+- CHOSEN: Production Deck Builder starts with Advanced Search closed and card-name filter focused; trigger opens dialog and transfers focus to dialog.
+- WHY: Owner's 2026-09-04 feedback explicitly makes card-name filter entry target. Standalone evaluator remains open by default only to expose prototype for review.
+- NOT CHOSEN: Production dialog open on every editor entry; competing initial focus targets.
+- PARAMS: Prototype `dialogState=open` unchanged; production `dialogState=closed`; trigger `Advanced Search`; open focus = close control; close focus = trigger.
+- DATE: 2026-09-04
+
 ## Assumptions
 
 - Existing request item number `3.1` identifies one prototype question: advanced filter dialog placement, contents, structure.

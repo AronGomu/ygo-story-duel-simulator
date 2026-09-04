@@ -6,6 +6,7 @@
 > Supersedes: ADR-062 §1–§3 (vertical pane placement, half orientation, outward chip order); ADR-062 §4–§6 (ADR-010 interaction semantics, End-turn chip treatment, PhaseStrip deletion) stay in force
 > Amends: ADR-028 §4 (Full Control checkbox moves bottom-right → bottom-left of the duel field)
 > Relates: ADR-010 (chip availability/current semantics, unchanged), ADR-019 (duel-shell panes), ADR-061/060 (band shrink + projection that first evicted the strip)
+> Amended by [ADR-073](073_ADR_end_turn_returns_to_field_corner.md): §3 no longer places End Turn inside PhaseBar; phase chips remain above field.
 
 ## Context
 

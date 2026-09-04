@@ -4,6 +4,7 @@
 > Decided: 2026-08-29
 > Owners: browser presentation architecture
 > Relates: ADR-010 (phase chip availability/current semantics, unchanged), ADR-019 (duel-shell panes this joins), ADR-061 (band shrink that evicted the strip)
+> Amended by [ADR-073](073_ADR_end_turn_returns_to_field_corner.md): §5 End-turn chip placement is superseded; sole End Turn control returns to field bottom-right.
 
 ## Context
 
