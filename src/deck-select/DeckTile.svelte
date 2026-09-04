@@ -11,6 +11,7 @@
   export let canSetDefault = true;
   export let onpress: () => void = () => undefined;
   export let ondblpress: () => void = () => undefined;
+  export let onrename: (() => void) | null = null;
   export let onsetdefault: () => void = () => undefined;
   /** Kebab pressed; anchor element passed so the menu can position. */
   export let onmenu: (anchor: HTMLElement) => void = () => undefined;
@@ -100,13 +101,24 @@
         />
       </svg>
     {/if}
-    <span class="name text-backdrop" data-cy={`deck-tile-name-${cyId}`}
-      >{tile.name}</span
-    >
+    {#if onrename === null}
+      <span class="name text-backdrop" data-cy={`deck-tile-name-${cyId}`}
+        >{tile.name}</span
+      >
+    {/if}
     <span class="tag-line text-backdrop" data-cy={`deck-tile-tags-${cyId}`}
       >{tagLine}</span
     >
   </button>
+
+  {#if onrename !== null}
+    <button
+      type="button"
+      class="name text-backdrop"
+      onclick={() => onrename?.()}
+      data-cy={`deck-tile-name-${cyId}`}>{tile.name}</button
+    >
+  {/if}
 
   {#if canSetDefault}
     <button
@@ -284,6 +296,24 @@
     text-shadow:
       0 1px 2px var(--shadow),
       0 0 0.4rem var(--shadow);
+  }
+
+  button.name {
+    position: absolute;
+    z-index: 3;
+    top: 0;
+    left: 0;
+    display: block;
+    border: 0;
+    color: inherit;
+    background: none;
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+  }
+
+  button.name:hover {
+    color: var(--selected);
   }
 
   .corner {

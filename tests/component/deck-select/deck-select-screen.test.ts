@@ -96,6 +96,49 @@ function props(overrides: Record<string, unknown> = {}) {
 }
 
 describe("DeckSelectScreen", () => {
+  it("focuses deck filter on initial mount", () => {
+    render(DeckSelectScreen, props());
+
+    expect(document.activeElement).toBe(cy("deck-select-filter"));
+  });
+
+  it("name press opens rename without selecting tile", async () => {
+    const values = handlers();
+    render(DeckSelectScreen, props(values));
+
+    await userEvent.setup().click(cy("deck-tile-name-k1"));
+
+    expect(find("deck-select-rename-dialog")).not.toBeNull();
+    expect(values.onselect).not.toHaveBeenCalled();
+    expect(values.onopen).not.toHaveBeenCalled();
+  });
+
+  it("rename rejects trimmed exact sibling duplicate before host callback", async () => {
+    const values = handlers();
+    render(
+      DeckSelectScreen,
+      props({
+        ...values,
+        tiles: [
+          tile({ key: "k1", name: "Alpha" }),
+          tile({ key: "k2", name: "Beta" }),
+        ],
+      }),
+    );
+    const user = userEvent.setup();
+
+    await user.click(cy("deck-tile-name-k1"));
+    const input = cy("deck-select-rename-input");
+    await user.clear(input);
+    await user.type(input, " Beta ");
+
+    expect(cy("deck-select-rename-error").textContent).toBe(
+      "A deck with this name already exists.",
+    );
+    expect(button("deck-select-rename-submit").disabled).toBe(true);
+    expect(values.onrename).not.toHaveBeenCalled();
+  });
+
   it("orders tiles with live count", () => {
     render(DeckSelectScreen, props());
 

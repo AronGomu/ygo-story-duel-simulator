@@ -96,6 +96,28 @@ describe("DeckTile", () => {
     expect(ondblpress).toHaveBeenCalledTimes(1);
   });
 
+  it("name activation opens rename without selecting or opening tile", async () => {
+    const onrename = vi.fn();
+    const onpress = vi.fn();
+    const ondblpress = vi.fn();
+    render(DeckTile, { tile: tile(), onrename, onpress, ondblpress });
+    const name = cy("deck-tile-name-k1") as HTMLButtonElement;
+
+    await userEvent.setup().click(name);
+    expect(onrename).toHaveBeenCalledTimes(1);
+    expect(onpress).not.toHaveBeenCalled();
+    expect(ondblpress).not.toHaveBeenCalled();
+
+    await userEvent.setup().keyboard("{Enter}");
+    expect(onrename).toHaveBeenCalledTimes(2);
+  });
+
+  it("keeps name noninteractive when rename is unavailable", () => {
+    render(DeckTile, { tile: tile() });
+
+    expect(cy("deck-tile-name-k1").tagName).toBe("SPAN");
+  });
+
   it("renders no favourite control", () => {
     render(DeckTile, { tile: tile() });
 

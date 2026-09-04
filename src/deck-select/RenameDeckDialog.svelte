@@ -4,6 +4,7 @@
 
   export let deckName: string;
   export let maxLength = 64;
+  export let unavailableNames: readonly string[] = [];
   export let oncancel: () => void = () => undefined;
   export let onsubmit: (name: string) => void = () => undefined;
 
@@ -18,9 +19,10 @@
   /* The trimmed name is both what the host receives and what decides whether
      there is anything to send, so it is derived once. */
   $: trimmed = name.trim();
+  $: duplicateName = unavailableNames.includes(trimmed);
 
   function submit(): void {
-    if (trimmed.length === 0) return;
+    if (trimmed.length === 0 || duplicateName) return;
     onsubmit(trimmed);
   }
 </script>
@@ -47,11 +49,24 @@
     <label data-cy="deck-select-rename-field"
       ><span data-cy="deck-select-rename-label">Deck name</span><input
         data-cy="deck-select-rename-input"
+        aria-invalid={duplicateName ? "true" : undefined}
+        aria-describedby={duplicateName
+          ? "deck-select-rename-error"
+          : undefined}
         bind:this={field}
         bind:value={name}
         maxlength={maxLength}
       /></label
     >
+    {#if duplicateName}
+      <p
+        id="deck-select-rename-error"
+        role="alert"
+        data-cy="deck-select-rename-error"
+      >
+        A deck with this name already exists.
+      </p>
+    {/if}
     <div class="actions" data-cy="deck-select-rename-actions">
       <button
         type="button"
@@ -61,7 +76,7 @@
       >
       <button
         type="submit"
-        disabled={trimmed.length === 0}
+        disabled={trimmed.length === 0 || duplicateName}
         data-cy="deck-select-rename-submit">Rename</button
       >
     </div>

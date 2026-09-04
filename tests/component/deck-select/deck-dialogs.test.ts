@@ -40,6 +40,58 @@ describe("RenameDeckDialog", () => {
     expect(onsubmit).toHaveBeenCalledWith("New Name");
   });
 
+  it("rejects exact duplicate names before callback", async () => {
+    const onsubmit = vi.fn();
+    render(RenameDeckDialog, {
+      deckName: "Blue Fleet",
+      unavailableNames: ["Alpha"],
+      onsubmit,
+    });
+    const user = userEvent.setup();
+    const input = cy("deck-select-rename-input") as HTMLInputElement;
+
+    await user.clear(input);
+    await user.type(input, " Alpha ");
+
+    const error = cy("deck-select-rename-error");
+    const submit = cy("deck-select-rename-submit") as HTMLButtonElement;
+    expect(error.textContent).toBe("A deck with this name already exists.");
+    expect(input.getAttribute("aria-invalid")).toBe("true");
+    expect(input.getAttribute("aria-describedby")).toBe(
+      "deck-select-rename-error",
+    );
+    expect(submit.disabled).toBe(true);
+
+    await user.click(submit);
+    await fireEvent.submit(cy("deck-select-rename-form"));
+    expect(onsubmit).not.toHaveBeenCalled();
+  });
+
+  it("allows case variants and own unchanged name", async () => {
+    const variantSubmit = vi.fn();
+    const variant = render(RenameDeckDialog, {
+      deckName: "Blue Fleet",
+      unavailableNames: ["Alpha"],
+      onsubmit: variantSubmit,
+    });
+    const user = userEvent.setup();
+    const variantInput = cy("deck-select-rename-input");
+    await user.clear(variantInput);
+    await user.type(variantInput, "alpha");
+    await user.click(cy("deck-select-rename-submit"));
+    expect(variantSubmit).toHaveBeenCalledWith("alpha");
+    variant.unmount();
+
+    const ownSubmit = vi.fn();
+    render(RenameDeckDialog, {
+      deckName: "Alpha",
+      unavailableNames: [],
+      onsubmit: ownSubmit,
+    });
+    await user.click(cy("deck-select-rename-submit"));
+    expect(ownSubmit).toHaveBeenCalledWith("Alpha");
+  });
+
   it("submit is disabled while the trimmed name is empty", async () => {
     render(RenameDeckDialog, { deckName: "Blue Fleet" });
     const submit = cy("deck-select-rename-submit") as HTMLButtonElement;
