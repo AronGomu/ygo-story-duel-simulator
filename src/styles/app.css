@@ -310,12 +310,21 @@ body {
   font-size: var(--text-sm);
 }
 
-/* The deck editor is a document-shaped domain, so it keeps its own scroll
-   inside the stage rather than pushing one onto the page. */
+/* Desktop deck panes own their necessary overflow. The shell region stays a
+   fixed stage track, so editor content cannot create a second scrollbar. */
 .shell-region--decks {
   width: 100%;
   height: 100%;
-  overflow: auto;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* Portrait panes remain document-shaped: their filled workspace/catalog lets
+   this region scroll so every tab stays reachable without moving the page. */
+@media (max-width: 1023.98px) {
+  .shell-region--decks {
+    overflow: auto;
+  }
 }
 
 /* The collection is a long grid of tiles, so it scrolls inside the stage on the

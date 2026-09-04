@@ -1025,7 +1025,7 @@ test.describe("touch-enabled deck editor", () => {
   });
 });
 
-test("the deck editor fits the stage without a region scrollbar", async ({
+test("the deck editor fits stage with stable gutter, single-line card name and header fill", async ({
   page,
 }) => {
   await page.setViewportSize({ width: 1920, height: 1080 });
@@ -1043,13 +1043,88 @@ test("the deck editor fits the stage without a region scrollbar", async ({
       fitsVertically: el.scrollHeight <= el.clientHeight + 1,
       fitsHorizontally: el.scrollWidth <= el.clientWidth + 1,
     }));
-  const scrolls = await measure();
-  expect(scrolls.fitsVertically, "region must not scroll vertically").toBe(
-    true,
+  for (const size of [
+    { width: 1024, height: 768 },
+    { width: 1280, height: 720 },
+    { width: 1366, height: 768 },
+    { width: 1440, height: 810 },
+    { width: 1920, height: 1080 },
+  ]) {
+    await page.setViewportSize(size);
+    const scrolls = await measure();
+    expect(
+      scrolls.fitsVertically,
+      `region must not scroll vertically at ${size.width}x${size.height}`,
+    ).toBe(true);
+    expect(
+      scrolls.fitsHorizontally,
+      `region must not scroll horizontally at ${size.width}x${size.height}`,
+    ).toBe(true);
+
+    const header = page.locator('[data-cy="deck-editor-header"]');
+    const headerFit = await header.evaluate((el) => ({
+      width: el.scrollWidth - el.clientWidth,
+      height: el.scrollHeight - el.clientHeight,
+    }));
+    expect(
+      headerFit.width,
+      "header actions must not overlap horizontally",
+    ).toBeLessThanOrEqual(1);
+    expect(
+      headerFit.height,
+      "header actions must not wrap",
+    ).toBeLessThanOrEqual(1);
+  }
+
+  const nameInput = page.locator('[data-cy="deck-name-input"]');
+  const sortActions = page.locator('[data-cy="deck-workspace-sort-actions"]');
+  const [nameBox, sortBox] = await Promise.all([
+    nameInput.boundingBox(),
+    sortActions.boundingBox(),
+  ]);
+  expect(nameBox).not.toBeNull();
+  expect(sortBox).not.toBeNull();
+  expect(
+    nameBox!.width,
+    "deck name should consume remaining header width",
+  ).toBeGreaterThan(176);
+  expect(nameBox!.x + nameBox!.width).toBeLessThanOrEqual(sortBox!.x + 1);
+
+  const workspace = page.locator('[data-cy="deck-workspace"]');
+  const gutter = await workspace.evaluate(
+    (el) => getComputedStyle(el).scrollbarGutter,
   );
-  expect(scrolls.fitsHorizontally, "region must not scroll horizontally").toBe(
-    true,
+  expect(gutter).toContain("stable");
+  const zone = page.locator('[data-cy="deck-zone-main"]');
+  const zoneWidthAt = async (height: string) => {
+    await workspace.evaluate((el, value) => (el.style.height = value), height);
+    return (await zone.boundingBox())!.width;
+  };
+  const withoutOverflow = await zoneWidthAt("1000px");
+  const withOverflow = await zoneWidthAt("120px");
+  expect(Math.abs(withOverflow - withoutOverflow)).toBeLessThanOrEqual(1);
+  await workspace.evaluate((el) => el.style.removeProperty("height"));
+
+  await page.getByRole("searchbox", { name: "Name" }).fill("Blue-Eyes");
+  const tileName = catalogTile(page, BLUE_EYES).locator(
+    `[data-cy="catalog-tile-name-${BLUE_EYES}"]`,
   );
+  await expect(tileName).toBeVisible();
+  const nameStyle = await tileName.evaluate((el) => {
+    const style = getComputedStyle(el);
+    return {
+      overflow: style.overflow,
+      textOverflow: style.textOverflow,
+      whiteSpace: style.whiteSpace,
+      lines: el.clientHeight / Number.parseFloat(style.lineHeight),
+    };
+  });
+  expect(nameStyle).toMatchObject({
+    overflow: "hidden",
+    textOverflow: "ellipsis",
+    whiteSpace: "nowrap",
+  });
+  expect(nameStyle.lines).toBeLessThanOrEqual(1.8);
 
   /* Duplicate reports through the shell toast without changing region height. */
   await page.locator('[data-cy="deck-editor-duplicate"]').click();

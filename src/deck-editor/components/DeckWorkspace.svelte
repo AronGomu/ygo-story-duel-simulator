@@ -223,11 +223,13 @@
     height: 100%;
     min-height: 0;
     overflow-y: auto;
+    scrollbar-gutter: stable;
     padding: 1rem;
   }
 
   .workspace.filled {
     height: auto;
     overflow-y: visible;
+    scrollbar-gutter: auto;
   }
 </style>

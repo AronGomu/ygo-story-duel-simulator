@@ -268,155 +268,175 @@
   <title>Deck Editor · YGO Story Duel Simulator</title>
 </svelte:head>
 
-{#if context.kind === "story"}
-  <!-- Story decks belong to one save, so that context stays visible. Free play
+<div
+  class="deck-editor-app"
+  class:has-context={context.kind === "story"}
+  data-cy="deck-editor-app"
+>
+  {#if context.kind === "story"}
+    <!-- Story decks belong to one save, so that context stays visible. Free play
        is already named by its route and keeps no redundant banner row. -->
-  <p class="context-banner" data-cy="deck-editor-context-banner">
-    Story save: {context.label}
-  </p>
-{/if}
+    <p class="context-banner" data-cy="deck-editor-context-banner">
+      Story save: {context.label}
+    </p>
+  {/if}
 
-{#if migrationError !== null}
-  <main class="loading error" role="alert" data-cy="deck-migration-error">
-    <p data-cy="deck-migration-error-eyebrow">Deck Editor stopped</p>
-    <h1 data-cy="deck-migration-error-heading">Your decks were not moved</h1>
-    <p data-cy="deck-migration-error-message">
-      {migrationError.message}
-    </p>
-    <p data-cy="deck-migration-error-reassurance">
-      Nothing was deleted. Close any other tab running this app and try again.
-    </p>
-    <button
-      type="button"
-      data-cy="deck-migration-retry"
-      onclick={() => location.reload()}>Retry</button
-    >
-  </main>
-{:else if state.mode === "error"}
-  <main class="loading error" role="alert" data-cy="deck-editor-error">
-    <p data-cy="deck-editor-error-eyebrow">Deck Editor stopped</p>
-    <h1 data-cy="deck-editor-error-message">{state.message}</h1>
-    <button
-      type="button"
-      data-cy="deck-editor-error-retry"
-      onclick={() => location.reload()}>Retry</button
-    >
-  </main>
-{:else if notFound !== null}
-  <main class="loading" data-cy="deck-not-found">
-    <p data-cy="deck-not-found-eyebrow">Deck Editor</p>
-    <h1 data-cy="deck-not-found-heading">Deck not found</h1>
-    <p data-cy="deck-not-found-message">
-      No local deck is stored under “{notFound}”.
-    </p>
-    <!-- Reported rather than linked: the domain does not own the URL, and a
+  {#if migrationError !== null}
+    <main class="loading error" role="alert" data-cy="deck-migration-error">
+      <p data-cy="deck-migration-error-eyebrow">Deck Editor stopped</p>
+      <h1 data-cy="deck-migration-error-heading">Your decks were not moved</h1>
+      <p data-cy="deck-migration-error-message">
+        {migrationError.message}
+      </p>
+      <p data-cy="deck-migration-error-reassurance">
+        Nothing was deleted. Close any other tab running this app and try again.
+      </p>
+      <button
+        type="button"
+        data-cy="deck-migration-retry"
+        onclick={() => location.reload()}>Retry</button
+      >
+    </main>
+  {:else if state.mode === "error"}
+    <main class="loading error" role="alert" data-cy="deck-editor-error">
+      <p data-cy="deck-editor-error-eyebrow">Deck Editor stopped</p>
+      <h1 data-cy="deck-editor-error-message">{state.message}</h1>
+      <button
+        type="button"
+        data-cy="deck-editor-error-retry"
+        onclick={() => location.reload()}>Retry</button
+      >
+    </main>
+  {:else if notFound !== null}
+    <main class="loading" data-cy="deck-not-found">
+      <p data-cy="deck-not-found-eyebrow">Deck Editor</p>
+      <h1 data-cy="deck-not-found-heading">Deck not found</h1>
+      <p data-cy="deck-not-found-message">
+        No local deck is stored under “{notFound}”.
+      </p>
+      <!-- Reported rather than linked: the domain does not own the URL, and a
          hardcoded `#/decks` sent a player editing a story save back into the
          free-play library. -->
-    <button
-      type="button"
-      class="secondary"
-      data-cy="deck-not-found-back"
-      onclick={() => onnavigate({ deckId: null })}>Back to Deck Library</button
-    >
-  </main>
-{:else if !catalogReady || !routeApplied || state.mode === "loading"}
-  <main class="loading" aria-busy="true" data-cy="deck-editor-loading">
-    <p data-cy="deck-editor-loading-eyebrow">Deck Editor</p>
-    <h1 data-cy="deck-editor-loading-heading">Loading local decks…</h1>
-    <div class="skeleton" data-cy="deck-editor-loading-skeleton"></div>
-  </main>
-{:else if deckId === null}
-  <DeckLibrary
-    decks={state.decks}
-    {catalog}
-    message={state.message}
-    oncreate={(name) => runAndSync(controller?.createDeck(name))}
-    onopen={(id) => onnavigate({ deckId: id })}
-    onimport={() => openLibraryModal("import")}
-    {oncollection}
-    onback={onexit}
-    defaultDeckId={state.defaultDeckId}
-    onsetdefault={(id) => void controller?.setDefaultDeck(id)}
-    onrename={(id, name) => void controller?.renameDeck(id, name)}
-    onduplicate={(id) => void controller?.duplicate(id)}
-    ondelete={(id, revision) => void controller?.deleteDeck(id, revision)}
-  />
-{:else if state.current !== null && state.current.deck.id === deckId}
-  <DeckEditor
-    {state}
-    {cards}
-    {catalog}
-    ruleset={PROTOTYPE_RULESET}
-    {ownership}
-    {layoutMode}
-    {returnLabel}
-    {onreturn}
-    onrename={(name) => void controller?.rename(name)}
-    onmutate={(command) =>
-      controller?.mutate(command) ?? Promise.resolve(false)}
-    onsetillustration={(code) => controller?.setIllustration(code)}
-    onundo={() => void controller?.undo()}
-    onredo={() => void controller?.redo()}
-    onretrysave={() => void controller?.retrySave()}
-    onreload={() => void controller?.reloadCurrent()}
-    onpreservecopy={() => void runAndSync(controller?.preserveCurrentAsCopy())}
-    onlistautosaves={() => controller?.listAutosaves() ?? Promise.resolve([])}
-    onrestoreautosave={(entry) =>
-      void runAndSync(controller?.restoreAutosave(entry))}
-    onopendeckbyid={(id) => onnavigate({ deckId: id })}
-    defaultDeckId={state.defaultDeckId}
-    onduplicate={() => void runAndSync(controller?.duplicate(deckId!))}
-    onexport={() => {
-      if (state.current !== null)
-        openLibraryModal("export", state.current.deck);
-    }}
-    onsetdefault={() => void controller?.setDefaultDeck(deckId!)}
-    ondelete={() => {
-      const deck = state.current?.deck;
-      if (deck === undefined) return;
-      /* A delete that failed leaves the deck where it is, so the route stays
+      <button
+        type="button"
+        class="secondary"
+        data-cy="deck-not-found-back"
+        onclick={() => onnavigate({ deckId: null })}
+        >Back to Deck Library</button
+      >
+    </main>
+  {:else if !catalogReady || !routeApplied || state.mode === "loading"}
+    <main class="loading" aria-busy="true" data-cy="deck-editor-loading">
+      <p data-cy="deck-editor-loading-eyebrow">Deck Editor</p>
+      <h1 data-cy="deck-editor-loading-heading">Loading local decks…</h1>
+      <div class="skeleton" data-cy="deck-editor-loading-skeleton"></div>
+    </main>
+  {:else if deckId === null}
+    <DeckLibrary
+      decks={state.decks}
+      {catalog}
+      message={state.message}
+      oncreate={(name) => runAndSync(controller?.createDeck(name))}
+      onopen={(id) => onnavigate({ deckId: id })}
+      onimport={() => openLibraryModal("import")}
+      {oncollection}
+      onback={onexit}
+      defaultDeckId={state.defaultDeckId}
+      onsetdefault={(id) => void controller?.setDefaultDeck(id)}
+      onrename={(id, name) => void controller?.renameDeck(id, name)}
+      onduplicate={(id) => void controller?.duplicate(id)}
+      ondelete={(id, revision) => void controller?.deleteDeck(id, revision)}
+    />
+  {:else if state.current !== null && state.current.deck.id === deckId}
+    <DeckEditor
+      {state}
+      {cards}
+      {catalog}
+      ruleset={PROTOTYPE_RULESET}
+      {ownership}
+      {layoutMode}
+      {returnLabel}
+      {onreturn}
+      onrename={(name) => void controller?.rename(name)}
+      onmutate={(command) =>
+        controller?.mutate(command) ?? Promise.resolve(false)}
+      onsetillustration={(code) => controller?.setIllustration(code)}
+      onundo={() => void controller?.undo()}
+      onredo={() => void controller?.redo()}
+      onretrysave={() => void controller?.retrySave()}
+      onreload={() => void controller?.reloadCurrent()}
+      onpreservecopy={() =>
+        void runAndSync(controller?.preserveCurrentAsCopy())}
+      onlistautosaves={() => controller?.listAutosaves() ?? Promise.resolve([])}
+      onrestoreautosave={(entry) =>
+        void runAndSync(controller?.restoreAutosave(entry))}
+      onopendeckbyid={(id) => onnavigate({ deckId: id })}
+      defaultDeckId={state.defaultDeckId}
+      onduplicate={() => void runAndSync(controller?.duplicate(deckId!))}
+      onexport={() => {
+        if (state.current !== null)
+          openLibraryModal("export", state.current.deck);
+      }}
+      onsetdefault={() => void controller?.setDefaultDeck(deckId!)}
+      ondelete={() => {
+        const deck = state.current?.deck;
+        if (deck === undefined) return;
+        /* A delete that failed leaves the deck where it is, so the route stays
          on it: navigating away would report a deck as gone that still exists,
          and hide the failure the editor is showing. */
-      void controller?.deleteDeck(deck.id, deck.revision).then((deleted) => {
-        if (deleted) onnavigate({ deckId: null });
-      });
-    }}
-  />
-{:else}
-  <main class="loading" aria-busy="true" data-cy="deck-editor-opening">
-    <p data-cy="deck-editor-opening-eyebrow">Deck Editor</p>
-    <h1 data-cy="deck-editor-opening-heading">Opening deck…</h1>
-    <div class="skeleton" data-cy="deck-editor-opening-skeleton"></div>
-  </main>
-{/if}
+        void controller?.deleteDeck(deck.id, deck.revision).then((deleted) => {
+          if (deleted) onnavigate({ deckId: null });
+        });
+      }}
+    />
+  {:else}
+    <main class="loading" aria-busy="true" data-cy="deck-editor-opening">
+      <p data-cy="deck-editor-opening-eyebrow">Deck Editor</p>
+      <h1 data-cy="deck-editor-opening-heading">Opening deck…</h1>
+      <div class="skeleton" data-cy="deck-editor-opening-skeleton"></div>
+    </main>
+  {/if}
 
-{#if showLibraryImport}
-  <div
-    class="backdrop"
-    aria-hidden="true"
-    data-cy="deck-library-import-backdrop"
-  ></div>
-  <YdkImport
-    requireName={true}
-    catalogCodes={new Set(catalog.keys())}
-    existingDeckNames={state.decks.map(({ name }) => name)}
-    oncancel={() => void closeLibraryModal()}
-    onimport={importFromLibrary}
-  />
-{/if}
+  {#if showLibraryImport}
+    <div
+      class="backdrop"
+      aria-hidden="true"
+      data-cy="deck-library-import-backdrop"
+    ></div>
+    <YdkImport
+      requireName={true}
+      catalogCodes={new Set(catalog.keys())}
+      existingDeckNames={state.decks.map(({ name }) => name)}
+      oncancel={() => void closeLibraryModal()}
+      onimport={importFromLibrary}
+    />
+  {/if}
 
-{#if libraryExport}
-  <div
-    class="backdrop"
-    aria-hidden="true"
-    data-cy="deck-library-export-backdrop"
-  ></div>
-  <YdkExport deck={libraryExport} oncancel={() => void closeLibraryModal()} />
-{/if}
+  {#if libraryExport}
+    <div
+      class="backdrop"
+      aria-hidden="true"
+      data-cy="deck-library-export-backdrop"
+    ></div>
+    <YdkExport deck={libraryExport} oncancel={() => void closeLibraryModal()} />
+  {/if}
+</div>
 
 <style>
   :global(body) {
     overflow-x: hidden;
+  }
+
+  .deck-editor-app {
+    display: grid;
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    grid-template-rows: minmax(0, 1fr);
+  }
+
+  .deck-editor-app.has-context {
+    grid-template-rows: auto minmax(0, 1fr);
   }
 
   /* A fixed 1.5rem: story screens reserve exactly this row; free play renders
@@ -431,12 +451,9 @@
     font-size: 0.72rem;
   }
 
-  .context-banner + :global(.library) {
-    height: calc(var(--stage-h, 100svh) - 1.5rem);
-  }
-
-  .context-banner ~ :global(.editor-layout) {
-    --deck-editor-header-h: 6.25rem;
+  :global(.library) {
+    height: 100%;
+    min-height: 0;
   }
 
   .loading {

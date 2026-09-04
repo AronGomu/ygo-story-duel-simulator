@@ -220,17 +220,14 @@
   }
 
   .card-name {
-    display: -webkit-box;
     align-self: end;
-    min-height: 2.1rem;
     padding: 0.3rem;
     overflow: hidden;
     font-size: clamp(0.56rem, 0.72vw, 0.74rem);
     line-height: 1.15;
     text-align: left;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 2;
-    line-clamp: 2;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   .card-name.overlay {

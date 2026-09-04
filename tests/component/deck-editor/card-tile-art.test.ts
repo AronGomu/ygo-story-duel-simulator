@@ -119,6 +119,15 @@ describe("card-tile art fit", () => {
     expect(placeholder).toContain("height: 100%");
   });
 
+  it("keeps every card name on one ellipsized line", () => {
+    const name = declarations(".card-name");
+    expect(name).toContain("overflow: hidden");
+    expect(name).toContain("text-overflow: ellipsis");
+    expect(name).toContain("white-space: nowrap");
+    expect(name).not.toContain("-webkit-line-clamp: 2");
+    expect(name).not.toContain("min-height: 2.1rem");
+  });
+
   it("a card whose art this build has no image for falls back to the glyph", async () => {
     /* Every code gets a URL by convention now, so the 404 is the only signal
        that this build packages no image for the card. */
