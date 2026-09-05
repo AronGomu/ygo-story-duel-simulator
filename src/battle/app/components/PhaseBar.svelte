@@ -4,10 +4,7 @@
     PlayerIndex,
   } from "../../duel/contracts/public-duel-state.ts";
   import type { InteractionSessionAction } from "../prompts/interaction-session.ts";
-  import {
-    endPhaseChoice,
-    type ActiveInteractionSpec,
-  } from "../prompts/interaction-spec.ts";
+  import type { ActiveInteractionSpec } from "../prompts/interaction-spec.ts";
   import {
     PHASE_SLOT_LABELS,
     phaseSlotChoices,
@@ -15,9 +12,8 @@
     type PhaseSlot,
   } from "../prompts/phase-transitions.ts";
 
-  /* The bar is one left-to-right timeline: your turn ends at the seam in the
-     middle, the opponent's turn starts again on the other side of it, so its
-     draw chip is the innermost and End the outermost. */
+  /* End Turn lives in the field corner. PhaseBar keeps the remaining player
+     timeline plus the opponent's complete inert phase display. */
   const OPPONENT_SLOTS: readonly PhaseSlot[] = [
     "draw",
     "standby",
@@ -44,8 +40,6 @@
 
   $: currentSlot = phaseSlotForDuelPhase(phase);
   $: choices = phaseSlotChoices(spec);
-  $: endChoice = endPhaseChoice(spec);
-  $: endAvailable = !disabled && endChoice !== null && spec !== null;
 
   function statefulAriaLabel(
     visibleLabel: string,
@@ -75,15 +69,6 @@
     const choice = choices.get(slot);
     if (choice === undefined) return;
     oninteraction({ type: "chooseChoice", choiceId: choice.id, key: spec.key });
-  }
-
-  function activateEnd(): void {
-    if (!endAvailable || endChoice === null || spec === null) return;
-    oninteraction({
-      type: "chooseChoice",
-      choiceId: endChoice.id,
-      key: spec.key,
-    });
   }
 </script>
 
@@ -119,22 +104,6 @@
         {PHASE_SLOT_LABELS[slot]}
       </svelte:element>
     {/each}
-    <button
-      type="button"
-      class="phase-chip phase-chip--end-turn"
-      class:is-current={turnPlayer === 0 && currentSlot === "end"}
-      class:is-available={endAvailable}
-      data-cy="field-end-turn-button"
-      disabled={!endAvailable}
-      aria-label={statefulAriaLabel(
-        endChoice?.label ?? "End turn",
-        turnPlayer === 0 && currentSlot === "end",
-        endAvailable,
-      )}
-      onclick={activateEnd}
-    >
-      {endChoice?.label ?? "End turn"}
-    </button>
   </div>
   <div
     class="phase-bar__half phase-bar__half--opponent"

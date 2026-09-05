@@ -2483,7 +2483,7 @@ async function advanceToPlayerPhase(
   throw new Error(`Player did not reach ${phase} within 40 prompts`);
 }
 
-test("T6 perspective fill and phase bar cycle stay visible in Chromium", async ({
+test("End Turn one press reaches the opponent turn while phase bar stays visible", async ({
   page,
 }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
@@ -2517,12 +2517,16 @@ test("T6 perspective fill and phase bar cycle stay visible in Chromium", async (
   await expect(playerHalf).toHaveAttribute("data-current-phase", "main1");
   await disableAutoResolveTrivialPrompts(page);
   await disableAutoPlaceCards(page);
-  const endTurn = page.locator('[data-cy="field-end-turn-button"]');
+  const endTurn = field.locator('[data-cy="field-end-turn-button"]');
+  await expect(
+    phaseBar.locator('[data-cy="field-end-turn-button"]'),
+  ).toHaveCount(0);
   await expect(endTurn).toBeEnabled();
   await endTurn.click();
   await expect(playerHalf).not.toHaveAttribute("data-current-phase", "main1");
   await expect(opponentHalf).toHaveAttribute("data-current-phase", /.+/);
   await expect(phaseBar.locator("button:enabled")).toHaveCount(0);
+  await expect(endTurn).toBeDisabled();
   await advanceToPlayerPhase(page, playerHalf, "main1", endTurn);
   await expect(playerHalf).toHaveAttribute("data-current-phase", "main1");
 
@@ -3861,7 +3865,7 @@ test("item 5: field cards stay outside the hand band and hand action chips remai
    gone. Round 5 trimmed it back towards the rest of the field's chrome, down
    to the 44px pointer floor every field control shares; that floor and the
    one-row rule are what remain guarded here. */
-test("End turn button keeps its label on one row with a 44px local pointer-target floor", async ({
+test("End Turn button keeps its label on one row with a 44px screen-space pointer-target floor", async ({
   page,
 }) => {
   await openDuel(page);
@@ -3903,7 +3907,7 @@ test("End turn button keeps its label on one row with a 44px local pointer-targe
   ).toBeGreaterThanOrEqual(44);
   expect(
     box.height,
-    "projected End turn button remains visible",
+    "screen-space End Turn button remains visible",
   ).toBeGreaterThan(0);
 
   /* The opening Main Phase 1 only ever offers `End turn`. The longest label
@@ -3941,13 +3945,18 @@ test("enabled phase controls stay unobstructed on mobile", async ({ page }) => {
   await expect(page.locator("[data-prompt-kind]")).toBeVisible({
     timeout: 120_000,
   });
+  await page.locator('[data-cy="duel-rotation-dismiss"]').click();
+  await expect(page.locator('[data-cy="duel-rotation-notice"]')).toHaveCount(0);
 
   for (const viewport of viewports) {
     await page.setViewportSize(viewport);
+    await page.mouse.move(0, 0);
     await expect
       .poll(async () => {
         const controls = await page
-          .locator('[data-cy="phase-bar"] button.phase-chip:not(:disabled)')
+          .locator(
+            '[data-cy="phase-bar"] button.phase-chip:not(:disabled), [data-cy="field-end-turn-button"]:not(:disabled)',
+          )
           .evaluateAll((elements) =>
             elements.map((element) => {
               const box = element.getBoundingClientRect();
@@ -4442,8 +4451,8 @@ test("responsive field compositions contain controls across supported viewports"
        lives in the full-duel walker, which reaches a required bar, asserts its
        geometry, then fails if no bar was exercised. */
 
-    // Phase controls are always mounted in the shell-level pane, so this check
-    // runs unconditionally at every viewport.
+    // Phase bar stays shell-level while sole End Turn control lives inside
+    // Duel Field's screen-space root at every viewport.
     const phaseBar = page.locator('[data-cy="phase-bar"]');
     const endTurnButton = page.locator('[data-cy="field-end-turn-button"]');
     await expect(phaseBar).toBeVisible();
@@ -4514,7 +4523,6 @@ test("responsive field compositions contain controls across supported viewports"
       "phase-bar-you-main1",
       "phase-bar-you-battle",
       "phase-bar-you-main2",
-      "field-end-turn-button",
     ]);
     expect(phaseGeometry.opponentOrder).toEqual([
       "phase-bar-opp-draw",
@@ -4561,29 +4569,12 @@ test("responsive field compositions contain controls across supported viewports"
       );
     }
 
-    const enabledPhaseControls = await page
-      .locator('[data-cy="phase-bar"] button.phase-chip:not(:disabled)')
-      .evaluateAll((elements) =>
-        elements.map((element) => {
-          const box = element.getBoundingClientRect();
-          const hit = document.elementFromPoint(
-            box.left + box.width / 2,
-            box.top + box.height / 2,
-          );
-          return {
-            width: box.width,
-            height: box.height,
-            hit: hit === element || (hit !== null && element.contains(hit)),
-          };
-        }),
-      );
-    expect(enabledPhaseControls.length).toBeGreaterThan(0);
-    expect(
-      enabledPhaseControls.every(
-        ({ width, height, hit }) => width >= 44 && height >= 44 && hit,
-      ),
-      `${viewportLabel} enabled phase controls keep a 44px unobstructed target`,
-    ).toBe(true);
+    /* Opening Main 1 exposes only End Turn. That control now lives in Duel
+       Field, so PhaseBar correctly has no enabled button of its own. */
+    await expect(
+      phaseBar.locator("button.phase-chip:not(:disabled)"),
+    ).toHaveCount(0);
+    await expect(endTurnButton).toBeEnabled();
 
     const endTurnRect = await endTurnButton.evaluate((element) => {
       const box = element.getBoundingClientRect();
@@ -4595,6 +4586,10 @@ test("responsive field compositions contain controls across supported viewports"
         right: box.right,
         width: box.width,
         minBlockSize: Number.parseFloat(style.minBlockSize),
+        parentCy: element.parentElement?.getAttribute("data-cy") ?? null,
+        insidePerspectivePlane:
+          element.closest('[data-cy="duel-field-board-plane"]') !== null,
+        insidePhaseBar: element.closest('[data-cy="phase-bar"]') !== null,
       };
     });
     const targetRects = await field
@@ -4620,15 +4615,29 @@ test("responsive field compositions contain controls across supported viewports"
     );
     expect(
       buttonOverlapsATarget,
-      `${viewportLabel} End turn pane chip must not overlap a playable field target`,
+      `${viewportLabel} End Turn field control must not overlap a playable field target`,
     ).toBe(false);
+    expect(endTurnRect.parentCy).toBe("duel-field");
+    expect(endTurnRect.insidePerspectivePlane).toBe(false);
+    expect(endTurnRect.insidePhaseBar).toBe(false);
+    expect(
+      endTurnRect.left,
+      `${viewportLabel} End Turn sits in field right half`,
+    ).toBeGreaterThan(phaseGeometry.board.left + phaseGeometry.board.width / 2);
+    expect(
+      endTurnRect.bottom,
+      `${viewportLabel} End Turn sits against field bottom`,
+    ).toBeGreaterThan(phaseGeometry.board.bottom - 64);
+    expect(endTurnRect.bottom).toBeLessThanOrEqual(
+      phaseGeometry.board.bottom + 1,
+    );
     expect(
       endTurnRect.width,
-      `${viewportLabel} End turn button keeps the 44px rendered width floor`,
+      `${viewportLabel} End Turn button keeps the 44px rendered width floor`,
     ).toBeGreaterThanOrEqual(44);
     expect(
       endTurnRect.minBlockSize,
-      `${viewportLabel} End turn button keeps the 44px local height floor`,
+      `${viewportLabel} End Turn button keeps the 44px local height floor`,
     ).toBeGreaterThanOrEqual(44);
     await expect(page.locator('[data-cy="field-phase-strip"]')).toHaveCount(0);
 

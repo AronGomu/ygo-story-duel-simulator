@@ -20,6 +20,7 @@
     type UnkeyedInteractionSessionAction,
   } from "../prompts/interaction-session.ts";
   import {
+    endPhaseChoice,
     fieldActionBarRequired,
     isImmediateSingleSelection,
     type ActiveInteractionSpec,
@@ -84,6 +85,7 @@
   import FloatingFieldWindow from "./duel-field/FloatingFieldWindow.svelte";
   import FieldBoard from "./duel-field/FieldBoard.svelte";
   import FieldLines from "./duel-field/FieldLines.svelte";
+  import EndTurnButton from "./duel-field/EndTurnButton.svelte";
   import FullControlToggle from "./duel-field/FullControlToggle.svelte";
 
   const noop = (): void => undefined;
@@ -152,6 +154,8 @@
   export let fullControl = false;
   export let fullControlHeld = false;
   export let onfullcontrolchange: (value: boolean) => void = noop;
+  export let endTurnArmed = false;
+  export let onendturnstart: () => void = noop;
 
   /* Exactly one list window: one browsed pile, the materials of one Xyz host,
      or the aggregate target list of one prompt. */
@@ -282,6 +286,7 @@
 
   $: resolvedCardBackUrl = cardBackUrl || DEFAULT_CARD_BACK;
   $: effectiveReducedMotion = reducedMotion ?? mediaReducedMotion;
+  $: endTurnChoice = endPhaseChoice(spec);
   $: scheduleFeedbackSync(
     feedbackController,
     feedbackGeneration,
@@ -1490,6 +1495,12 @@
       </FieldBoard>
     </div>
   </div>
+  <EndTurnButton
+    choice={endTurnChoice}
+    armed={endTurnArmed}
+    disabled={pending}
+    onstart={onendturnstart}
+  />
   <FullControlToggle
     value={fullControl}
     held={fullControlHeld}

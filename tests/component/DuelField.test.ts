@@ -588,6 +588,51 @@ describe("DuelField", () => {
     expect(document.querySelector('[data-cy="phase-bar"]')).toBeNull();
   });
 
+  it("renders one engine-labelled End Turn control in screen-space bottom-right", async () => {
+    const value = fieldPrompt("idleCommand", [
+      promptChoice("end", "End Battle Phase", { action: "endPhase" }),
+    ]);
+    const onendturnstart = vi.fn();
+    render(DuelField, {
+      board: board("ST-05"),
+      prompt: value,
+      spec: activeSpec(value),
+      endTurnArmed: true,
+      onendturnstart,
+    });
+
+    const buttons = document.querySelectorAll(
+      '[data-cy="field-end-turn-button"]',
+    );
+    expect(buttons).toHaveLength(1);
+    const button = buttons[0] as HTMLButtonElement;
+    expect(button.textContent?.trim()).toBe("End Battle Phase");
+    expect(button.disabled).toBe(false);
+    expect(button.getAttribute("data-armed")).toBe("true");
+    expect(button.getAttribute("aria-label")).toBe(
+      "End Battle Phase, intent armed",
+    );
+    expect(button.parentElement?.getAttribute("data-cy")).toBe("duel-field");
+    expect(button.closest('[data-cy="duel-field-board-plane"]')).toBeNull();
+
+    await fireEvent.click(button);
+    expect(onendturnstart).toHaveBeenCalledOnce();
+  });
+
+  it("keeps the field End Turn control disabled without an engine choice", async () => {
+    const onendturnstart = vi.fn();
+    render(DuelField, { board: board("ST-01"), onendturnstart });
+
+    const button = document.querySelector(
+      '[data-cy="field-end-turn-button"]',
+    ) as HTMLButtonElement;
+    expect(button.textContent?.trim()).toBe("End turn");
+    expect(button.disabled).toBe(true);
+
+    await fireEvent.click(button);
+    expect(onendturnstart).not.toHaveBeenCalled();
+  });
+
   it("duel field no longer renders the action/phase badge at the opponent hand position (item 26)", () => {
     const value = DUEL_FIELD_PUBLIC_STATES["ST-01"];
     render(DuelField, { board: value.board });
@@ -707,7 +752,13 @@ describe("DuelField", () => {
     const buttons = within(field).queryAllByRole("button");
     expect(
       buttons.map((button) => button.getAttribute("data-cy")).sort(),
-    ).toEqual(["field-stack-p0:deck", "field-stack-p1:deck"].sort());
+    ).toEqual(
+      [
+        "field-end-turn-button",
+        "field-stack-p0:deck",
+        "field-stack-p1:deck",
+      ].sort(),
+    );
   });
 
   it("renders hands through bands and no hand ZoneControl", () => {

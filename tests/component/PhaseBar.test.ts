@@ -41,10 +41,9 @@ afterEach(() => {
 });
 
 describe("PhaseBar", () => {
-  /* The bar reads left to right as one continuous timeline: your turn runs
-     draw to End turn into the seam, the opponent's turn resumes at draw on the
-     other side of it. So the player half comes first in the DOM, and the
-     opponent's chips run in the same direction rather than mirrored. */
+  /* The bar reads left to right as two phase timelines. End Turn now lives in
+     the field corner, so the player half stops at Main 2 while the opponent's
+     inert End phase remains visible. */
   it("renders the player half before the opponent half in timeline order", () => {
     render(PhaseBar);
 
@@ -63,7 +62,6 @@ describe("PhaseBar", () => {
       "phase-bar-you-main1",
       "phase-bar-you-battle",
       "phase-bar-you-main2",
-      "field-end-turn-button",
     ]);
     expect(chipIds(opponent!)).toEqual([
       "phase-bar-opp-draw",
@@ -93,6 +91,9 @@ describe("PhaseBar", () => {
     expect(
       document.querySelector('[data-cy="phase-bar-opp-battle"]')?.tagName,
     ).toBe("SPAN");
+    expect(
+      document.querySelector('[data-cy="field-end-turn-button"]'),
+    ).toBeNull();
   });
 
   it("dispatches an offered player transition", async () => {
@@ -149,49 +150,6 @@ describe("PhaseBar", () => {
     ).toBe("battle");
   });
 
-  it("uses the engine End label and dispatches its choice", async () => {
-    const spec = specWithChoices([["end", "End Battle Phase", "endPhase"]]);
-    const oninteraction = vi.fn();
-    render(PhaseBar, { spec, oninteraction });
-
-    const button = document.querySelector(
-      '[data-cy="field-end-turn-button"]',
-    ) as HTMLButtonElement;
-    expect(button.textContent).toBe("End Battle Phase");
-    expect(button.disabled).toBe(false);
-    expect(button.classList.contains("is-available")).toBe(true);
-
-    await fireEvent.click(button);
-    expect(oninteraction).toHaveBeenCalledWith({
-      type: "chooseChoice",
-      choiceId: choiceId("end"),
-      key: spec.key,
-    });
-  });
-
-  it("includes the engine End label and state suffixes in its accessible name", () => {
-    const spec = specWithChoices([["end", "End Battle Phase", "endPhase"]]);
-    render(PhaseBar, { phase: "end", turnPlayer: 0, spec });
-
-    expect(
-      document
-        .querySelector('[data-cy="field-end-turn-button"]')
-        ?.getAttribute("aria-label"),
-    ).toBe("End Battle Phase, current, available");
-  });
-
-  it("falls back to a muted disabled End turn chip", () => {
-    render(PhaseBar, { spec: null });
-
-    const button = document.querySelector(
-      '[data-cy="field-end-turn-button"]',
-    ) as HTMLButtonElement;
-    expect(button.textContent).toBe("End turn");
-    expect(button.disabled).toBe(true);
-    expect(button.classList.contains("phase-chip--end-turn")).toBe(true);
-    expect(button.classList.contains("is-available")).toBe(false);
-  });
-
   it("makes every transition inert while disabled", async () => {
     const spec = specWithChoices([
       ["battle", "Enter Battle Phase", "battlePhase"],
@@ -201,36 +159,31 @@ describe("PhaseBar", () => {
     const oninteraction = vi.fn();
     render(PhaseBar, { spec, disabled: true, oninteraction });
 
-    expect(
-      document.querySelectorAll("button.phase-chip:not(.phase-chip--end-turn)"),
-    ).toHaveLength(0);
+    expect(document.querySelectorAll("button.phase-chip")).toHaveLength(0);
     const battleChip = document.querySelector(
       '[data-cy="phase-bar-you-battle"]',
     );
     expect(battleChip?.tagName).toBe("SPAN");
-    const endButton = document.querySelector(
-      '[data-cy="field-end-turn-button"]',
-    ) as HTMLButtonElement;
-    expect(endButton.disabled).toBe(true);
+    expect(
+      document.querySelector('[data-cy="field-end-turn-button"]'),
+    ).toBeNull();
 
     await fireEvent.click(battleChip!);
-    await fireEvent.click(endButton);
     expect(oninteraction).not.toHaveBeenCalled();
   });
 
-  it("marks the player End button as current during End Phase", () => {
+  it("renders no player current chip during End Phase", () => {
     render(PhaseBar, { phase: "end", turnPlayer: 0 });
 
-    const endButton = document.querySelector(
-      '[data-cy="field-end-turn-button"]',
-    );
-    expect(endButton?.classList.contains("is-current")).toBe(true);
     expect(
       document
         .querySelector('[data-cy="phase-bar-player"]')
         ?.getAttribute("data-current-phase"),
     ).toBe("end");
-    expect(document.querySelectorAll(".phase-chip.is-current")).toHaveLength(1);
+    expect(document.querySelectorAll(".phase-chip.is-current")).toHaveLength(0);
+    expect(
+      document.querySelector('[data-cy="field-end-turn-button"]'),
+    ).toBeNull();
   });
 
   it("describes current and available transitions to assistive technology", () => {
