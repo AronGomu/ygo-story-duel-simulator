@@ -26,11 +26,6 @@
         readonly y: number;
       }) => void)
     | null = null;
-  export let maxed = false;
-  /* The id of an element saying why this tile can take no further copy. The
-     red `maxed` border is the sighted signal; this is the same fact for a
-     screen reader, and `null` where there is nothing to explain. */
-  export let describedby: string | null = null;
   /* Selector scope: the mount site names its context, and the id disambiguates
      one tile from another in that context. Together they build a unique
      `data-cy` per tile even when the same card code appears in multiple
@@ -72,13 +67,11 @@
   class:compact
   class:selected
   class:missing={card === null}
-  class:maxed
   class:unavailable={disabled}
   class="card-tile"
   draggable={draggable && !disabled}
   {disabled}
   aria-label={`${name}. ${limitLabel}, maximum ${limit}. ${currentCopies} copies in deck.`}
-  aria-describedby={describedby}
   aria-pressed={selected}
   data-cy={`${dataCyPrefix}-tile-${dataCyId}`}
   data-card-code={code}
@@ -180,15 +173,6 @@
 
   .card-tile.missing {
     border-style: dashed;
-    border-color: var(--danger);
-    background: var(--danger-surface);
-  }
-
-  .card-tile.maxed {
-    border-color: var(--danger);
-  }
-
-  .card-tile.maxed:hover:not(:disabled) {
     border-color: var(--danger);
     background: var(--danger-surface);
   }

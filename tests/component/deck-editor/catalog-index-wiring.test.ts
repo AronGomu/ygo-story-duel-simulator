@@ -134,7 +134,10 @@ describe("the catalog searches through the index", () => {
 
     await userEvent
       .setup()
-      .type(screen.getByRole("combobox", { name: "Types" }), "monster{Enter}");
+      .type(
+        await screen.findByRole("combobox", { name: "Types" }),
+        "monster{Enter}",
+      );
     await tick();
 
     expect(buildSpy.mock.calls.length).toBe(buildsBeforeTag);

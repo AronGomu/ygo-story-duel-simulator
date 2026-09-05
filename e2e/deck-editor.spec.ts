@@ -598,8 +598,10 @@ test("the deck route deep-links, survives a reload and answers Back", async ({
   await expect(page.locator('[data-cy="deck-not-found"]')).toBeVisible();
   await page.locator('[data-cy="deck-not-found-back"]').click();
   await expect(page.locator('[data-cy="deck-library"]')).toBeVisible();
-  /* Anchored because tile press names deck plus its single tag line. */
-  await expect(page.getByRole("button", { name: /^Deep Link/ })).toBeVisible();
+  /* Deck-name controls now identify their action before the stored name. */
+  await expect(
+    page.getByRole("button", { name: /^Select Deep Link,/ }),
+  ).toBeVisible();
 });
 
 test("Deck Library imports one persisted undoable update", async ({ page }) => {
@@ -862,8 +864,10 @@ test("a prototype deck database is migrated on first load", async ({
   }, LEGACY_DECK_DATABASE_NAME);
 
   await page.reload();
-  /* Anchored because tile press names deck plus its single tag line. */
-  const migrated = page.getByRole("button", { name: /^Prototype Survivor/ });
+  /* Deck-name controls now identify their action before the stored name. */
+  const migrated = page.getByRole("button", {
+    name: /^Select Prototype Survivor,/,
+  });
   await expect(migrated).toBeVisible();
 
   const names = await page.evaluate(async () =>
@@ -894,13 +898,13 @@ test("the deck editor builds a deck by tap on a small screen", async ({
   await page.getByLabel("Deck name").fill("Portrait Build");
   await page.locator('[data-cy="deck-library-create-submit"]').click();
 
-  /* One pane at a time, and the deck pane carries the counts. */
+  /* One pane at a time. Catalog opens first so name search owns entry focus. */
   const main = zoneCount(page, "main");
   const side = zoneCount(page, "side");
+  await expect(page.locator('[data-cy="deck-pane-catalog"]')).toBeVisible();
+  await expect(page.locator('[data-cy="deck-pane-deck"]')).toHaveCount(0);
+  await page.locator('[data-cy="deck-tab-deck"]').click();
   await expect(main).toBeVisible();
-  await expect(page.locator('[data-cy="deck-pane-deck"]')).toBeVisible();
-  await expect(page.locator('[data-cy="deck-pane-catalog"]')).toHaveCount(0);
-
   await page.locator('[data-cy="deck-tab-catalog"]').click();
   await page.getByRole("searchbox", { name: "Name" }).fill("Blue-Eyes");
   await catalogTile(page, BLUE_EYES).click();
@@ -934,6 +938,7 @@ test("the deck editor builds a deck by tap on a small screen", async ({
   await expectSaveSettled(page, { main: 0, extra: 0, side: 1 });
   await page.reload();
   await expect(page.getByLabel("Deck name")).toHaveValue("Portrait Build");
+  await page.locator('[data-cy="deck-tab-deck"]').click();
   await expect(side).toHaveText("1/15");
 
   /* No sideways scroll at any of the sizes the editor now has to serve. */
@@ -1000,8 +1005,9 @@ test("small editor polish stays usable in Chromium", async ({ page }) => {
   await expect(page.locator("#deck-zone-body-extra")).toBeVisible();
 
   const search = page.getByRole("searchbox", { name: "Name" });
+  await search.fill("Obelisk the Tormentor");
+  await expect(catalogTile(page, OBELISK)).toHaveCount(0);
   for (const [name, code, limit] of [
-    ["Obelisk the Tormentor", OBELISK, 0],
     ["Raigeki", RAIGEKI, 1],
     ["Mirror Force", MIRROR_FORCE, 2],
     ["Blue-Eyes White Dragon", BLUE_EYES, 3],
@@ -1082,20 +1088,10 @@ test.describe("touch-enabled deck editor", () => {
     await expect(mainIcon).toHaveAttribute("aria-expanded", "false");
     await expect(mainTooltip).toHaveCount(0);
 
-    const sideIcon = page.locator('[data-cy="deck-zone-error-side"]');
     await expect(page.locator("#deck-zone-body-side")).toHaveCount(0);
-    await expect(sideIcon).toBeVisible();
-    await sideIcon.focus();
-    const sideTooltip = page.locator(
-      '[data-cy="deck-zone-error-tooltip-side"]',
+    await expect(page.locator('[data-cy="deck-zone-error-side"]')).toHaveCount(
+      0,
     );
-    await expect(sideTooltip).toBeVisible();
-    await expect(sideTooltip.locator("li")).toHaveText(["Side Deck is empty."]);
-    await mainIcon.focus();
-    await expect(
-      page.locator('[data-cy="deck-zone-error-tooltip-side"]'),
-    ).toHaveCount(0);
-    await page.keyboard.press("Escape");
 
     const iconBox = await mainIcon.boundingBox();
     if (iconBox === null)
@@ -1677,7 +1673,9 @@ test("the catalog tile count stays under the ceiling on a phone", async ({
    DOM mutations during an add-card action; the count should be bounded by a
    small constant independent of scroll depth. This is deterministic: it
    measures mutation count, not wall-clock time. */
-test("edit mutation count is independent of scroll depth", async ({ page }) => {
+test("copy edits preserve the result window within a bounded mutation count", async ({
+  page,
+}) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto(libraryUrl);
   await deleteDeckDatabase(page);
@@ -1800,10 +1798,12 @@ test("deck library shows art rows with frame and copy count", async ({
     if ((await zoneCount(page, "main").textContent())?.startsWith("40/")) break;
   }
   await expect(zoneCount(page, "main")).toHaveText("40/40");
-  await expectSaveSettled(page, { main: 40, extra: 7, side: 0 });
+  /* T9 excludes unavailable cards, including four formerly sampled Extra
+     candidates, before catalog rendering. */
+  await expectSaveSettled(page, { main: 40, extra: 3, side: 0 });
 
   await page.goto(libraryUrl);
-  await page.getByRole("button", { name: /^Decklist Rows/ }).click();
+  await page.getByRole("button", { name: /^Select Decklist Rows,/ }).click();
 
   const row = page.locator('[data-cy^="deck-select-docked-list-row-"]').first();
   await expect(row).toBeVisible();

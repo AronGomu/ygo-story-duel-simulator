@@ -20,13 +20,12 @@
   import { availableCopies } from "../catalog-availability.ts";
   import {
     INITIAL_RESULT_WINDOW,
-    initialResultWindow,
     nextResultWindow,
     RESULT_WINDOW_CEILING,
   } from "../layout/result-window.ts";
   import { OverlayScrollbar } from "../../shell/index.ts";
   import CardTile from "./CardTile.svelte";
-  import CatalogTypeInput from "./CatalogTypeInput.svelte";
+  import type CatalogTypeInputComponent from "./CatalogTypeInput.svelte";
   import type { AdvancedSearchHost } from "../advanced-search-loader.ts";
 
   export let cards: readonly DeckBuilderCardView[];
@@ -64,6 +63,8 @@
 
   let resultsScroller: HTMLElement | null = null;
   let nameInput: HTMLInputElement | null = null;
+  let CatalogTypeInput: typeof CatalogTypeInputComponent | null = null;
+  let typeInputUnavailable = false;
   let advancedFilters: AdvancedDeckCatalogFilters | null = null;
   let filters: DeckCatalogFilters = EMPTY_CATALOG_FILTERS;
   let advancedError = false;
@@ -72,6 +73,7 @@
   let sentinel: HTMLElement | null = null;
   let observer: IntersectionObserver | null = null;
   let observerSupported = typeof IntersectionObserver === "function";
+
   const advancedHost: AdvancedSearchHost = {
     disposed: false,
     generation: 0,
@@ -84,9 +86,18 @@
     onchange: (next) => {
       filters = { name: next.name, types: next.types };
       advancedFilters = next.advanced;
+      resetResultWindow();
     },
     reset: resetFilters,
   };
+  void import("./CatalogTypeInput.svelte").then(
+    ({ default: component }) => {
+      if (!advancedHost.disposed) CatalogTypeInput = component;
+    },
+    () => {
+      if (!advancedHost.disposed) typeInputUnavailable = true;
+    },
+  );
 
   $: typeOptions = catalogTypeOptions(cards);
   $: index = buildDeckCatalogIndex(cards);
@@ -105,7 +116,6 @@
         : session!.filter(index, query, isAvailable);
     if (query !== null) session!.setResultCount(results.length);
   }
-  $: visibleCount = initialResultWindow(results.length);
   $: visible = observerSupported
     ? results.slice(0, visibleCount)
     : results.slice(0, FALLBACK_RESULT_CAP);
@@ -159,6 +169,11 @@
     value: DeckCatalogFilters[Key],
   ): void {
     filters = { ...filters, [key]: value };
+    resetResultWindow();
+  }
+
+  function resetResultWindow(): void {
+    visibleCount = INITIAL_RESULT_WINDOW;
   }
 
   function isAvailable(card: DeckBuilderCardView): boolean {
@@ -181,6 +196,7 @@
     filters = EMPTY_CATALOG_FILTERS;
     if (advancedHost.session !== null)
       advancedFilters = advancedHost.session.emptyFilters;
+    resetResultWindow();
   }
 </script>
 
@@ -218,11 +234,17 @@
   </div>
 
   <div class="filters" data-cy="deck-catalog-filters">
-    <CatalogTypeInput
-      options={typeOptions}
-      value={filters.types}
-      onchange={(types) => setFilter("types", types)}
-    />
+    {#if CatalogTypeInput !== null}
+      <CatalogTypeInput
+        options={typeOptions}
+        value={filters.types}
+        onchange={(types) => setFilter("types", types)}
+      />
+    {:else if typeInputUnavailable}
+      <p role="status" data-cy="deck-catalog-types-unavailable">
+        Types unavailable.
+      </p>
+    {/if}
   </div>
 
   {#if filters.name || filters.types.length > 0}
@@ -252,7 +274,8 @@
   {:else}
     {#if fallbackTruncated}
       <p class="fallback-notice" data-cy="deck-catalog-fallback-notice">
-        {FALLBACK_RESULT_CAP}/{results.length} shown. Filter more.
+        Showing the first {FALLBACK_RESULT_CAP} of {results.length} cards. Narrow
+        the filters to reach the rest.
       </p>
     {/if}
     {#if ceilingTruncated}
@@ -263,6 +286,7 @@
     <div class="results-region" data-cy="deck-catalog-results-region">
       <div
         class="results"
+        role="region"
         aria-label="Card catalog results"
         data-cy="deck-catalog-results"
         onmouseleave={() => onhoverend()}

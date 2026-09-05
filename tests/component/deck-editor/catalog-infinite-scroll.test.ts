@@ -7,7 +7,10 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import CardCatalog from "../../../src/deck-editor/components/CardCatalog.svelte";
 import { PROTOTYPE_CATALOG } from "../../../src/deck-editor/fixtures/catalog.ts";
 import { syntheticCatalog } from "../../fixtures/synthetic-catalog.ts";
-import { PROTOTYPE_RULESET } from "../../../src/decks/catalog/pinned-ruleset.ts";
+import {
+  PROTOTYPE_RULESET,
+  quantityLimit,
+} from "../../../src/decks/catalog/pinned-ruleset.ts";
 import type { DeckBuilderCardView } from "../../../src/decks/catalog/ocg-card-mapper.ts";
 
 const originalIO = globalThis.IntersectionObserver;
@@ -133,7 +136,10 @@ describe("catalog infinite scroll", () => {
 
     await userEvent
       .setup()
-      .type(screen.getByRole("combobox", { name: "Types" }), "monster{Enter}");
+      .type(
+        await screen.findByRole("combobox", { name: "Types" }),
+        "monster{Enter}",
+      );
     await tick();
 
     expect(
@@ -174,6 +180,35 @@ describe("catalog infinite scroll", () => {
         ?.textContent,
     ).toBe("99 results");
     expect(countTiles(container)).toBe(60);
+  });
+
+  it("keeps the expanded window when copy availability refreshes results", async () => {
+    const stub = installStubIO();
+    const cards = make200Cards();
+    const props = {
+      cards,
+      ruleset: PROTOTYPE_RULESET,
+      copies: new Map<number, number>(),
+      onselect: vi.fn(),
+      ondragcard: vi.fn(),
+    };
+    const { container, rerender } = render(CardCatalog, props);
+    await tick();
+
+    stub.trigger([{ isIntersecting: true }]);
+    await tick();
+    expect(countTiles(container)).toBe(120);
+
+    const card = cards.find(
+      (candidate) => quantityLimit(PROTOTYPE_RULESET, candidate.code) === 3,
+    )!;
+    await rerender({
+      ...props,
+      copies: new Map([[card.code, 3]]),
+    });
+    await tick();
+
+    expect(countTiles(container)).toBe(120);
   });
 
   /* An observer aimed at the wrong element, or at nothing, never appends: the

@@ -35,7 +35,8 @@ describe("CardCatalog", () => {
     });
     const name = screen.getByRole("searchbox", { name: "Name" });
     expect(name.getAttribute("placeholder")).toBe("Name");
-    expect(screen.getByRole("combobox", { name: "Types" })).toBeTruthy();
+    const types = await screen.findByRole("combobox", { name: "Types" });
+    expect(types).toBeTruthy();
     expect(
       document.querySelector('[data-cy="deck-catalog-name-label"]'),
     ).toBeNull();
@@ -53,7 +54,6 @@ describe("CardCatalog", () => {
     ).toBeNull();
 
     await user.type(name, "dark");
-    const types = screen.getByRole("combobox", { name: "Types" });
     await user.type(types, "spellcaster{Enter}");
     expect(screen.getByText("1 results")).toBeTruthy();
     expect(screen.getByRole("button", { name: /Dark Magician/ })).toBeTruthy();

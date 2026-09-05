@@ -15,7 +15,7 @@ import {
 afterEach(() => cleanup());
 
 describe("deck builder accessibility", () => {
-  it("provides labels, visible semantics, keyboard shortcuts, and non-color limit text", () => {
+  it("provides labels, visible semantics, keyboard shortcuts, and non-color limit text", async () => {
     render(DeckEditor, {
       state: stateFixture(),
       cards: PROTOTYPE_CATALOG,
@@ -39,7 +39,7 @@ describe("deck builder accessibility", () => {
     expect(
       document.querySelector('[data-cy="deck-editor-name-label"]'),
     ).toBeNull();
-    expect(screen.getByRole("combobox", { name: "Types" })).toBeTruthy();
+    expect(await screen.findByRole("combobox", { name: "Types" })).toBeTruthy();
     expect(
       document.querySelector('[data-cy="deck-catalog-name-label"]'),
     ).toBeNull();
