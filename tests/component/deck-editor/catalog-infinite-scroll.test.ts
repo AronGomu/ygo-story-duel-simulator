@@ -139,7 +139,7 @@ describe("catalog infinite scroll", () => {
     expect(
       container.querySelector('[data-cy="deck-catalog-result-count"]')
         ?.textContent,
-    ).toBe("128 results");
+    ).toBe("127 results");
     expect(countTiles(container)).toBe(60);
   });
 
@@ -172,7 +172,7 @@ describe("catalog infinite scroll", () => {
     expect(
       container.querySelector('[data-cy="deck-catalog-result-count"]')
         ?.textContent,
-    ).toBe("100 results");
+    ).toBe("99 results");
     expect(countTiles(container)).toBe(60);
   });
 
@@ -251,7 +251,7 @@ describe("catalog infinite scroll", () => {
     });
     await tick();
 
-    expect(countTiles(container)).toBe(200);
+    expect(countTiles(container)).toBe(199);
     expect(
       container.querySelector('[data-cy="deck-catalog-results-sentinel"]'),
     ).toBeNull();

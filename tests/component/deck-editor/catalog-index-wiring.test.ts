@@ -4,7 +4,7 @@ import { cleanup, render, screen } from "@testing-library/svelte";
 import { userEvent } from "@testing-library/user-event";
 import { tick } from "svelte";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import type * as DeckCatalogIndexModule from "../../../src/decks/catalog/deck-catalog-index.ts";
+import type * as DeckCatalogIndexModule from "../../../src/decks/catalog/deck-catalog-index-base.ts";
 import type * as DeckCatalogModule from "../../../src/decks/catalog/deck-catalog.ts";
 import { PROTOTYPE_RULESET } from "../../../src/decks/catalog/pinned-ruleset.ts";
 import { syntheticCatalog } from "../../fixtures/synthetic-catalog.ts";
@@ -23,7 +23,7 @@ const filterIndexSpy = vi.hoisted(() => vi.fn());
 const filterPlainSpy = vi.hoisted(() => vi.fn());
 
 vi.mock(
-  "../../../src/decks/catalog/deck-catalog-index.ts",
+  "../../../src/decks/catalog/deck-catalog-index-base.ts",
   async (original) => {
     const real = await original<typeof DeckCatalogIndexModule>();
     return {
@@ -34,11 +34,11 @@ vi.mock(
         buildSpy(...args);
         return real.buildDeckCatalogIndex(...args);
       },
-      filterDeckCatalogIndex: (
-        ...args: Parameters<typeof real.filterDeckCatalogIndex>
+      filterQuickDeckCatalogIndex: (
+        ...args: Parameters<typeof real.filterQuickDeckCatalogIndex>
       ) => {
         filterIndexSpy(...args);
-        return real.filterDeckCatalogIndex(...args);
+        return real.filterQuickDeckCatalogIndex(...args);
       },
     };
   },

@@ -88,19 +88,19 @@ describe("editor preview pane", () => {
     const cards = PROTOTYPE_CATALOG.map((card, index) => ({
       ...card,
       imageUrl:
-        index === 0
+        index === 1
           ? "/cards/missing.jpg"
-          : index === 1
+          : index === 2
             ? "/cards/valid.jpg"
             : card.imageUrl,
     }));
     renderEditor(0, cards, new Map(cards.map((card) => [card.code, card])));
     const results = document.querySelector('[data-cy="deck-catalog-results"]')!;
     const missingTile = results.querySelector(
-      `[data-cy="catalog-tile-${cards[0]!.code}"]`,
+      `[data-cy="catalog-tile-${cards[1]!.code}"]`,
     )!;
     const validTile = results.querySelector(
-      `[data-cy="catalog-tile-${cards[1]!.code}"]`,
+      `[data-cy="catalog-tile-${cards[2]!.code}"]`,
     )!;
 
     fireEvent.mouseEnter(missingTile);

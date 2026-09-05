@@ -1,37 +1,57 @@
 import type { DeckBuilderCardView } from "./ocg-card-mapper.ts";
 import {
+  cardMatchesAdvancedFilters,
   cardMatchesCatalogType,
-  type DeckCatalogFilters,
+  type DeckCatalogQuery,
 } from "./deck-catalog.ts";
+import type { DeckCatalogIndex } from "./deck-catalog-index-base.ts";
 
-export interface DeckCatalogIndex {
-  readonly cards: readonly DeckBuilderCardView[];
-  /** `cards[i].name.toLocaleLowerCase()`, computed once. */
-  readonly lowerNames: readonly string[];
-}
+export {
+  buildDeckCatalogIndex,
+  filterQuickDeckCatalogIndex,
+  type DeckCatalogIndex,
+} from "./deck-catalog-index-base.ts";
 
-export function buildDeckCatalogIndex(
-  cards: readonly DeckBuilderCardView[],
-): DeckCatalogIndex {
-  return {
-    cards,
-    lowerNames: cards.map((card) => card.name.toLocaleLowerCase()),
-  };
+function indexedNameMatches(
+  value: string,
+  query: string,
+  mode: DeckCatalogQuery["advanced"]["nameMatch"],
+): boolean {
+  const needle = query.trim().toLocaleLowerCase();
+  if (needle.length === 0) return true;
+  switch (mode) {
+    case "contains":
+      return value.includes(needle);
+    case "exact":
+      return value === needle;
+    case "starts-with":
+      return value.startsWith(needle);
+    case "exclude":
+      return !value.includes(needle);
+  }
 }
 
 export function filterDeckCatalogIndex(
   index: DeckCatalogIndex,
-  filters: DeckCatalogFilters,
+  query: DeckCatalogQuery,
+  isAvailable: (card: DeckBuilderCardView) => boolean,
 ): readonly DeckBuilderCardView[] {
-  const name = filters.name.trim().toLocaleLowerCase();
   const { cards, lowerNames } = index;
   const out: DeckBuilderCardView[] = [];
-  cardLoop: for (let index = 0; index < cards.length; index++) {
-    const card = cards[index]!;
-    if (name.length > 0 && !lowerNames[index]!.includes(name)) continue;
-    for (const tag of filters.types) {
+  cardLoop: for (let offset = 0; offset < cards.length; offset++) {
+    const card = cards[offset]!;
+    if (!isAvailable(card)) continue;
+    if (
+      !indexedNameMatches(
+        lowerNames[offset]!,
+        query.name,
+        query.advanced.nameMatch,
+      )
+    )
+      continue;
+    for (const tag of query.types)
       if (!cardMatchesCatalogType(card, tag)) continue cardLoop;
-    }
+    if (!cardMatchesAdvancedFilters(card, query.advanced)) continue;
     out.push(card);
   }
   return Object.freeze(out);

@@ -62,6 +62,7 @@ Shared vocabulary between user and agents. Say the word, mean the code.
 | manual order | Cards stay placed; reorder history-blind, explicit sorts undoable | `src/decks/deck-model.ts`, `src/deck-editor/deck-editor-store.ts` |
 | click intent | Double-click mutates; single-click pins preview | `src/deck-editor/layout/click-intent.ts` (`deckCardClickIntent`, `catalogCardClickIntent`, `ClickIntent`) |
 | runtime catalog | The whole packaged card database (14,794 codes), fetched from the runtime assets when a domain opens rather than compiled into the bundle, memoized per page load | `src/decks/catalog/runtime-catalog.ts` (`runtimeCatalog`, `loadRuntimeCatalog`, `setRuntimeCatalogForTests`), ADR-043 |
+| advancedsearch | Workspace-bound live catalog filter matrix | `src/deck-editor/components/AdvancedCardSearch.svelte`, `AdvancedDeckCatalogFilters` |
 | buildable card | A catalog card a deck may hold; the runtime catalog less its 243 Tokens (14,551 offered) | `src/decks/catalog/deck-buildable-cards.ts` (`isDeckBuildableCard`, `deckBuildableCards`) |
 | rail | Right-side LP, turn, phase, status column | planned `src/battle/app/components/DuelRail.svelte`, `docs/ADR/019_ADR_full_height_duel_shell_and_pixel_geometry.md` |
 | cardlist | Browse/target floating physical-card window | `src/battle/app/components/duel-field/ZoneListDialog.svelte`, `docs/ADR/021_ADR_card_list_dialog_modes_and_selection.md` |

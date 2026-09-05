@@ -137,7 +137,7 @@ describe("deck editor portrait layout", () => {
     ).toBeNull();
   });
 
-  it("announces the reason instead of adding a card at its copy limit", async () => {
+  it("omits a catalog card at its copy limit", async () => {
     const user = userEvent.setup();
     const base = stateFixture();
     const state = {
@@ -168,14 +168,11 @@ describe("deck editor portrait layout", () => {
       onpreservecopy: vi.fn(),
     });
     await openCatalog(user);
-    await user.click(
-      screen.getAllByRole("button", { name: /Blue-Eyes White Dragon/ })[0]!,
-    );
+    expect(
+      screen.queryByRole("button", { name: /Blue-Eyes White Dragon/ }),
+    ).toBeNull();
     expect(onmutate).not.toHaveBeenCalled();
-    expect(screen.getByRole("status").textContent).toContain(
-      "Copy limit 3 reached",
-    );
-    expect(pane("details")).not.toBeNull();
+    expect(pane("catalog")).not.toBeNull();
   });
 
   it("opens a target menu with the legal targets only when a deck card is tapped", async () => {

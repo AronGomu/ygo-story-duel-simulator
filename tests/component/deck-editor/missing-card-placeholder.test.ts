@@ -6,7 +6,10 @@ import { tick } from "svelte";
 import CardTile from "../../../src/deck-editor/components/CardTile.svelte";
 import DeckEditor from "../../../src/deck-editor/components/DeckEditor.svelte";
 import { PROTOTYPE_CATALOG } from "../../../src/deck-editor/fixtures/catalog.ts";
-import { PROTOTYPE_RULESET } from "../../../src/decks/catalog/pinned-ruleset.ts";
+import {
+  PROTOTYPE_RULESET,
+  quantityLimit,
+} from "../../../src/decks/catalog/pinned-ruleset.ts";
 import { stateFixture } from "../../fixtures/deck-editor.ts";
 import { installPrototypeActiveCatalog } from "../../fixtures/active-catalog.ts";
 
@@ -35,7 +38,9 @@ describe("missing-card placeholder", () => {
     const state = stateFixture(1);
     const missingCode = state.current!.deck.main[0]!;
     const validCard = PROTOTYPE_CATALOG.find(
-      (card) => card.code !== missingCode,
+      (card) =>
+        card.code !== missingCode &&
+        quantityLimit(PROTOTYPE_RULESET, card.code) > 0,
     )!;
     const cards = PROTOTYPE_CATALOG.map((card) => ({
       ...card,

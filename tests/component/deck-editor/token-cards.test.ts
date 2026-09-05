@@ -58,6 +58,6 @@ describe("Tokens in the shared runtime catalog", () => {
     expect(
       document.querySelector('[data-cy="deck-catalog-result-count"]')
         ?.textContent,
-    ).toBe(`${PROTOTYPE_CATALOG.length} results`);
+    ).toBe(`${PROTOTYPE_CATALOG.length - 1} results`);
   });
 });

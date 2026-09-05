@@ -56,7 +56,10 @@ describe("deck builder accessibility", () => {
       document.querySelector('[data-cy="deck-catalog-race-field"]'),
     ).toBeNull();
     expect(
-      screen.getByRole("button", { name: /Obelisk.*Forbidden, maximum 0/i }),
+      screen.queryByRole("button", { name: /Obelisk.*Forbidden, maximum 0/i }),
+    ).toBeNull();
+    expect(
+      screen.getByRole("button", { name: "Advanced Search" }),
     ).toBeTruthy();
     expect(
       screen

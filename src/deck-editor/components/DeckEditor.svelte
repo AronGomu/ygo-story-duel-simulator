@@ -31,7 +31,6 @@
   import {
     defaultPane,
     paneAfterAdd,
-    paneAfterSelect,
     type EditorLayoutMode,
     type EditorPane,
   } from "../layout/editor-layout.ts";
@@ -802,14 +801,6 @@
             ondragcancel={endZoneDrag}
             oncontextadd={contextAdd}
             onnameinputmount={focusCatalogNameInput}
-            onblocked={(card, reason) => {
-              selected = card;
-              selectedCode = card.code;
-              if (toasts === undefined)
-                announcement = `${card.name}: ${reason}`;
-              else toasts.show({ message: reason, tone: "warning" });
-              pane = paneAfterSelect(pane, layoutMode);
-            }}
             onhovercard={(card) => {
               hovered = card;
               hoveredCode = card.code;

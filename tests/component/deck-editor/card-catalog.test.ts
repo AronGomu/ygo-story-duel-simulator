@@ -65,7 +65,7 @@ describe("CardCatalog", () => {
       document.querySelector('[data-cy="deck-catalog-results-region"]'),
     ).not.toBeNull();
     await user.click(screen.getByRole("button", { name: "Clear all" }));
-    expect(screen.getByText(/24 results/)).toBeTruthy();
+    expect(screen.getByText(/23 results/)).toBeTruthy();
   });
 
   it("keeps token spacing before results when a truncation notice is visible", () => {

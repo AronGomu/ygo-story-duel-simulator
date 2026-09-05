@@ -6,7 +6,7 @@ import {
 import {
   catalogTypeOptions,
   filterDeckCatalog,
-  EMPTY_CATALOG_FILTERS,
+  EMPTY_DECK_CATALOG_QUERY,
 } from "../../../src/decks/catalog/deck-catalog.ts";
 import {
   loadRuntimeCatalog,
@@ -19,6 +19,7 @@ import type { PackagedCardText } from "../../../src/decks/catalog/packaged-catal
 import { syntheticCatalog } from "../../fixtures/synthetic-catalog.ts";
 
 const CARDS_15K = syntheticCatalog(15_000);
+const AVAILABLE = () => true;
 
 /* Every budget below is a best-of-N rather than one cold run. A single run
    measures whatever the JIT and the GC were doing at that instant — the same
@@ -111,10 +112,14 @@ describe("catalog performance budgets", () => {
      the empty branch. */
   it("a name search stays under budget (best of 20 runs)", () => {
     const index = buildDeckCatalogIndex(CARDS_15K);
-    const filters = { ...EMPTY_CATALOG_FILTERS, name: "dragon" };
-    expect(filterDeckCatalogIndex(index, filters)).toHaveLength(1_875);
+    const filters = { ...EMPTY_DECK_CATALOG_QUERY, name: "dragon" };
+    expect(filterDeckCatalogIndex(index, filters, AVAILABLE)).toHaveLength(
+      1_875,
+    );
 
-    const best = bestOf(20, () => filterDeckCatalogIndex(index, filters));
+    const best = bestOf(20, () =>
+      filterDeckCatalogIndex(index, filters, AVAILABLE),
+    );
     // measured: 0.175-0.209ms best-of-20 at n=15,000; budget rejects a 10x regression
     expect(best).toBeLessThan(1.5);
   });
@@ -127,9 +132,13 @@ describe("catalog performance budgets", () => {
      indexed path is still worth being on. */
   it("the indexed search beats the unindexed reference implementation", () => {
     const index = buildDeckCatalogIndex(CARDS_15K);
-    const filters = { ...EMPTY_CATALOG_FILTERS, name: "dragon" };
-    const indexed = bestOf(20, () => filterDeckCatalogIndex(index, filters));
-    const unindexed = bestOf(20, () => filterDeckCatalog(CARDS_15K, filters));
+    const filters = { ...EMPTY_DECK_CATALOG_QUERY, name: "dragon" };
+    const indexed = bestOf(20, () =>
+      filterDeckCatalogIndex(index, filters, AVAILABLE),
+    );
+    const unindexed = bestOf(20, () =>
+      filterDeckCatalog(CARDS_15K, filters, AVAILABLE),
+    );
     // measured: unindexed/indexed = 1.9-4.3x across 24 samples under suite load
     expect(indexed).toBeLessThan(unindexed);
   });
@@ -138,14 +147,37 @@ describe("catalog performance budgets", () => {
     const index = buildDeckCatalogIndex(CARDS_15K);
     const options = catalogTypeOptions(CARDS_15K);
     const filters = {
+      ...EMPTY_DECK_CATALOG_QUERY,
       name: "",
       types: options.filter(({ id }) =>
         ["family:monster", "attribute:DARK", "race:Dragon"].includes(id),
       ),
     };
-    expect(filterDeckCatalogIndex(index, filters).length).toBeGreaterThan(0);
-    const best = bestOf(20, () => filterDeckCatalogIndex(index, filters));
+    expect(
+      filterDeckCatalogIndex(index, filters, AVAILABLE).length,
+    ).toBeGreaterThan(0);
+    const best = bestOf(20, () =>
+      filterDeckCatalogIndex(index, filters, AVAILABLE),
+    );
     expect(best).toBeLessThan(2.5);
+  });
+
+  it("a worst supported combined query stays under budget (best of 20 runs)", () => {
+    const index = buildDeckCatalogIndex(CARDS_15K);
+    const filters = {
+      ...EMPTY_DECK_CATALOG_QUERY,
+      name: "dragon",
+      advanced: {
+        ...EMPTY_DECK_CATALOG_QUERY.advanced,
+        text: "effect",
+        family: "monster" as const,
+        attack: { op: "gte" as const, value: 0 },
+      },
+    };
+    const best = bestOf(20, () =>
+      filterDeckCatalogIndex(index, filters, AVAILABLE),
+    );
+    expect(best).toBeLessThan(5);
   });
 
   it("deriving type options stays under budget (best of 20 runs)", () => {

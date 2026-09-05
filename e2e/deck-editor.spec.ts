@@ -1332,6 +1332,78 @@ test("quick Types density and card-name entry focus", async ({ page }) => {
   ).toBeGreaterThanOrEqual(4);
 });
 
+test("advanced search overlays exact workspace bounds with live filters and focus restore", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1440, height: 810 });
+  await page.goto(libraryUrl);
+  await deleteDeckDatabase(page);
+  await page.reload();
+  await page.locator('[data-cy="deck-select-create"]').click();
+  await page.getByLabel("Deck name").fill("Advanced Search");
+  await page.locator('[data-cy="deck-library-create-submit"]').click();
+
+  const trigger = page.locator('[data-cy="deck-catalog-advanced-search"]');
+  await expect(page.locator('[data-cy="advanced-search-dialog"]')).toHaveCount(
+    0,
+  );
+  await trigger.click();
+
+  const dialog = page.locator('[data-cy="advanced-search-dialog"]');
+  const workspace = page.locator('[data-cy="deck-workspace"]');
+  await expect(dialog).toBeVisible();
+  await expect(page.locator('[data-cy="advanced-search-close"]')).toBeFocused();
+  const geometry = await Promise.all([
+    workspace.boundingBox(),
+    dialog.boundingBox(),
+  ]);
+  expect(geometry[0]).not.toBeNull();
+  expect(geometry[1]).not.toBeNull();
+  for (const key of ["x", "y", "width", "height"] as const)
+    expect(Math.abs(geometry[0]![key] - geometry[1]![key])).toBeLessThanOrEqual(
+      1,
+    );
+  await expect(page.locator('[data-cy="advanced-search-veil"]')).toHaveCSS(
+    "opacity",
+    "0.34",
+  );
+
+  const initialCount = Number(
+    await page
+      .locator('[data-cy="advanced-search-result-value"]')
+      .textContent(),
+  );
+  await page
+    .locator('[data-cy="advanced-search-name-input"]')
+    .fill("Dark Magician");
+  await page
+    .locator('[data-cy="advanced-search-name-match"]')
+    .selectOption("exact");
+  await expect
+    .poll(async () =>
+      Number(
+        await page
+          .locator('[data-cy="advanced-search-result-value"]')
+          .textContent(),
+      ),
+    )
+    .toBeLessThan(initialCount);
+  await expect
+    .poll(async () =>
+      Number(
+        await page
+          .locator('[data-cy="advanced-search-result-value"]')
+          .textContent(),
+      ),
+    )
+    .toBeGreaterThan(0);
+  await page.locator('[data-cy="advanced-search-reset"]').click();
+  await expect(dialog).toBeVisible();
+  await page.locator('[data-cy="advanced-search-apply"]').click();
+  await expect(dialog).toHaveCount(0);
+  await expect(trigger).toBeFocused();
+});
+
 test("the story editor fits stage with reachable portrait panes", async ({
   page,
 }) => {
