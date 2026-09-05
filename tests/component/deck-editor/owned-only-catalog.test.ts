@@ -179,22 +179,18 @@ describe("owned-only story catalog", () => {
     expect(catalogTile(UNOWNED.code)).not.toBeNull();
   });
 
-  it("adding is capped by the owned count", async () => {
+  it("removes a card once its owned count is spent", async () => {
     const user = userEvent.setup();
     const { context } = storyContext({ [OWNED.code]: 1 });
     await openCatalog({ deckId: STORY_DECK_ID, context });
 
     await user.dblClick(catalogTile(OWNED.code)!);
     await waitFor(() => expect(zoneCount("main")).toBe("1/40"));
-
-    await user.dblClick(catalogTile(OWNED.code)!);
+    await waitFor(() => expect(catalogTile(OWNED.code)).toBeNull());
     expect(zoneCount("main")).toBe("1/40");
-    expect(query("deck-editor-announcement")?.textContent).toContain(
-      "You own 1 of this card.",
-    );
   });
 
-  it("adding is capped by the ruleset limit", async () => {
+  it("removes a card once its ruleset limit is spent", async () => {
     const user = userEvent.setup();
     const { context } = storyContext({ [OWNED.code]: 5 });
     const show = vi.fn<ToastPublisher["show"]>(() => "toast-test");
@@ -209,13 +205,9 @@ describe("owned-only story catalog", () => {
       await waitFor(() => expect(zoneCount("main")).toBe(`${copies}/40`));
     }
 
-    await user.dblClick(catalogTile(OWNED.code)!);
+    await waitFor(() => expect(catalogTile(OWNED.code)).toBeNull());
     expect(zoneCount("main")).toBe("3/40");
-    const message = `Copy limit ${quantityLimit(PROTOTYPE_RULESET, OWNED.code)} reached.`;
-    expect(query("deck-editor-announcement")?.textContent).not.toContain(
-      message,
-    );
-    expect(show).toHaveBeenCalledWith({ message, tone: "warning" });
+    expect(show).not.toHaveBeenCalled();
   });
 
   /* Driven through the controller rather than the tile, because the point of
@@ -249,23 +241,14 @@ describe("owned-only story catalog", () => {
     expect(capped?.deck.main).toStrictEqual([OWNED.code]);
   });
 
-  it("a capped card explains why", async () => {
+  it("never renders unavailable card affordances", async () => {
     const user = userEvent.setup();
     const { context } = storyContext({ [OWNED.code]: 1 });
     await openCatalog({ deckId: STORY_DECK_ID, context });
 
-    expect(query(`deck-catalog-cap-reason-${OWNED.code}`)).toBeNull();
-
     await user.dblClick(catalogTile(OWNED.code)!);
-    await waitFor(() =>
-      expect(query(`deck-catalog-cap-reason-${OWNED.code}`)).not.toBeNull(),
-    );
-
-    const reason = query(`deck-catalog-cap-reason-${OWNED.code}`)!;
-    expect(reason.textContent).toContain("You own 1 of this card.");
-    const tile = catalogTile(OWNED.code)!;
-    expect(tile.getAttribute("aria-describedby")).toBe(reason.id);
-    expect(tile.getAttribute("draggable")).toBe("false");
+    await waitFor(() => expect(catalogTile(OWNED.code)).toBeNull());
+    expect(query(`deck-catalog-cap-reason-${OWNED.code}`)).toBeNull();
   });
 
   it("search still filters the owned list", async () => {

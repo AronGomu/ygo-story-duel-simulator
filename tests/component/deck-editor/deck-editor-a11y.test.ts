@@ -15,7 +15,7 @@ import {
 afterEach(() => cleanup());
 
 describe("deck builder accessibility", () => {
-  it("provides labels, visible semantics, keyboard shortcuts, and non-color limit text", () => {
+  it("provides labels, visible semantics, keyboard shortcuts, and non-color limit text", async () => {
     render(DeckEditor, {
       state: stateFixture(),
       cards: PROTOTYPE_CATALOG,
@@ -39,7 +39,7 @@ describe("deck builder accessibility", () => {
     expect(
       document.querySelector('[data-cy="deck-editor-name-label"]'),
     ).toBeNull();
-    expect(screen.getByRole("combobox", { name: "Types" })).toBeTruthy();
+    expect(await screen.findByRole("combobox", { name: "Types" })).toBeTruthy();
     expect(
       document.querySelector('[data-cy="deck-catalog-name-label"]'),
     ).toBeNull();
@@ -56,7 +56,10 @@ describe("deck builder accessibility", () => {
       document.querySelector('[data-cy="deck-catalog-race-field"]'),
     ).toBeNull();
     expect(
-      screen.getByRole("button", { name: /Obelisk.*Forbidden, maximum 0/i }),
+      screen.queryByRole("button", { name: /Obelisk.*Forbidden, maximum 0/i }),
+    ).toBeNull();
+    expect(
+      screen.getByRole("button", { name: "Advanced Search" }),
     ).toBeTruthy();
     expect(
       screen

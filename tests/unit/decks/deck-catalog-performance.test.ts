@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { prepareAdvancedDeckCatalogIndex } from "../../../src/decks/catalog/deck-catalog-advanced.ts";
 import {
   buildDeckCatalogIndex,
   filterDeckCatalogIndex,
@@ -6,7 +7,7 @@ import {
 import {
   catalogTypeOptions,
   filterDeckCatalog,
-  EMPTY_CATALOG_FILTERS,
+  EMPTY_DECK_CATALOG_QUERY,
 } from "../../../src/decks/catalog/deck-catalog.ts";
 import {
   loadRuntimeCatalog,
@@ -19,22 +20,17 @@ import type { PackagedCardText } from "../../../src/decks/catalog/packaged-catal
 import { syntheticCatalog } from "../../fixtures/synthetic-catalog.ts";
 
 const CARDS_15K = syntheticCatalog(15_000);
+const AVAILABLE = () => true;
 
-/* Every budget below is a best-of-N rather than one cold run. A single run
-   measures whatever the JIT and the GC were doing at that instant — the same
-   `buildDeckCatalogIndex` call costs 3.1-3.8 ms cold and 0.26-0.38 ms warm —
-   so a ceiling set from a cold number is really a ceiling four to fifteen
-   times looser than it reads, and every "measured: ~Nms" comment in this file
-   used to quote the runner's wall time for the whole case instead of the
-   quantity the assertion tests. Best-of-N is the noise-robust number: measured
-   across three full `npm run test:unit` runs, where these files share the
-   machine with forty others, the spread stayed inside 1.5x. */
+/* Every budget below is best-of-N wall time rather than one cold run. Package
+   test routing runs this file after parallel unit workers finish, so this clock
+   measures production work instead of scheduler pauses from unrelated tests. */
 function bestOf(runs: number, work: () => unknown): number {
   let best = Infinity;
   for (let run = 0; run < runs; run++) {
-    const t0 = performance.now();
+    const start = performance.now();
     work();
-    const elapsed = performance.now() - t0;
+    const elapsed = performance.now() - start;
     if (elapsed < best) best = elapsed;
   }
   return best;
@@ -98,9 +94,23 @@ describe("catalog performance budgets", () => {
      de-duplicating pass over 15k codes turns into the moment it reaches for
      `Array.prototype.includes` instead of a `Set`: measured at 34-43 ms, or
      120x the linear build, and the old 400 ms ceiling waved it through. */
-  it("building the index stays under budget (best of 20 runs)", () => {
-    const best = bestOf(20, () => buildDeckCatalogIndex(CARDS_15K));
-    // measured: 0.26-0.38ms best-of-20 at n=15,000; budget rejects a 10x regression
+  it("building fresh indexes stays under budget (best of 20 runs)", () => {
+    const inputs = Array.from({ length: 20 }, () =>
+      CARDS_15K.map((card) => ({ ...card })),
+    );
+    const indexes: unknown[] = [];
+    let run = 0;
+    const best = bestOf(20, () => {
+      const index = buildDeckCatalogIndex(inputs[run++]!);
+      const prepared = prepareAdvancedDeckCatalogIndex(index);
+      indexes.push(index);
+      if (
+        index.lowerNames.length !== 15_000 ||
+        prepared.order.length !== 15_000
+      )
+        throw new Error("empty workload");
+    });
+    expect(new Set(indexes).size).toBe(20);
     expect(best).toBeLessThan(2.5);
   });
 
@@ -111,41 +121,94 @@ describe("catalog performance budgets", () => {
      the empty branch. */
   it("a name search stays under budget (best of 20 runs)", () => {
     const index = buildDeckCatalogIndex(CARDS_15K);
-    const filters = { ...EMPTY_CATALOG_FILTERS, name: "dragon" };
-    expect(filterDeckCatalogIndex(index, filters)).toHaveLength(1_875);
+    prepareAdvancedDeckCatalogIndex(index);
+    const filters = { ...EMPTY_DECK_CATALOG_QUERY, name: "dragon" };
+    expect(filterDeckCatalogIndex(index, filters, AVAILABLE)).toHaveLength(
+      1_875,
+    );
 
-    const best = bestOf(20, () => filterDeckCatalogIndex(index, filters));
-    // measured: 0.175-0.209ms best-of-20 at n=15,000; budget rejects a 10x regression
+    const best = bestOf(20, () =>
+      filterDeckCatalogIndex(index, filters, AVAILABLE),
+    );
+    // measured: 0.31-0.33ms best-of-20 at n=15,000; budget rejects a 4x regression
     expect(best).toBeLessThan(1.5);
   });
 
-  /* The index earns its keep by lower-casing every name once instead of once
-     per keystroke, and that is a ratio rather than a ceiling: the two paths
-     are 0.18 ms and 0.44 ms, so no absolute budget can separate them without
-     sitting close enough to the noise to flake. `catalog-index-wiring.test.ts`
-     is what proves the component is on the indexed path; this proves the
-     indexed path is still worth being on. */
+  /* The index earns its keep by lower-casing every name once and preserving
+     precomputed result order instead of repeating both per keystroke. The ratio
+     remains useful across machines; `catalog-index-wiring.test.ts` proves the
+     component uses this path. */
   it("the indexed search beats the unindexed reference implementation", () => {
     const index = buildDeckCatalogIndex(CARDS_15K);
-    const filters = { ...EMPTY_CATALOG_FILTERS, name: "dragon" };
-    const indexed = bestOf(20, () => filterDeckCatalogIndex(index, filters));
-    const unindexed = bestOf(20, () => filterDeckCatalog(CARDS_15K, filters));
-    // measured: unindexed/indexed = 1.9-4.3x across 24 samples under suite load
+    prepareAdvancedDeckCatalogIndex(index);
+    const filters = { ...EMPTY_DECK_CATALOG_QUERY, name: "dragon" };
+    const indexed = bestOf(20, () =>
+      filterDeckCatalogIndex(index, filters, AVAILABLE),
+    );
+    const unindexed = bestOf(20, () =>
+      filterDeckCatalog(CARDS_15K, filters, AVAILABLE),
+    );
+    // measured: unindexed/indexed = 4.1x at n=15,000
     expect(indexed).toBeLessThan(unindexed);
   });
 
   it("a multi-tag query stays under budget (best of 20 runs)", () => {
     const index = buildDeckCatalogIndex(CARDS_15K);
+    prepareAdvancedDeckCatalogIndex(index);
     const options = catalogTypeOptions(CARDS_15K);
     const filters = {
+      ...EMPTY_DECK_CATALOG_QUERY,
       name: "",
       types: options.filter(({ id }) =>
         ["family:monster", "attribute:DARK", "race:Dragon"].includes(id),
       ),
     };
-    expect(filterDeckCatalogIndex(index, filters).length).toBeGreaterThan(0);
-    const best = bestOf(20, () => filterDeckCatalogIndex(index, filters));
+    expect(
+      filterDeckCatalogIndex(index, filters, AVAILABLE).length,
+    ).toBeGreaterThan(0);
+    const best = bestOf(20, () =>
+      filterDeckCatalogIndex(index, filters, AVAILABLE),
+    );
     expect(best).toBeLessThan(2.5);
+  });
+
+  it("a representative text query stays under budget (best of 20 runs)", () => {
+    const index = buildDeckCatalogIndex(CARDS_15K);
+    prepareAdvancedDeckCatalogIndex(index);
+    const filters = {
+      ...EMPTY_DECK_CATALOG_QUERY,
+      advanced: {
+        ...EMPTY_DECK_CATALOG_QUERY.advanced,
+        text: "monster",
+      },
+    };
+    expect(filterDeckCatalogIndex(index, filters, AVAILABLE).length).toBe(
+      8_125,
+    );
+    const best = bestOf(20, () =>
+      filterDeckCatalogIndex(index, filters, AVAILABLE),
+    );
+    expect(best).toBeLessThan(5);
+  });
+
+  it("a worst supported combined query stays under budget (best of 20 runs)", () => {
+    const index = buildDeckCatalogIndex(CARDS_15K);
+    prepareAdvancedDeckCatalogIndex(index);
+    const filters = {
+      ...EMPTY_DECK_CATALOG_QUERY,
+      advanced: {
+        ...EMPTY_DECK_CATALOG_QUERY.advanced,
+        text: 'monster -"special summon"',
+        family: "monster" as const,
+        attack: { op: "gte" as const, value: 0 },
+      },
+    };
+    const count = filterDeckCatalogIndex(index, filters, AVAILABLE).length;
+    expect(count).toBeGreaterThan(0);
+    const best = bestOf(20, () =>
+      filterDeckCatalogIndex(index, filters, AVAILABLE),
+    );
+    expect(best).toBeLessThan(5);
   });
 
   it("deriving type options stays under budget (best of 20 runs)", () => {

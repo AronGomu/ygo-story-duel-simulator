@@ -31,7 +31,6 @@
   import {
     defaultPane,
     paneAfterAdd,
-    paneAfterSelect,
     type EditorLayoutMode,
     type EditorPane,
   } from "../layout/editor-layout.ts";
@@ -100,6 +99,7 @@
   let deckName = state.current?.deck.name ?? "";
   let pane: EditorPane = defaultPane(layoutMode);
   let focusCatalogOnMount = true;
+  let advancedSearchOpen = false;
   let tapped: { code: number; zone: DeckZone; index: number } | null = null;
   let tapOpener: HTMLElement | null = null;
   let contextCard: {
@@ -121,6 +121,7 @@
   const toasts = getContext<ToastPublisher | undefined>(TOAST_CONTEXT_KEY);
 
   $: tabs = layoutMode === "tabs";
+  $: if (tabs && advancedSearchOpen && pane !== "catalog") pane = "catalog";
   $: deck = state.current?.deck ?? null;
   $: tapTargets = tapped === null ? [] : targetsFor(tapped.code, tapped.zone);
   $: if (
@@ -802,14 +803,7 @@
             ondragcancel={endZoneDrag}
             oncontextadd={contextAdd}
             onnameinputmount={focusCatalogNameInput}
-            onblocked={(card, reason) => {
-              selected = card;
-              selectedCode = card.code;
-              if (toasts === undefined)
-                announcement = `${card.name}: ${reason}`;
-              else toasts.show({ message: reason, tone: "warning" });
-              pane = paneAfterSelect(pane, layoutMode);
-            }}
+            onadvancedchange={(open) => (advancedSearchOpen = open)}
             onhovercard={(card) => {
               hovered = card;
               hoveredCode = card.code;

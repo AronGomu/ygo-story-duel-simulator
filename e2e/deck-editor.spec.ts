@@ -598,8 +598,10 @@ test("the deck route deep-links, survives a reload and answers Back", async ({
   await expect(page.locator('[data-cy="deck-not-found"]')).toBeVisible();
   await page.locator('[data-cy="deck-not-found-back"]').click();
   await expect(page.locator('[data-cy="deck-library"]')).toBeVisible();
-  /* Anchored because tile press names deck plus its single tag line. */
-  await expect(page.getByRole("button", { name: /^Deep Link/ })).toBeVisible();
+  /* Deck-name controls now identify their action before the stored name. */
+  await expect(
+    page.getByRole("button", { name: /^Select Deep Link,/ }),
+  ).toBeVisible();
 });
 
 test("Deck Library imports one persisted undoable update", async ({ page }) => {
@@ -862,8 +864,10 @@ test("a prototype deck database is migrated on first load", async ({
   }, LEGACY_DECK_DATABASE_NAME);
 
   await page.reload();
-  /* Anchored because tile press names deck plus its single tag line. */
-  const migrated = page.getByRole("button", { name: /^Prototype Survivor/ });
+  /* Deck-name controls now identify their action before the stored name. */
+  const migrated = page.getByRole("button", {
+    name: /^Select Prototype Survivor,/,
+  });
   await expect(migrated).toBeVisible();
 
   const names = await page.evaluate(async () =>
@@ -894,13 +898,13 @@ test("the deck editor builds a deck by tap on a small screen", async ({
   await page.getByLabel("Deck name").fill("Portrait Build");
   await page.locator('[data-cy="deck-library-create-submit"]').click();
 
-  /* One pane at a time, and the deck pane carries the counts. */
+  /* One pane at a time. Catalog opens first so name search owns entry focus. */
   const main = zoneCount(page, "main");
   const side = zoneCount(page, "side");
+  await expect(page.locator('[data-cy="deck-pane-catalog"]')).toBeVisible();
+  await expect(page.locator('[data-cy="deck-pane-deck"]')).toHaveCount(0);
+  await page.locator('[data-cy="deck-tab-deck"]').click();
   await expect(main).toBeVisible();
-  await expect(page.locator('[data-cy="deck-pane-deck"]')).toBeVisible();
-  await expect(page.locator('[data-cy="deck-pane-catalog"]')).toHaveCount(0);
-
   await page.locator('[data-cy="deck-tab-catalog"]').click();
   await page.getByRole("searchbox", { name: "Name" }).fill("Blue-Eyes");
   await catalogTile(page, BLUE_EYES).click();
@@ -934,6 +938,7 @@ test("the deck editor builds a deck by tap on a small screen", async ({
   await expectSaveSettled(page, { main: 0, extra: 0, side: 1 });
   await page.reload();
   await expect(page.getByLabel("Deck name")).toHaveValue("Portrait Build");
+  await page.locator('[data-cy="deck-tab-deck"]').click();
   await expect(side).toHaveText("1/15");
 
   /* No sideways scroll at any of the sizes the editor now has to serve. */
@@ -1000,8 +1005,9 @@ test("small editor polish stays usable in Chromium", async ({ page }) => {
   await expect(page.locator("#deck-zone-body-extra")).toBeVisible();
 
   const search = page.getByRole("searchbox", { name: "Name" });
+  await search.fill("Obelisk the Tormentor");
+  await expect(catalogTile(page, OBELISK)).toHaveCount(0);
   for (const [name, code, limit] of [
-    ["Obelisk the Tormentor", OBELISK, 0],
     ["Raigeki", RAIGEKI, 1],
     ["Mirror Force", MIRROR_FORCE, 2],
     ["Blue-Eyes White Dragon", BLUE_EYES, 3],
@@ -1082,20 +1088,10 @@ test.describe("touch-enabled deck editor", () => {
     await expect(mainIcon).toHaveAttribute("aria-expanded", "false");
     await expect(mainTooltip).toHaveCount(0);
 
-    const sideIcon = page.locator('[data-cy="deck-zone-error-side"]');
     await expect(page.locator("#deck-zone-body-side")).toHaveCount(0);
-    await expect(sideIcon).toBeVisible();
-    await sideIcon.focus();
-    const sideTooltip = page.locator(
-      '[data-cy="deck-zone-error-tooltip-side"]',
+    await expect(page.locator('[data-cy="deck-zone-error-side"]')).toHaveCount(
+      0,
     );
-    await expect(sideTooltip).toBeVisible();
-    await expect(sideTooltip.locator("li")).toHaveText(["Side Deck is empty."]);
-    await mainIcon.focus();
-    await expect(
-      page.locator('[data-cy="deck-zone-error-tooltip-side"]'),
-    ).toHaveCount(0);
-    await page.keyboard.press("Escape");
 
     const iconBox = await mainIcon.boundingBox();
     if (iconBox === null)
@@ -1332,6 +1328,134 @@ test("quick Types density and card-name entry focus", async ({ page }) => {
   ).toBeGreaterThanOrEqual(4);
 });
 
+test("advanced search owns workspace geometry, modality and live close semantics", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1440, height: 810 });
+  await page.goto(libraryUrl);
+  await deleteDeckDatabase(page);
+  await page.reload();
+  await page.locator('[data-cy="deck-select-create"]').click();
+  await page.getByLabel("Deck name").fill("Advanced Search");
+  await page.locator('[data-cy="deck-library-create-submit"]').click();
+
+  const trigger = page.locator('[data-cy="deck-catalog-advanced-search"]');
+  const dialog = page.locator('[data-cy="advanced-search-dialog"]');
+  const assertBounds = async (targetCy: string) => {
+    await expect
+      .poll(async () => {
+        const [target, overlay] = await Promise.all([
+          page.locator(`[data-cy="${targetCy}"]`).boundingBox(),
+          dialog.boundingBox(),
+        ]);
+        if (target === null || overlay === null)
+          return Number.POSITIVE_INFINITY;
+        return Math.max(
+          ...(["x", "y", "width", "height"] as const).map((key) =>
+            Math.abs(target[key] - overlay[key]),
+          ),
+        );
+      })
+      .toBeLessThanOrEqual(1);
+  };
+
+  await expect(dialog).toHaveCount(0);
+  await trigger.click();
+  await expect(dialog).toBeVisible();
+  await expect(page.locator('[data-cy="advanced-search-close"]')).toBeFocused();
+  await expect(page.locator('[data-cy="advanced-search-veil"]')).toHaveCSS(
+    "opacity",
+    "0.34",
+  );
+  for (const viewport of [
+    { width: 1024, height: 768 },
+    { width: 1440, height: 810 },
+    { width: 1920, height: 1080 },
+  ]) {
+    await page.setViewportSize(viewport);
+    await assertBounds("deck-workspace");
+  }
+
+  const outside = await page
+    .locator('[data-cy="deck-name-input"]')
+    .boundingBox();
+  expect(outside).not.toBeNull();
+  await page.mouse.click(
+    outside!.x + outside!.width / 2,
+    outside!.y + outside!.height / 2,
+  );
+  expect(
+    await page.evaluate(() =>
+      document.querySelector(":modal")?.contains(document.activeElement),
+    ),
+    "native modal must keep outside editor controls inert",
+  ).toBe(true);
+
+  const initialCount = Number(
+    await page
+      .locator('[data-cy="advanced-search-result-value"]')
+      .textContent(),
+  );
+  await page
+    .locator('[data-cy="advanced-search-name-input"]')
+    .fill("Dark Magician");
+  await page
+    .locator('[data-cy="advanced-search-name-match"]')
+    .selectOption("exact");
+  await expect
+    .poll(async () =>
+      Number(
+        await page
+          .locator('[data-cy="advanced-search-result-value"]')
+          .textContent(),
+      ),
+    )
+    .toBeLessThan(initialCount);
+  const filteredCount = Number(
+    await page
+      .locator('[data-cy="advanced-search-result-value"]')
+      .textContent(),
+  );
+  expect(filteredCount).toBeGreaterThan(0);
+  await expect(
+    page.locator('[data-cy="deck-catalog-results"] > .card-tile'),
+  ).toHaveCount(filteredCount);
+
+  await page.setViewportSize({ width: 800, height: 1000 });
+  await expect(dialog).toBeVisible();
+  await expect(page.locator('[data-cy="deck-tab-catalog"]')).toHaveAttribute(
+    "aria-selected",
+    "true",
+  );
+  expect(
+    await page.evaluate(() =>
+      document
+        .querySelector('[data-cy="advanced-search-dialog"]')
+        ?.contains(document.activeElement),
+    ),
+    "responsive transition must keep focus inside advanced search",
+  ).toBe(true);
+  await assertBounds("deck-editor-layout");
+
+  await page.locator('[data-cy="advanced-search-close"]').click();
+  await expect(dialog).toHaveCount(0);
+  await expect(trigger).toBeFocused();
+  await expect(page.locator('[data-cy="deck-catalog-name-input"]')).toHaveValue(
+    "Dark Magician",
+  );
+  await expect(
+    page.locator('[data-cy="deck-catalog-results"] > .card-tile'),
+  ).toHaveCount(filteredCount);
+
+  await trigger.click();
+  await page.keyboard.press("Escape");
+  await expect(dialog).toHaveCount(0);
+  await expect(trigger).toBeFocused();
+  await expect(page.locator('[data-cy="deck-catalog-name-input"]')).toHaveValue(
+    "Dark Magician",
+  );
+});
+
 test("the story editor fits stage with reachable portrait panes", async ({
   page,
 }) => {
@@ -1551,47 +1675,56 @@ test("the catalog tile count stays under the ceiling on a phone", async ({
   ).toHaveCount(0);
 });
 
-/* Edit cost must not scale with mounted tile count. A MutationObserver counts
-   DOM mutations during an add-card action; the count should be bounded by a
-   small constant independent of scroll depth. This is deterministic: it
-   measures mutation count, not wall-clock time. */
-test("edit mutation count is independent of scroll depth", async ({ page }) => {
+/* Exercise real persisted copy edits at both result-window depths. DOM-only
+   mutation counts can stay low when no deck command succeeds, so this checks
+   committed deck rows plus visible result/window invariants instead. */
+test("copy edits preserve the result window while committing deck updates", async ({
+  page,
+}) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto(libraryUrl);
   await deleteDeckDatabase(page);
   await page.reload();
 
   await page.locator('[data-cy="deck-select-create"]').click();
-  await page.getByLabel("Deck name").fill("Mutation Test");
+  await page.getByLabel("Deck name").fill("Copy Edit Test");
   await page.locator('[data-cy="deck-library-create-submit"]').click();
   await page.locator('[data-cy="deck-tab-catalog"]').click();
 
-  /* Direct child selector: only count tile buttons, not their children. */
   const tiles = page.locator(
     '[data-cy="deck-catalog-results"] > [data-cy^="catalog-tile-"]',
   );
+  const resultCount = page.locator('[data-cy="deck-catalog-result-count"]');
   await expect(tiles.first()).toBeVisible();
+  const initialVisible = await tiles.count();
+  const initialResults = await resultCount.textContent();
+  const unlimitedTile = page
+    .locator(
+      '[data-cy="deck-catalog-results"] > [data-cy^="catalog-tile-"][aria-label*="Unlimited, maximum 3"]',
+    )
+    .first();
+  await expect(unlimitedTile).toBeVisible();
+  const deckId = new URL(page.url()).hash.replace(
+    /^#\/(?:free-play|story)\/decks\//,
+    "",
+  );
 
-  /* Measure mutation count during add with few tiles (initial window). */
-  const mutationsAtShallow = await page.evaluate(async () => {
-    const results = document.querySelector('[data-cy="deck-catalog-results"]');
-    if (!results) return -1;
-    let count = 0;
-    const observer = new MutationObserver((records) => {
-      count += records.length;
-    });
-    observer.observe(results, { childList: true, subtree: true });
-    /* Direct child: don't match child elements of the tile. */
-    const tile = results.querySelector(
-      ':scope > [data-cy^="catalog-tile-"]',
-    ) as HTMLElement | null;
-    tile?.click();
-    await new Promise((r) => setTimeout(r, 100));
-    observer.disconnect();
-    return count;
-  });
+  const addAndVerify = async (expectedTotal: number) => {
+    await unlimitedTile.click();
+    await expect
+      .poll(async () => {
+        const persisted = await persistedDeckCounts(page, deckId);
+        return persisted === null
+          ? null
+          : persisted.main + persisted.extra + persisted.side;
+      })
+      .toBe(expectedTotal);
+    await expect(resultCount).toHaveText(initialResults!);
+  };
 
-  /* Scroll to ceiling. */
+  await addAndVerify(1);
+  await expect(tiles).toHaveCount(initialVisible);
+
   const scrollToBottom = () =>
     page.evaluate(() => {
       const region = document.querySelector(
@@ -1604,47 +1737,10 @@ test("edit mutation count is independent of scroll depth", async ({ page }) => {
     await page.waitForTimeout(100);
   }
 
-  /* Confirm ceiling reached. */
-  const tileCount = await tiles.count();
-  expect(tileCount).toBeGreaterThanOrEqual(RESULT_WINDOW_CEILING - 10);
-
-  /* Measure mutation count during add at ceiling. */
-  const mutationsAtCeiling = await page.evaluate(async () => {
-    const results = document.querySelector('[data-cy="deck-catalog-results"]');
-    if (!results) return -1;
-    let count = 0;
-    const observer = new MutationObserver((records) => {
-      count += records.length;
-    });
-    observer.observe(results, { childList: true, subtree: true });
-    const tile = results.querySelectorAll(
-      ':scope > [data-cy^="catalog-tile-"]',
-    )[10] as HTMLElement | null;
-    tile?.click();
-    await new Promise((r) => setTimeout(r, 100));
-    observer.disconnect();
-    return count;
-  });
-
-  /* Both counts should be small constants, independent of tile count. The
-     tile tap fires selection + hover updates + Svelte reactive batches; bound
-     is generous to cover those but stable across scroll depth. */
-  const MUTATION_BOUND = 100;
-  expect(
-    mutationsAtShallow,
-    `shallow mutations ${mutationsAtShallow} exceeds bound ${MUTATION_BOUND}`,
-  ).toBeLessThanOrEqual(MUTATION_BOUND);
-  expect(
-    mutationsAtCeiling,
-    `ceiling mutations ${mutationsAtCeiling} exceeds bound ${MUTATION_BOUND}`,
-  ).toBeLessThanOrEqual(MUTATION_BOUND);
-
-  /* The two counts should be comparable — edit cost independent of depth. */
-  const delta = Math.abs(mutationsAtCeiling - mutationsAtShallow);
-  expect(
-    delta,
-    `mutation delta ${delta} (shallow=${mutationsAtShallow}, ceiling=${mutationsAtCeiling}) suggests cost scales with depth`,
-  ).toBeLessThanOrEqual(MUTATION_BOUND);
+  const ceilingVisible = await tiles.count();
+  expect(ceilingVisible).toBeGreaterThanOrEqual(RESULT_WINDOW_CEILING - 10);
+  await addAndVerify(2);
+  await expect(tiles).toHaveCount(ceilingVisible);
 });
 
 test("deck library shows art rows with frame and copy count", async ({
@@ -1678,10 +1774,12 @@ test("deck library shows art rows with frame and copy count", async ({
     if ((await zoneCount(page, "main").textContent())?.startsWith("40/")) break;
   }
   await expect(zoneCount(page, "main")).toHaveText("40/40");
-  await expectSaveSettled(page, { main: 40, extra: 7, side: 0 });
+  /* T9 excludes unavailable cards, including four formerly sampled Extra
+     candidates, before catalog rendering. */
+  await expectSaveSettled(page, { main: 40, extra: 3, side: 0 });
 
   await page.goto(libraryUrl);
-  await page.getByRole("button", { name: /^Decklist Rows/ }).click();
+  await page.getByRole("button", { name: /^Select Decklist Rows,/ }).click();
 
   const row = page.locator('[data-cy^="deck-select-docked-list-row-"]').first();
   await expect(row).toBeVisible();

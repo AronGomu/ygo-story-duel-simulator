@@ -202,11 +202,11 @@ describe("deck editor context binding", () => {
     await vi.waitFor(
       () =>
         expect(query("deck-catalog-result-count")?.textContent).toBe(
-          "1 results",
+          "0 results",
         ),
       REAL_IMPORT,
     );
-    expect(query("catalog-tile-89631139")).not.toBeNull();
+    expect(query("catalog-tile-89631139")).toBeNull();
   });
 
   it("free-play route uses the free-play repository", async () => {

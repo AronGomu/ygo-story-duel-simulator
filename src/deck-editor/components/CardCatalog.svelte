@@ -1,15 +1,15 @@
 <script lang="ts">
   import { onDestroy, onMount } from "svelte";
+  import type { AdvancedDeckCatalogFilters } from "../../decks/catalog/deck-catalog.ts";
   import {
     catalogTypeOptions,
     EMPTY_CATALOG_FILTERS,
-    // filterDeckCatalog is the reference implementation; the UI uses the index path below.
     type DeckCatalogFilters,
-  } from "../../decks/catalog/deck-catalog.ts";
+  } from "../../decks/catalog/deck-catalog-types.ts";
   import {
     buildDeckCatalogIndex,
-    filterDeckCatalogIndex,
-  } from "../../decks/catalog/deck-catalog-index.ts";
+    filterQuickDeckCatalogIndex,
+  } from "../../decks/catalog/deck-catalog-index-base.ts";
   import type { DeckBuilderCardView } from "../../decks/catalog/ocg-card-mapper.ts";
   import type { PinnedDeckRuleset } from "../../decks/catalog/pinned-ruleset.ts";
   import { quantityLimit } from "../../decks/catalog/pinned-ruleset.ts";
@@ -17,19 +17,16 @@
     unlimitedCardOwnership,
     type CardOwnership,
   } from "../../decks/card-ownership.ts";
-  import {
-    availableCopies,
-    unavailableReason,
-  } from "../catalog-availability.ts";
+  import { availableCopies } from "../catalog-availability.ts";
   import {
     INITIAL_RESULT_WINDOW,
-    initialResultWindow,
     nextResultWindow,
     RESULT_WINDOW_CEILING,
   } from "../layout/result-window.ts";
   import { OverlayScrollbar } from "../../shell/index.ts";
   import CardTile from "./CardTile.svelte";
-  import CatalogTypeInput from "./CatalogTypeInput.svelte";
+  import type CatalogTypeInputComponent from "./CatalogTypeInput.svelte";
+  import type { AdvancedSearchHost } from "../advanced-search-loader.ts";
 
   export let cards: readonly DeckBuilderCardView[];
   export let ruleset: PinnedDeckRuleset;
@@ -45,10 +42,6 @@
     event: DragEvent,
   ) => void = () => undefined;
   export let ondragcancel: () => void = () => undefined;
-  export let onblocked: (
-    card: DeckBuilderCardView,
-    reason: string,
-  ) => void = () => undefined;
   /* `null` above the breakpoint, where a tile click only selects. */
   export let ontap: ((card: DeckBuilderCardView) => void) | null = null;
   export let ondoubleclick: ((card: DeckBuilderCardView) => void) | null = null;
@@ -61,6 +54,7 @@
     undefined;
   export let onnameinputmount: (element: HTMLInputElement) => void = () =>
     undefined;
+  export let onadvancedchange: (open: boolean) => void = () => undefined;
 
   /* Without an observer nothing ever appends, so the window can only be what
      the first render mounts. Every result would be 14,551 tiles at once, which
@@ -70,20 +64,59 @@
 
   let resultsScroller: HTMLElement | null = null;
   let nameInput: HTMLInputElement | null = null;
-  let filters: DeckCatalogFilters = { ...EMPTY_CATALOG_FILTERS };
+  let CatalogTypeInput: typeof CatalogTypeInputComponent | null = null;
+  let typeInputUnavailable = false;
+  let advancedFilters: AdvancedDeckCatalogFilters | null = null;
+  let filters: DeckCatalogFilters = EMPTY_CATALOG_FILTERS;
+  let advancedError = false;
+  let results: readonly DeckBuilderCardView[] = [];
   let visibleCount = INITIAL_RESULT_WINDOW;
   let sentinel: HTMLElement | null = null;
   let observer: IntersectionObserver | null = null;
   let observerSupported = typeof IntersectionObserver === "function";
 
+  const advancedHost: AdvancedSearchHost = {
+    disposed: false,
+    generation: 0,
+    session: null,
+    read: () => ({
+      cards,
+      filters: { ...filters, advanced: advancedFilters },
+      resultCount: results.length,
+    }),
+    onchange: (next) => {
+      filters = { name: next.name, types: next.types };
+      advancedFilters = next.advanced;
+      resetResultWindow();
+    },
+    reset: resetFilters,
+    onopenchange: (open) => onadvancedchange(open),
+  };
+  void import("./CatalogTypeInput.svelte").then(
+    ({ default: component }) => {
+      if (!advancedHost.disposed) CatalogTypeInput = component;
+    },
+    () => {
+      if (!advancedHost.disposed) typeInputUnavailable = true;
+    },
+  );
+
   $: typeOptions = catalogTypeOptions(cards);
   $: index = buildDeckCatalogIndex(cards);
-  $: results = filterDeckCatalogIndex(index, filters);
-  $: filterKey = `${filters.name}|${filters.types.map(({ id }) => id).join("|")}`;
   $: {
-    // depend on filterKey so a same-length filter change still resets
-    void filterKey;
-    visibleCount = initialResultWindow(results.length);
+    void copies;
+    void ownership;
+    void ruleset;
+    const query =
+      advancedFilters === null
+        ? null
+        : { ...filters, advanced: advancedFilters };
+    const session = advancedHost.session;
+    results =
+      query === null
+        ? filterQuickDeckCatalogIndex(index, filters, isAvailable)
+        : session!.filter(index, query, isAvailable);
+    if (query !== null) session!.setResultCount(results.length);
   }
   $: visible = observerSupported
     ? results.slice(0, visibleCount)
@@ -94,23 +127,6 @@
     observerSupported &&
     visibleCount >= RESULT_WINDOW_CEILING &&
     results.length > RESULT_WINDOW_CEILING;
-  /* Pre-compute spent codes for the visible slice. Tiles still re-render when
-     `copies` changes, but each tile now does one Set.has instead of two
-     function calls + arithmetic. */
-  $: spentCodes = new Set(
-    visible
-      .filter(
-        (card) =>
-          availableCopies(
-            card.code,
-            ownership,
-            quantityLimit(ruleset, card.code),
-            copies.get(card.code) ?? 0,
-          ) === 0,
-      )
-      .map((card) => card.code),
-  );
-
   /* `filled` gives the catalog the whole stage, and with it `overflow-y:
      visible` on `.results`: the region grows to its content and an ancestor
      scrolls instead. An observer rooted on a box that never clips watches a
@@ -144,35 +160,45 @@
     if (nameInput !== null) onnameinputmount(nameInput);
   });
 
-  onDestroy(() => observer?.disconnect());
+  onDestroy(() => {
+    Reflect.set(advancedHost, "disposed", true);
+    advancedHost.session?.destroy();
+    observer?.disconnect();
+  });
 
-  function addable(card: DeckBuilderCardView): boolean {
-    return (
-      availableCopies(
-        card.code,
-        ownership,
-        quantityLimit(ruleset, card.code),
-        copies.get(card.code) ?? 0,
-      ) > 0
-    );
-  }
-
-  function blockedReason(card: DeckBuilderCardView): string {
-    return unavailableReason(
-      ownership.ownedCount(card.code),
-      quantityLimit(ruleset, card.code),
-    );
-  }
-
-  function capReasonId(code: number): string {
-    return `deck-catalog-cap-reason-${code}`;
-  }
-
-  function setFilter<Key extends keyof DeckCatalogFilters>(
+  function setFilter<Key extends "name" | "types">(
     key: Key,
     value: DeckCatalogFilters[Key],
   ): void {
     filters = { ...filters, [key]: value };
+    resetResultWindow();
+  }
+
+  function resetResultWindow(): void {
+    visibleCount = INITIAL_RESULT_WINDOW;
+  }
+
+  function isAvailable(card: DeckBuilderCardView): boolean {
+    const limit = quantityLimit(ruleset, card.code);
+    return (
+      (advancedFilters?.restriction == null ||
+        limit === advancedFilters.restriction) &&
+      availableCopies(card.code, ownership, limit, copies.get(card.code) ?? 0) >
+        0
+    );
+  }
+
+  function openAdvancedSearch(): void {
+    void import("../advanced-search-loader.ts")
+      .then(({ openAdvancedSearch }) => openAdvancedSearch(advancedHost))
+      .catch(() => (advancedError = true));
+  }
+
+  function resetFilters(): void {
+    filters = EMPTY_CATALOG_FILTERS;
+    if (advancedHost.session !== null)
+      advancedFilters = advancedHost.session.emptyFilters;
+    resetResultWindow();
   }
 </script>
 
@@ -185,6 +211,15 @@
   <header data-cy="deck-catalog-header">
     <span class="panel-title" data-cy="deck-catalog-result-count"
       >{results.length} results</span
+    >
+    <button
+      type="button"
+      disabled={advancedError}
+      data-cy="deck-catalog-advanced-search"
+      onclick={openAdvancedSearch}
+      >{advancedError
+        ? "Advanced search unavailable"
+        : "Advanced Search"}</button
     >
   </header>
 
@@ -201,11 +236,17 @@
   </div>
 
   <div class="filters" data-cy="deck-catalog-filters">
-    <CatalogTypeInput
-      options={typeOptions}
-      value={filters.types}
-      onchange={(types) => setFilter("types", types)}
-    />
+    {#if CatalogTypeInput !== null}
+      <CatalogTypeInput
+        options={typeOptions}
+        value={filters.types}
+        onchange={(types) => setFilter("types", types)}
+      />
+    {:else if typeInputUnavailable}
+      <p role="status" data-cy="deck-catalog-types-unavailable">
+        Types unavailable.
+      </p>
+    {/if}
   </div>
 
   {#if filters.name || filters.types.length > 0}
@@ -215,8 +256,7 @@
         type="button"
         class="secondary small"
         data-cy="deck-catalog-clear-all"
-        onclick={() => (filters = { ...EMPTY_CATALOG_FILTERS })}
-        >Clear all</button
+        onclick={resetFilters}>Clear all</button
       >
     </div>
   {/if}
@@ -230,8 +270,7 @@
       <button
         type="button"
         data-cy="deck-catalog-clear-filters"
-        onclick={() => (filters = { ...EMPTY_CATALOG_FILTERS })}
-        >Clear filters</button
+        onclick={resetFilters}>Clear filters</button
       >
     </div>
   {:else}
@@ -243,59 +282,37 @@
     {/if}
     {#if ceilingTruncated}
       <p class="ceiling-notice" data-cy="deck-catalog-ceiling-notice">
-        Showing {RESULT_WINDOW_CEILING} of {results.length} cards. Narrow the filters
-        to reach the rest.
+        {RESULT_WINDOW_CEILING}/{results.length} shown. Filter more.
       </p>
     {/if}
     <div class="results-region" data-cy="deck-catalog-results-region">
       <div
         class="results"
+        role="region"
         aria-label="Card catalog results"
         data-cy="deck-catalog-results"
         onmouseleave={() => onhoverend()}
         bind:this={resultsScroller}
       >
         {#each visible as card (card.code)}
-          {@const spent = spentCodes.has(card.code)}
           <CardTile
             {card}
             code={card.code}
             limit={quantityLimit(ruleset, card.code)}
             currentCopies={copies.get(card.code) ?? 0}
             selected={selectedCode === card.code}
-            draggable={!spent}
-            describedby={spent ? capReasonId(card.code) : null}
             dataCyPrefix="catalog"
             dataCyId={card.code}
             onselect={() => onselect(card)}
-            ontap={ontap === null
-              ? null
-              : () =>
-                  addable(card)
-                    ? ontap(card)
-                    : onblocked(card, blockedReason(card))}
+            ontap={ontap === null ? null : () => ontap(card)}
             ondoubleclick={ondoubleclick === null
               ? null
-              : () =>
-                  addable(card)
-                    ? ondoubleclick(card)
-                    : onblocked(card, blockedReason(card))}
+              : () => ondoubleclick(card)}
             ondragcard={(event) => ondragcard(card, event)}
             {ondragcancel}
             onhover={() => onhovercard(card)}
-            maxed={spent}
             oncontext={() => oncontextadd(card)}
           />
-          <!-- Out of flow, so it takes no cell in the results grid, and read to
-               a screen reader through the tile's `aria-describedby` rather than
-               printed under every spent card. -->
-          {#if spent}
-            <span
-              class="visually-hidden"
-              id={capReasonId(card.code)}
-              data-cy={capReasonId(card.code)}>{blockedReason(card)}</span
-            >
-          {/if}
         {/each}
         {#if observerSupported && visibleCount < results.length && visibleCount < RESULT_WINDOW_CEILING}
           <div
@@ -398,7 +415,6 @@
     grid-auto-rows: max-content;
     gap: 0.55rem;
     height: 100%;
-    max-height: none;
     overflow-y: auto;
     padding: 0.2rem 0.35rem 0.5rem 0.1rem;
     scrollbar-width: none;
@@ -414,7 +430,6 @@
 
   .filled .results {
     grid-template-columns: repeat(auto-fill, minmax(5.5rem, 1fr));
-    max-height: none;
     overflow-y: visible;
   }
 

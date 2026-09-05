@@ -36,7 +36,7 @@
     "lint": "eslint .",
     "typecheck": "tsc --noEmit && svelte-check --tsconfig ./tsconfig.json",
     "test:legacy": "node --test tests/*.test.ts",
-    "test:unit": "vitest run tests/unit",
+    "test:unit": "vitest run tests/unit --exclude tests/unit/decks/deck-catalog-performance.test.ts && vitest run tests/unit/decks/deck-catalog-performance.test.ts",
     "test:component": "vitest run tests/component",
     "test:integration": "vitest run tests/integration",
     "test:e2e": "playwright test",

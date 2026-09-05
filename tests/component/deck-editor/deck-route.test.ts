@@ -57,7 +57,7 @@ describe("deck editor route binding", () => {
     await waitFor(() => expect(query("deck-library")).not.toBeNull());
     expect(query("deck-name-input")).toBeNull();
     expect(
-      await screen.findByRole("button", { name: /^Library Deck/ }),
+      await screen.findByRole("button", { name: /^Select Library Deck,/ }),
     ).toBeTruthy();
   });
 

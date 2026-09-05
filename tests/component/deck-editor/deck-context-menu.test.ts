@@ -169,12 +169,12 @@ describe("context-menu deck editing", () => {
     const { container } = render(DeckEditor, props(onmutate, stateFixture(60)));
     const catalogTile = container.querySelector(
       `[data-cy="deck-catalog-results"] [data-cy="catalog-tile-${MAIN_LIMIT_3_CODES[0]!}"]`,
-    )!;
-    await fireEvent.contextMenu(catalogTile);
+    );
+    expect(catalogTile).toBeNull();
     expect(onmutate).not.toHaveBeenCalled();
   });
 
-  it("right-click adds nothing when side is also full", async () => {
+  it("right-click adds nothing when side is also full", () => {
     const onmutate = vi.fn<(command: DeckCommand) => void>();
     const { container } = render(
       DeckEditor,
@@ -182,8 +182,8 @@ describe("context-menu deck editing", () => {
     );
     const catalogTile = container.querySelector(
       `[data-cy="deck-catalog-results"] [data-cy="catalog-tile-${MAIN_LIMIT_3_CODES[0]!}"]`,
-    )!;
-    await fireEvent.contextMenu(catalogTile);
+    );
+    expect(catalogTile).toBeNull();
     expect(onmutate).not.toHaveBeenCalled();
   });
 
