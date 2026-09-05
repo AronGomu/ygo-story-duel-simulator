@@ -304,6 +304,7 @@
     z-index: 3;
     top: 0;
     left: 0;
+    min-height: 0;
     border: 0;
     color: inherit;
     text-align: left;
@@ -312,6 +313,10 @@
 
   button.name:hover {
     color: var(--selected);
+  }
+
+  button.name:hover:not(:disabled) {
+    background: color-mix(in srgb, var(--shadow) 65%, transparent);
   }
 
   .corner {
