@@ -18,12 +18,19 @@
   let activeImageLibrary: CardPreviewImageSource | null = null;
   let activeImageCode: number | undefined;
   let imageLease: CardImageLease | null = null;
-  let leasedImageUrl: string | undefined;
+  let leasedImageUrl: string | null = null;
+  let failedImageUrl: string | null = null;
   let textScroller: HTMLElement | null = null;
 
   $: synchronizeImageLease(imageLibrary, preview?.code);
-  $: imageUrl =
-    leasedImageUrl ?? staticImageUrl ?? (placeholderUrl || undefined);
+  $: resolvedImageUrl =
+    leasedImageUrl !== null && leasedImageUrl !== placeholderUrl
+      ? leasedImageUrl
+      : staticImageUrl !== placeholderUrl
+        ? staticImageUrl
+        : null;
+  $: if (failedImageUrl !== null && failedImageUrl !== resolvedImageUrl)
+    failedImageUrl = null;
 
   onDestroy(() => imageLease?.release());
 
@@ -42,14 +49,13 @@
       library !== null && code !== undefined && code > 0
         ? library.lease(code)
         : null;
-    leasedImageUrl = imageLease?.url;
+    leasedImageUrl = imageLease?.url ?? null;
   }
 
-  function useFallbackImage(event: Event): void {
-    const image = event.currentTarget as HTMLImageElement;
-    image.onerror = null;
-    if (placeholderUrl) image.src = placeholderUrl;
-    else image.remove();
+  function markImageFailed(event: Event): void {
+    const failedUrl = (event.currentTarget as HTMLImageElement).dataset
+      .previewImageUrl;
+    if (failedUrl === resolvedImageUrl) failedImageUrl = failedUrl;
   }
 
   function scrollTextByKeyboard(event: KeyboardEvent): void {
@@ -74,13 +80,46 @@
     <p data-cy="card-preview-empty">Hover a card to see its details.</p>
   {:else}
     <div class="card-preview-panel__art" data-cy="card-preview-art">
-      {#if imageUrl}<img
-          src={imageUrl}
-          alt={preview.name}
-          decoding="async"
-          onerror={useFallbackImage}
-          data-cy="card-preview-image"
-        />{/if}
+      {#if resolvedImageUrl !== null && resolvedImageUrl !== failedImageUrl}
+        {#key resolvedImageUrl}
+          <img
+            src={resolvedImageUrl}
+            alt={preview.name}
+            decoding="async"
+            onerror={markImageFailed}
+            data-preview-image-url={resolvedImageUrl}
+            data-cy="card-preview-image"
+          />
+        {/key}
+      {:else}
+        <div
+          class="card-preview-image-placeholder"
+          role="img"
+          aria-label={`Card image unavailable for ${preview.name}`}
+          data-cy="card-preview-image-placeholder"
+        >
+          {#if placeholderUrl}
+            <img
+              class="card-preview-placeholder-image"
+              src={placeholderUrl}
+              alt=""
+              aria-hidden="true"
+              data-cy="card-preview-placeholder-image"
+            />
+          {:else}
+            <span
+              class="card-preview-placeholder-mark"
+              aria-hidden="true"
+              data-cy="card-preview-placeholder-mark">✦</span
+            >
+            <span
+              class="card-preview-placeholder-label"
+              aria-hidden="true"
+              data-cy="card-preview-placeholder-label">Image unavailable</span
+            >
+          {/if}
+        </div>
+      {/if}
     </div>
     <div class="card-preview-panel__body" data-cy="card-preview-body">
       <h2 data-cy="card-preview-name">{preview.name}</h2>
@@ -116,3 +155,71 @@
     </div>
   {/if}
 </aside>
+
+<style>
+  .card-preview-image-placeholder {
+    position: relative;
+    display: grid;
+    width: 100%;
+    max-height: min(22rem, calc(var(--stage-h, 100svh) * 0.48));
+    aspect-ratio: 59 / 86;
+    overflow: hidden;
+    place-items: center;
+    border: 1px solid color-mix(in srgb, var(--accent) 48%, var(--border));
+    border-radius: 0.5rem;
+    background:
+      linear-gradient(
+        145deg,
+        color-mix(in srgb, var(--accent) 18%, transparent),
+        transparent 48%
+      ),
+      var(--surface-panel);
+    color: var(--muted);
+    isolation: isolate;
+  }
+
+  .card-preview-image-placeholder::before,
+  .card-preview-image-placeholder::after {
+    position: absolute;
+    z-index: 0;
+    width: 72%;
+    aspect-ratio: 1;
+    transform: rotate(45deg);
+    border: 1px solid color-mix(in srgb, var(--accent) 24%, transparent);
+    content: "";
+  }
+
+  .card-preview-image-placeholder::after {
+    width: 48%;
+  }
+
+  .card-preview-placeholder-image {
+    position: relative;
+    z-index: 1;
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
+
+  .card-preview-placeholder-mark,
+  .card-preview-placeholder-label {
+    z-index: 1;
+    grid-area: 1 / 1;
+  }
+
+  .card-preview-placeholder-mark {
+    color: var(--accent);
+    font-size: clamp(2rem, 8vw, 4rem);
+    transform: translateY(-0.75rem);
+  }
+
+  .card-preview-placeholder-label {
+    align-self: end;
+    padding: 0 0.75rem 1rem;
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+</style>

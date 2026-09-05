@@ -17,11 +17,15 @@ installPrototypeActiveCatalog();
 
 afterEach(() => cleanup());
 
-function renderEditor(mainCount = 0) {
+function renderEditor(
+  mainCount = 0,
+  cards = PROTOTYPE_CATALOG,
+  catalog = prototypeCatalogMap,
+) {
   return render(DeckEditor, {
     state: stateFixture(mainCount),
-    cards: PROTOTYPE_CATALOG,
-    catalog: prototypeCatalogMap,
+    cards,
+    catalog,
     ruleset: PROTOTYPE_RULESET,
     returnLabel: "Deck Selection",
     onreturn: vi.fn(),
@@ -78,6 +82,46 @@ describe("editor preview pane", () => {
     expect(
       document.querySelector('[data-cy="card-preview-name"]')?.textContent,
     ).toContain(cardA.name);
+  });
+
+  it("recovers valid preview art after a catalog image fails", async () => {
+    const cards = PROTOTYPE_CATALOG.map((card, index) => ({
+      ...card,
+      imageUrl:
+        index === 0
+          ? "/cards/missing.jpg"
+          : index === 1
+            ? "/cards/valid.jpg"
+            : card.imageUrl,
+    }));
+    renderEditor(0, cards, new Map(cards.map((card) => [card.code, card])));
+    const results = document.querySelector('[data-cy="deck-catalog-results"]')!;
+    const missingTile = results.querySelector(
+      `[data-cy="catalog-tile-${cards[0]!.code}"]`,
+    )!;
+    const validTile = results.querySelector(
+      `[data-cy="catalog-tile-${cards[1]!.code}"]`,
+    )!;
+
+    fireEvent.mouseEnter(missingTile);
+    await tick();
+    const failedImage = document.querySelector<HTMLImageElement>(
+      '[data-cy="card-preview-image"]',
+    )!;
+    expect(failedImage.getAttribute("src")).toBe("/cards/missing.jpg");
+    await fireEvent.error(failedImage);
+    expect(
+      document.querySelector('[data-cy="card-preview-image-placeholder"]'),
+    ).not.toBeNull();
+
+    fireEvent.mouseEnter(validTile);
+    await tick();
+
+    expect(
+      document
+        .querySelector('[data-cy="card-preview-image"]')
+        ?.getAttribute("src"),
+    ).toBe("/cards/valid.jpg");
   });
 
   it("panes read preview, deck, catalog left to right", () => {
