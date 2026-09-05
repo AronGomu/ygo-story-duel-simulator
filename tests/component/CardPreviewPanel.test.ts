@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 
-import { cleanup, render, screen } from "@testing-library/svelte";
+import { cleanup, fireEvent, render, screen } from "@testing-library/svelte";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import CardPreviewPanel from "../../src/shell/card-preview/CardPreviewPanel.svelte";
 import type { CardPreviewView } from "../../src/battle/app/presentation/card-preview.ts";
@@ -145,9 +145,14 @@ describe("CardPreviewPanel", () => {
     });
 
     expect(lease).not.toHaveBeenCalled();
+    expect(document.querySelector('[data-cy="card-preview-image"]')).toBeNull();
+    const placeholder = screen.getByRole("img", {
+      name: "Card image unavailable for Face-down card",
+    });
+    expect(placeholder.dataset.cy).toBe("card-preview-image-placeholder");
     expect(
-      document
-        .querySelector('[data-cy="card-preview-image"]')
+      placeholder
+        .querySelector('[data-cy="card-preview-placeholder-image"]')
         ?.getAttribute("src"),
     ).toBe("/placeholder.webp");
   });
@@ -179,6 +184,96 @@ describe("CardPreviewPanel", () => {
         .querySelector('[data-cy="card-preview-image"]')
         ?.getAttribute("src"),
     ).toBe(`blob:card-${FISHERMAN}`);
+  });
+
+  it("renders a leased placeholder through the common semantic branch", () => {
+    const release = vi.fn();
+    render(CardPreviewPanel, {
+      preview: preview(),
+      imageLibrary: {
+        lease: () => ({ url: "/placeholder.webp", release }),
+      },
+      placeholderUrl: "/placeholder.webp",
+    });
+
+    expect(document.querySelector('[data-cy="card-preview-image"]')).toBeNull();
+    const placeholder = screen.getByRole("img", {
+      name: "Card image unavailable for The Legendary Fisherman",
+    });
+    expect(placeholder.dataset.cy).toBe("card-preview-image-placeholder");
+    expect(
+      placeholder
+        .querySelector('[data-cy="card-preview-placeholder-image"]')
+        ?.getAttribute("src"),
+    ).toBe("/placeholder.webp");
+  });
+
+  it("uses one accessible placeholder for absent and failed art then recovers", async () => {
+    const rendered = render(CardPreviewPanel, {
+      preview: preview(),
+      staticImageUrl: null,
+    });
+
+    expect(
+      screen.getByRole("img", {
+        name: "Card image unavailable for The Legendary Fisherman",
+      }).dataset.cy,
+    ).toBe("card-preview-image-placeholder");
+
+    await rendered.rerender({
+      preview: preview(),
+      staticImageUrl: "/cards/fisherman.jpg",
+    });
+    const failedImage = document.querySelector<HTMLImageElement>(
+      '[data-cy="card-preview-image"]',
+    )!;
+    await fireEvent.error(failedImage);
+
+    expect(document.querySelector('[data-cy="card-preview-image"]')).toBeNull();
+    expect(
+      screen.getByRole("img", {
+        name: "Card image unavailable for The Legendary Fisherman",
+      }).dataset.cy,
+    ).toBe("card-preview-image-placeholder");
+
+    await rendered.rerender({
+      preview: preview(BLUE_EYES, { name: "Blue-Eyes White Dragon" }),
+      staticImageUrl: "/cards/blue-eyes.jpg",
+    });
+
+    expect(
+      document
+        .querySelector('[data-cy="card-preview-image"]')
+        ?.getAttribute("src"),
+    ).toBe("/cards/blue-eyes.jpg");
+    expect(
+      document.querySelector('[data-cy="card-preview-image-placeholder"]'),
+    ).toBeNull();
+  });
+
+  it("ignores an error from the image replaced by a newer source", async () => {
+    const rendered = render(CardPreviewPanel, {
+      preview: preview(),
+      staticImageUrl: "/cards/fisherman.jpg",
+    });
+    const staleImage = document.querySelector<HTMLImageElement>(
+      '[data-cy="card-preview-image"]',
+    )!;
+
+    await rendered.rerender({
+      preview: preview(BLUE_EYES, { name: "Blue-Eyes White Dragon" }),
+      staticImageUrl: "/cards/blue-eyes.jpg",
+    });
+    await fireEvent.error(staleImage);
+
+    expect(
+      document
+        .querySelector('[data-cy="card-preview-image"]')
+        ?.getAttribute("src"),
+    ).toBe("/cards/blue-eyes.jpg");
+    expect(
+      document.querySelector('[data-cy="card-preview-image-placeholder"]'),
+    ).toBeNull();
   });
 
   it("renders the stats row between name and effect text", () => {

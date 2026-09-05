@@ -732,7 +732,6 @@
             preview={previewView}
             imageLibrary={null}
             staticImageUrl={previewImageUrl}
-            placeholderUrl=""
           />
           <button
             type="button"
