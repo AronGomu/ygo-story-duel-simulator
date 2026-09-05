@@ -108,8 +108,13 @@ describe("catalog performance budgets", () => {
     let run = 0;
     const best = bestOf(20, () => {
       const index = buildDeckCatalogIndex(inputs[run++]!);
+      const prepared = prepareAdvancedDeckCatalogIndex(index);
       indexes.push(index);
-      if (index.lowerNames.length !== 15_000) throw new Error("empty workload");
+      if (
+        index.lowerNames.length !== 15_000 ||
+        prepared.order.length !== 15_000
+      )
+        throw new Error("empty workload");
     });
     expect(new Set(indexes).size).toBe(20);
     expect(best).toBeLessThan(2.5);

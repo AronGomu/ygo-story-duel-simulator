@@ -21,10 +21,16 @@ export function compareDeckCatalogCards(
 export function buildDeckCatalogIndex(
   source: readonly DeckBuilderCardView[],
 ): DeckCatalogIndex {
-  const cards = [...source];
+  const cards = new Array<DeckBuilderCardView>(source.length);
+  const lowerNames = new Array<string>(source.length);
+  for (let offset = 0; offset < source.length; offset++) {
+    const card = source[offset]!;
+    cards[offset] = card;
+    lowerNames[offset] = card.name.toLowerCase();
+  }
   return Object.freeze({
     cards: Object.freeze(cards),
-    lowerNames: Object.freeze(cards.map((card) => card.name.toLowerCase())),
+    lowerNames: Object.freeze(lowerNames),
   });
 }
 

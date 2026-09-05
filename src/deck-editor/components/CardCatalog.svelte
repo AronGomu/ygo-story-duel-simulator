@@ -1,9 +1,6 @@
 <script lang="ts">
   import { onDestroy, onMount } from "svelte";
-  import type {
-    AdvancedDeckCatalogFilters,
-    DeckCatalogQuery,
-  } from "../../decks/catalog/deck-catalog.ts";
+  import type { AdvancedDeckCatalogFilters } from "../../decks/catalog/deck-catalog.ts";
   import {
     catalogTypeOptions,
     EMPTY_CATALOG_FILTERS,
@@ -12,7 +9,6 @@
   import {
     buildDeckCatalogIndex,
     filterQuickDeckCatalogIndex,
-    type DeckCatalogIndex,
   } from "../../decks/catalog/deck-catalog-index-base.ts";
   import type { DeckBuilderCardView } from "../../decks/catalog/ocg-card-mapper.ts";
   import type { PinnedDeckRuleset } from "../../decks/catalog/pinned-ruleset.ts";
@@ -31,6 +27,7 @@
   import { OverlayScrollbar } from "../../shell/index.ts";
   import CardTile from "./CardTile.svelte";
   import CatalogTypeInput from "./CatalogTypeInput.svelte";
+  import type { AdvancedSearchHost } from "../advanced-search-loader.ts";
 
   export let cards: readonly DeckBuilderCardView[];
   export let ruleset: PinnedDeckRuleset;
@@ -67,24 +64,6 @@
 
   let resultsScroller: HTMLElement | null = null;
   let nameInput: HTMLInputElement | null = null;
-  interface AdvancedSession {
-    readonly emptyFilters: AdvancedDeckCatalogFilters;
-    readonly filter: (
-      index: DeckCatalogIndex,
-      query: DeckCatalogQuery,
-      isAvailable: (card: DeckBuilderCardView) => boolean,
-    ) => readonly DeckBuilderCardView[];
-    readonly open: (input: {
-      filters: DeckCatalogQuery;
-      resultCount: number;
-      onchange: (filters: DeckCatalogQuery) => void;
-      onreset: () => void;
-    }) => void;
-    readonly setResultCount: (resultCount: number) => void;
-    readonly destroy: () => void;
-  }
-
-  let advanced: AdvancedSession | null = null;
   let advancedFilters: AdvancedDeckCatalogFilters | null = null;
   let filters: DeckCatalogFilters = EMPTY_CATALOG_FILTERS;
   let advancedError = false;
@@ -93,6 +72,21 @@
   let sentinel: HTMLElement | null = null;
   let observer: IntersectionObserver | null = null;
   let observerSupported = typeof IntersectionObserver === "function";
+  const advancedHost: AdvancedSearchHost = {
+    disposed: false,
+    generation: 0,
+    session: null,
+    read: () => ({
+      cards,
+      filters: { ...filters, advanced: advancedFilters },
+      resultCount: results.length,
+    }),
+    onchange: (next) => {
+      filters = { name: next.name, types: next.types };
+      advancedFilters = next.advanced;
+    },
+    reset: resetFilters,
+  };
 
   $: typeOptions = catalogTypeOptions(cards);
   $: index = buildDeckCatalogIndex(cards);
@@ -104,11 +98,12 @@
       advancedFilters === null
         ? null
         : { ...filters, advanced: advancedFilters };
+    const session = advancedHost.session;
     results =
       query === null
         ? filterQuickDeckCatalogIndex(index, filters, isAvailable)
-        : advanced!.filter(index, query, isAvailable);
-    if (query !== null) advanced!.setResultCount(results.length);
+        : session!.filter(index, query, isAvailable);
+    if (query !== null) session!.setResultCount(results.length);
   }
   $: visibleCount = initialResultWindow(results.length);
   $: visible = observerSupported
@@ -154,8 +149,9 @@
   });
 
   onDestroy(() => {
+    Reflect.set(advancedHost, "disposed", true);
+    advancedHost.session?.destroy();
     observer?.disconnect();
-    advanced?.destroy();
   });
 
   function setFilter<Key extends "name" | "types">(
@@ -175,30 +171,16 @@
     );
   }
 
-  async function openAdvancedSearch(): Promise<void> {
-    try {
-      advanced ??= (
-        await import("../advanced-search-loader.ts")
-      ).loadAdvancedSearch(cards, index);
-      advancedFilters ??= advanced.emptyFilters;
-      advanced.open({
-        filters: { ...filters, advanced: advancedFilters },
-        resultCount: results.length,
-        onchange: (next) => {
-          filters = { name: next.name, types: next.types };
-          advancedFilters = next.advanced;
-        },
-        onreset: resetFilters,
-      });
-      advancedError = false;
-    } catch {
-      advancedError = true;
-    }
+  function openAdvancedSearch(): void {
+    void import("../advanced-search-loader.ts")
+      .then(({ openAdvancedSearch }) => openAdvancedSearch(advancedHost))
+      .catch(() => (advancedError = true));
   }
 
   function resetFilters(): void {
     filters = EMPTY_CATALOG_FILTERS;
-    if (advanced !== null) advancedFilters = advanced.emptyFilters;
+    if (advancedHost.session !== null)
+      advancedFilters = advancedHost.session.emptyFilters;
   }
 </script>
 
@@ -214,9 +196,12 @@
     >
     <button
       type="button"
+      disabled={advancedError}
       data-cy="deck-catalog-advanced-search"
-      onclick={() => void openAdvancedSearch()}
-      >Advanced Search{advancedError ? " failed. Retry" : ""}</button
+      onclick={openAdvancedSearch}
+      >{advancedError
+        ? "Advanced search unavailable"
+        : "Advanced Search"}</button
     >
   </header>
 
@@ -404,7 +389,6 @@
     grid-auto-rows: max-content;
     gap: 0.55rem;
     height: 100%;
-    max-height: none;
     overflow-y: auto;
     padding: 0.2rem 0.35rem 0.5rem 0.1rem;
     scrollbar-width: none;
@@ -420,7 +404,6 @@
 
   .filled .results {
     grid-template-columns: repeat(auto-fill, minmax(5.5rem, 1fr));
-    max-height: none;
     overflow-y: visible;
   }
 

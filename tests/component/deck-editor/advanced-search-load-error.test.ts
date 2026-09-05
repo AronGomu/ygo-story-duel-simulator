@@ -8,7 +8,7 @@ import { PROTOTYPE_CATALOG } from "../../../src/deck-editor/fixtures/catalog.ts"
 import { PROTOTYPE_RULESET } from "../../../src/decks/catalog/pinned-ruleset.ts";
 
 vi.mock("../../../src/deck-editor/advanced-search-loader.ts", () => ({
-  loadAdvancedSearch: () => {
+  openAdvancedSearch: () => {
     throw new Error("load failed");
   },
 }));
@@ -16,7 +16,7 @@ vi.mock("../../../src/deck-editor/advanced-search-loader.ts", () => ({
 afterEach(() => cleanup());
 
 describe("advanced search loading", () => {
-  it("shows a recoverable error when the lazy module rejects", async () => {
+  it("reports cached lazy-module failure without offering a false retry", async () => {
     render(CardCatalog, {
       cards: PROTOTYPE_CATALOG,
       ruleset: PROTOTYPE_RULESET,
@@ -24,13 +24,14 @@ describe("advanced search loading", () => {
     const user = userEvent.setup();
     await user.click(screen.getByRole("button", { name: "Advanced Search" }));
 
-    const retry = await screen.findByRole("button", {
-      name: "Advanced Search failed. Retry",
+    const unavailable = await screen.findByRole("button", {
+      name: "Advanced search unavailable",
     });
-    await user.click(retry);
+    expect(unavailable.hasAttribute("disabled")).toBe(true);
+    await user.click(unavailable);
     expect(
       screen.getAllByRole("button", {
-        name: "Advanced Search failed. Retry",
+        name: "Advanced search unavailable",
       }),
     ).toHaveLength(1);
   });

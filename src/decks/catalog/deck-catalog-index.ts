@@ -1,5 +1,6 @@
 import type { DeckBuilderCardView } from "./ocg-card-mapper.ts";
 import {
+  EMPTY_ADVANCED_DECK_CATALOG_FILTERS,
   compileAdvancedDeckCatalogMatcher,
   prepareAdvancedDeckCatalogIndex,
 } from "./deck-catalog-advanced.ts";
@@ -7,7 +8,10 @@ import {
   cardMatchesCatalogType,
   type DeckCatalogQuery,
 } from "./deck-catalog.ts";
-import type { DeckCatalogIndex } from "./deck-catalog-index-base.ts";
+import {
+  compareDeckCatalogCards,
+  type DeckCatalogIndex,
+} from "./deck-catalog-index-base.ts";
 
 export {
   buildDeckCatalogIndex,
@@ -15,48 +19,39 @@ export {
   type DeckCatalogIndex,
 } from "./deck-catalog-index-base.ts";
 
-function indexedNameMatches(
-  value: string,
-  needle: string,
-  mode: DeckCatalogQuery["advanced"]["nameMatch"],
-): boolean {
-  if (needle.length === 0) return true;
-  switch (mode) {
-    case "contains":
-      return value.includes(needle);
-    case "exact":
-      return value === needle;
-    case "starts-with":
-      return value.startsWith(needle);
-    case "exclude":
-      return !value.includes(needle);
-  }
-}
-
 export function filterDeckCatalogIndex(
   index: DeckCatalogIndex,
   query: DeckCatalogQuery,
   isAvailable: (card: DeckBuilderCardView) => boolean,
 ): readonly DeckBuilderCardView[] {
   const needle = query.name.trim().toLowerCase();
-  const matchesAdvanced = compileAdvancedDeckCatalogMatcher(query.advanced);
+  const nameMode = query.advanced.nameMatch;
+  const matchesAdvanced =
+    query.advanced === EMPTY_ADVANCED_DECK_CATALOG_FILTERS
+      ? null
+      : compileAdvancedDeckCatalogMatcher(query.advanced);
   const advanced = prepareAdvancedDeckCatalogIndex(index);
   const out: DeckBuilderCardView[] = [];
   cardLoop: for (const offset of advanced.order) {
     const card = index.cards[offset]!;
     if (!isAvailable(card)) continue;
-    if (
-      !indexedNameMatches(
-        index.lowerNames[offset]!,
-        needle,
-        query.advanced.nameMatch,
+    if (needle) {
+      const name = index.lowerNames[offset]!;
+      if (
+        nameMode === "contains"
+          ? !name.includes(needle)
+          : nameMode === "exact"
+            ? name !== needle
+            : nameMode === "starts-with"
+              ? !name.startsWith(needle)
+              : name.includes(needle)
       )
-    )
-      continue;
+        continue;
+    }
     for (const tag of query.types)
       if (!cardMatchesCatalogType(card, tag)) continue cardLoop;
-    if (!matchesAdvanced(card, advanced.cards[offset]!)) continue;
+    if (matchesAdvanced !== null && !matchesAdvanced(card)) continue;
     out.push(card);
   }
-  return Object.freeze(out);
+  return Object.freeze(out.sort(compareDeckCatalogCards));
 }

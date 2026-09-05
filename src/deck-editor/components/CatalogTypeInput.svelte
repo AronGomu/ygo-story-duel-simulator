@@ -10,55 +10,43 @@
   let query = "";
   let open = false;
   let activeIndex = -1;
+  let suggestions: readonly CatalogTypeTag[];
+  let listOpen: boolean;
 
-  $: selectedIds = new Set(value.map(({ id }) => id));
-  $: normalizedQuery = query.trim().toLocaleLowerCase();
-  $: suggestions = options.filter(
-    (option) =>
-      !selectedIds.has(option.id) &&
-      (normalizedQuery.length === 0 ||
-        option.label.toLocaleLowerCase().includes(normalizedQuery)),
-  );
-  $: listOpen = open && suggestions.length > 0;
-  $: activeOption = listOpen ? (suggestions[activeIndex] ?? null) : null;
-
-  function categoryLabel(category: CatalogTypeTag["category"]): string {
-    return category[0]!.toUpperCase() + category.slice(1);
+  $: {
+    const normalized = query.trim().toLocaleLowerCase();
+    suggestions = options.filter(
+      (option) =>
+        !value.some((tag) => tag.id === option.id) &&
+        (!normalized || option.label.toLocaleLowerCase().includes(normalized)),
+    );
+    listOpen = open && suggestions.length > 0;
   }
 
   function cySuffix(tag: CatalogTypeTag): string {
     return tag.id.toLocaleLowerCase().replace(/[^a-z0-9]+/g, "-");
   }
 
-  function emit(next: readonly CatalogTypeTag[]): void {
-    onchange(Object.freeze([...next]));
-  }
-
   function commit(option: CatalogTypeTag): void {
-    if (selectedIds.has(option.id)) return;
-    emit([...value, option]);
+    if (value.some((tag) => tag.id === option.id)) return;
+    onchange(Object.freeze([...value, option]));
     query = "";
     open = false;
     activeIndex = -1;
   }
 
   function remove(id: CatalogTypeTag["id"]): void {
-    emit(value.filter((tag) => tag.id !== id));
+    onchange(Object.freeze(value.filter((tag) => tag.id !== id)));
   }
 
   function scrollActiveOptionIntoView(): void {
     void tick().then(() => {
-      if (!listOpen || activeOption === null) return;
+      const active = listOpen ? suggestions[activeIndex] : undefined;
+      if (active === undefined) return;
       document
-        .getElementById(`deck-catalog-type-option-${cySuffix(activeOption)}`)
+        .getElementById(`deck-catalog-type-option-${cySuffix(active)}`)
         ?.scrollIntoView?.({ block: "nearest" });
     });
-  }
-
-  function handleInput(event: Event): void {
-    query = (event.currentTarget as HTMLInputElement).value;
-    open = true;
-    activeIndex = 0;
   }
 
   function handleKeydown(event: KeyboardEvent): void {
@@ -83,9 +71,10 @@
       return;
     }
     if (event.key === "Enter") {
-      if (activeOption === null) return;
+      const active = listOpen ? suggestions[activeIndex] : undefined;
+      if (active === undefined) return;
       event.preventDefault();
-      commit(activeOption);
+      commit(active);
       return;
     }
     if (event.key === "Escape") {
@@ -100,19 +89,15 @@
 </script>
 
 <div class="type-input" data-cy="deck-catalog-types-field">
-  {#if value.length > 0}
-    <div class="tags" data-cy="deck-catalog-type-tags">
-      {#each value as tag (tag.id)}
-        <button
-          type="button"
-          class="tag"
-          aria-label={`Remove ${tag.label} type`}
-          data-cy={`deck-catalog-type-tag-${cySuffix(tag)}`}
-          onclick={() => remove(tag.id)}>{tag.label} ×</button
-        >
-      {/each}
-    </div>
-  {/if}
+  {#each value as tag (tag.id)}
+    <button
+      type="button"
+      class="tag"
+      aria-label={`Remove ${tag.label} type`}
+      data-cy={`deck-catalog-type-tag-${cySuffix(tag)}`}
+      onclick={() => remove(tag.id)}>{tag.label} ×</button
+    >
+  {/each}
   <input
     type="text"
     role="combobox"
@@ -121,9 +106,9 @@
     aria-autocomplete="list"
     aria-controls={listboxId}
     aria-expanded={listOpen}
-    aria-activedescendant={activeOption === null
+    aria-activedescendant={!listOpen || suggestions[activeIndex] === undefined
       ? undefined
-      : `deck-catalog-type-option-${cySuffix(activeOption)}`}
+      : `deck-catalog-type-option-${cySuffix(suggestions[activeIndex]!)}`}
     autocomplete="off"
     value={query}
     data-cy="deck-catalog-types-input"
@@ -135,11 +120,15 @@
       open = false;
       activeIndex = -1;
     }}
-    oninput={handleInput}
+    oninput={(event) => {
+      query = event.currentTarget.value;
+      open = true;
+      activeIndex = 0;
+    }}
     onkeydown={handleKeydown}
   />
   {#if listOpen}
-    <ul
+    <div
       class="suggestions"
       id={listboxId}
       role="listbox"
@@ -147,23 +136,21 @@
       data-cy="deck-catalog-type-suggestions"
     >
       {#each suggestions as option, index (option.id)}
-        <li data-cy={`deck-catalog-type-option-row-${cySuffix(option)}`}>
-          <button
-            type="button"
-            id={`deck-catalog-type-option-${cySuffix(option)}`}
-            role="option"
-            tabindex="-1"
-            aria-selected={index === activeIndex}
-            class:active={index === activeIndex}
-            data-cy={`deck-catalog-type-option-${cySuffix(option)}`}
-            onmousedown={(event) => event.preventDefault()}
-            onclick={() => commit(option)}
-            >{categoryLabel(option.category)}: {option.label}</button
-          >
-        </li>
+        <button
+          type="button"
+          id={`deck-catalog-type-option-${cySuffix(option)}`}
+          role="option"
+          tabindex="-1"
+          aria-selected={index === activeIndex}
+          class:active={index === activeIndex}
+          data-cy={`deck-catalog-type-option-${cySuffix(option)}`}
+          onmousedown={(event) => event.preventDefault()}
+          onclick={() => commit(option)}
+          >{option.category[0]!.toUpperCase() + option.category.slice(1)}: {option.label}</button
+        >
       {/each}
-    </ul>
-  {:else if open && normalizedQuery.length > 0}
+    </div>
+  {:else if open && query.trim()}
     <p class="empty" role="status" data-cy="deck-catalog-types-empty">
       No matching types
     </p>
@@ -186,15 +173,9 @@
     background: var(--surface-chain);
   }
 
-  .tags {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.25rem;
-    margin-bottom: 0.3rem;
-  }
-
   .tag {
     min-height: 1.75rem;
+    margin: 0 0.25rem 0.3rem 0;
     padding: 0.2rem 0.45rem;
     border: 1px solid var(--accent);
     border-radius: 999px;
@@ -211,7 +192,6 @@
     margin: 0;
     padding: 0.25rem;
     overflow-y: auto;
-    list-style: none;
     border: 1px solid var(--border-strong);
     background: var(--surface-raised);
     box-shadow: 0 0.5rem 1rem var(--shadow);

@@ -1,7 +1,4 @@
-import {
-  compareDeckCatalogCards,
-  type DeckCatalogIndex,
-} from "./deck-catalog-index-base.ts";
+import type { DeckCatalogIndex } from "./deck-catalog-index-base.ts";
 import type { DeckBuilderCardView } from "./ocg-card-mapper.ts";
 
 export type NameMatch = "contains" | "exact" | "starts-with" | "exclude";
@@ -134,8 +131,7 @@ export function advancedDeckCatalogOptions(
   const families = new Set<DeckBuilderCardView["family"]>();
   const attributes = new Set<string>();
   const races = new Set<string>();
-  const frames = new Set<SummonFrame>();
-  const traits = new Set<CardTrait>();
+  const subtypes = new Set<string>();
   const spellProperties = new Set<SpellProperty>();
   const trapProperties = new Set<TrapProperty>();
   const linkMarkers = new Set<string>();
@@ -144,10 +140,7 @@ export function advancedDeckCatalogOptions(
     families.add(card.family);
     if (card.attribute !== null) attributes.add(card.attribute);
     if (card.race !== null) races.add(card.race);
-    for (const frame of SUMMON_FRAMES)
-      if (card.subtypes.includes(frame)) frames.add(frame);
-    for (const trait of TRAITS)
-      if (card.subtypes.includes(trait)) traits.add(trait);
+    for (const subtype of card.subtypes) subtypes.add(subtype);
     if (card.family === "spell") spellProperties.add(spellProperty(card));
     if (card.family === "trap") trapProperties.add(trapProperty(card));
     for (const marker of card.linkMarkers) linkMarkers.add(marker);
@@ -162,9 +155,9 @@ export function advancedDeckCatalogOptions(
     attributes: sortedValues(attributes),
     races: sortedValues(races),
     summonFrames: Object.freeze(
-      SUMMON_FRAMES.filter((value) => frames.has(value)),
+      SUMMON_FRAMES.filter((value) => subtypes.has(value)),
     ),
-    traits: Object.freeze(TRAITS.filter((value) => traits.has(value))),
+    traits: Object.freeze(TRAITS.filter((value) => subtypes.has(value))),
     spellProperties: Object.freeze(
       SPELL_PROPERTIES.filter((value) => spellProperties.has(value)),
     ),
@@ -247,9 +240,13 @@ export function numericCriterionError(
   if (criterion.op === "range") {
     if (
       (criterion.min !== null &&
-        (!Number.isFinite(criterion.min) || criterion.min < minimum)) ||
+        (!Number.isFinite(criterion.min) ||
+          criterion.min < minimum ||
+          criterion.min > maximum)) ||
       (criterion.max !== null &&
-        (!Number.isFinite(criterion.max) || criterion.max > maximum)) ||
+        (!Number.isFinite(criterion.max) ||
+          criterion.max < minimum ||
+          criterion.max > maximum)) ||
       (criterion.min === null && criterion.max === null)
     )
       return "Enter a valid value.";
@@ -311,31 +308,22 @@ function markerRuleMatches(
   cardMarkers: readonly string[],
   selected: readonly string[],
   rule: LinkMarkerRule,
-  markerSet?: ReadonlySet<string>,
 ): boolean {
   if (selected.length === 0) return true;
-  const actual = markerSet ?? new Set(cardMarkers);
   switch (rule) {
     case "any":
-      return selected.some((marker) => actual.has(marker));
+      return selected.some((marker) => cardMarkers.includes(marker));
     case "all":
-      return selected.every((marker) => actual.has(marker));
+      return selected.every((marker) => cardMarkers.includes(marker));
     case "exact":
       return (
-        actual.size === selected.length &&
-        selected.every((marker) => actual.has(marker))
+        cardMarkers.length === selected.length &&
+        selected.every((marker) => cardMarkers.includes(marker))
       );
   }
 }
 
-interface IndexedAdvancedCard {
-  readonly description: string;
-  readonly subtypes: ReadonlySet<string>;
-  readonly linkMarkers: ReadonlySet<string>;
-}
-
 interface PreparedAdvancedDeckCatalogIndex {
-  readonly cards: readonly IndexedAdvancedCard[];
   readonly order: readonly number[];
 }
 
@@ -349,31 +337,36 @@ export function prepareAdvancedDeckCatalogIndex(
 ): PreparedAdvancedDeckCatalogIndex {
   const cached = ADVANCED_INDEX.get(index);
   if (cached !== undefined) return cached;
-  const prepared = Object.freeze({
-    cards: Object.freeze(
-      index.cards.map((card) =>
-        Object.freeze({
-          description: card.description.toLowerCase(),
-          subtypes: new Set(card.subtypes),
-          linkMarkers: new Set(card.linkMarkers),
-        }),
-      ),
-    ),
-    order: Object.freeze(
-      index.cards
-        .map((_, offset) => offset)
-        .sort((left, right) =>
-          compareDeckCatalogCards(index.cards[left]!, index.cards[right]!),
-        ),
-    ),
-  });
+  const buckets = new Map<string, number[]>();
+  for (let offset = 0; offset < index.cards.length; offset++) {
+    const prefix = index.lowerNames[offset]!.slice(0, 6);
+    const bucket = buckets.get(prefix);
+    if (bucket === undefined) buckets.set(prefix, [offset]);
+    else bucket.push(offset);
+  }
+  const order = new Array<number>(index.cards.length);
+  let position = 0;
+  for (const prefix of [...buckets.keys()].sort()) {
+    const bucket = buckets.get(prefix)!;
+    bucket.sort((left, right) => {
+      const leftName = index.lowerNames[left]!;
+      const rightName = index.lowerNames[right]!;
+      return leftName < rightName
+        ? -1
+        : leftName > rightName
+          ? 1
+          : index.cards[left]!.code - index.cards[right]!.code;
+    });
+    for (const offset of bucket) order[position++] = offset;
+  }
+  const prepared = Object.freeze({ order: Object.freeze(order) });
   ADVANCED_INDEX.set(index, prepared);
   return prepared;
 }
 
 export function compileAdvancedDeckCatalogMatcher(
   filters: AdvancedDeckCatalogFilters,
-): (card: DeckBuilderCardView, indexed?: IndexedAdvancedCard) => boolean {
+): (card: DeckBuilderCardView) => boolean {
   const codeText = filters.code.trim();
   const code = /^\d{8}$/u.test(codeText) ? Number(codeText) : null;
   const terms = textTerms(filters.text);
@@ -385,12 +378,14 @@ export function compileAdvancedDeckCatalogMatcher(
     numericCriterionError(filters.pendulumScale, 0, 13) !== null;
   if (invalidNumeric) return () => false;
 
-  return (card, indexed) => {
-    const description = indexed?.description ?? card.description.toLowerCase();
-    const hasSubtype = (value: string) =>
-      indexed?.subtypes.has(value) ?? card.subtypes.includes(value);
+  return (card) => {
+    const hasSubtype = (value: string) => card.subtypes.includes(value);
     if (code !== null && card.code !== code) return false;
-    if (!normalizedTextMatches(description, terms)) return false;
+    if (
+      terms.length > 0 &&
+      !normalizedTextMatches(card.description.toLowerCase(), terms)
+    )
+      return false;
     if (filters.family !== null && card.family !== filters.family) return false;
     if (filters.attribute !== null && card.attribute !== filters.attribute)
       return false;
@@ -451,7 +446,6 @@ export function compileAdvancedDeckCatalogMatcher(
           card.linkMarkers,
           filters.linkMarkers,
           filters.linkMarkerRule,
-          indexed?.linkMarkers,
         ))
     )
       return false;

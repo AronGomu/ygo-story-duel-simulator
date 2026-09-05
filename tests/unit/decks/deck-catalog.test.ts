@@ -273,6 +273,16 @@ describe("deck catalog filters", () => {
     expect(
       numericCriterionError({ op: "range", min: 1, max: 8 }, 1, 8),
     ).toBeNull();
+    for (const criterion of [
+      { op: "range" as const, min: 9, max: null },
+      { op: "range" as const, min: null, max: 0 },
+      { op: "range" as const, min: 0, max: null },
+      { op: "range" as const, min: null, max: 9 },
+    ]) {
+      expect(numericCriterionError(criterion, 1, 8)).toBe(
+        "Enter a valid value.",
+      );
+    }
     for (const filters of [
       { levelRank: { op: "eq" as const, value: 14 } },
       { linkRating: { op: "eq" as const, value: 0 } },
