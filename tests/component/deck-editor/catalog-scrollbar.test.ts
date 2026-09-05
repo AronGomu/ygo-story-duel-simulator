@@ -10,6 +10,21 @@ import { PROTOTYPE_RULESET } from "../../../src/decks/catalog/pinned-ruleset.ts"
 
 afterEach(() => cleanup());
 
+function extractCssRule(source: string, selector: string): string {
+  const start = source.indexOf(`${selector} {`);
+  expect(start).toBeGreaterThanOrEqual(0);
+  const bodyStart = source.indexOf("{", start);
+  let depth = 0;
+  for (let index = bodyStart; index < source.length; index += 1) {
+    if (source[index] === "{") depth += 1;
+    if (source[index] === "}") {
+      depth -= 1;
+      if (depth === 0) return source.slice(bodyStart + 1, index);
+    }
+  }
+  throw new Error(`Unclosed CSS rule: ${selector}`);
+}
+
 describe("CardCatalog overlay scrollbar", () => {
   it("the results carry the shared overlay scrollbar", () => {
     const { container } = render(CardCatalog, {
@@ -40,12 +55,12 @@ describe("CardCatalog overlay scrollbar", () => {
       resolve("src/deck-editor/components/CardCatalog.svelte"),
       "utf8",
     );
-    expect(src).toMatch(
-      /\.results\s*\{[\s\S]*scrollbar-width:\s*none[\s\S]*\}/,
-    );
-    expect(src).toMatch(
-      /\.results::-webkit-scrollbar\s*\{[\s\S]*display:\s*none[\s\S]*\}/,
-    );
+    const resultsRule = extractCssRule(src, "  .results");
+    const webkitRule = extractCssRule(src, "  .results::-webkit-scrollbar");
+    expect(resultsRule).toMatch(/(?:^|\n)\s*scrollbar-width:\s*none;\s*$/m);
+    expect(webkitRule).toMatch(/(?:^|\n)\s*display:\s*none;\s*$/m);
+    expect(resultsRule).not.toContain("scrollbar-width: thin");
+    expect(webkitRule).not.toContain("display: block");
   });
 
   /* jsdom computes no grid, so the rule itself is the assertion. Without it an
@@ -57,6 +72,9 @@ describe("CardCatalog overlay scrollbar", () => {
       resolve("src/deck-editor/components/CardCatalog.svelte"),
       "utf8",
     );
-    expect(src).toMatch(/grid-auto-rows:\s*max-content/);
+    const resultsRule = extractCssRule(src, "  .results");
+    expect(resultsRule).toMatch(
+      /(?:^|\n)\s*grid-auto-rows:\s*max-content;\s*$/m,
+    );
   });
 });
