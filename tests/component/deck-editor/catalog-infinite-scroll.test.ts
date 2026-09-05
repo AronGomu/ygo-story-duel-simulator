@@ -133,10 +133,7 @@ describe("catalog infinite scroll", () => {
 
     await userEvent
       .setup()
-      .selectOptions(
-        screen.getByRole("combobox", { name: "Card type" }),
-        "monster",
-      );
+      .type(screen.getByRole("combobox", { name: "Types" }), "monster{Enter}");
     await tick();
 
     expect(

@@ -1287,6 +1287,51 @@ test("the deck editor fits stage with stable gutter, single-line card name and h
   ).toBe(true);
 });
 
+test("quick Types density and card-name entry focus", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 810 });
+  await page.goto(libraryUrl);
+  await deleteDeckDatabase(page);
+  await page.reload();
+  await page.locator('[data-cy="deck-select-create"]').click();
+  await page.getByLabel("Deck name").fill("Quick Types");
+  await page.locator('[data-cy="deck-library-create-submit"]').click();
+
+  const nameInput = page.locator('[data-cy="deck-catalog-name-input"]');
+  await expect(nameInput).toBeFocused();
+  await expect(page.getByRole("combobox", { name: "Types" })).toBeVisible();
+  await expect(
+    page.locator('[data-cy="deck-catalog-family-select"]'),
+  ).toHaveCount(0);
+  await expect(
+    page.locator('[data-cy="deck-catalog-subtype-select"]'),
+  ).toHaveCount(0);
+  await expect(
+    page.locator('[data-cy="deck-catalog-attribute-select"]'),
+  ).toHaveCount(0);
+  await expect(
+    page.locator('[data-cy="deck-catalog-race-select"]'),
+  ).toHaveCount(0);
+
+  const completeRows = await page
+    .locator('[data-cy="deck-catalog-results"]')
+    .evaluate((results) => {
+      const bottom = results.getBoundingClientRect().bottom;
+      const rows = new Map<number, number>();
+      for (const tile of results.querySelectorAll<HTMLElement>(".card-tile")) {
+        const box = tile.getBoundingClientRect();
+        const top = Math.round(box.top);
+        rows.set(top, Math.max(rows.get(top) ?? 0, box.bottom));
+      }
+      return Array.from(rows.values()).filter(
+        (rowBottom) => rowBottom <= bottom + 0.5,
+      ).length;
+    });
+  expect(
+    completeRows,
+    "compact quick filters must expose one full row beyond the prior three",
+  ).toBeGreaterThanOrEqual(4);
+});
+
 test("the story editor fits stage with reachable portrait panes", async ({
   page,
 }) => {
