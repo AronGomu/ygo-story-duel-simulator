@@ -4,12 +4,21 @@ import {
   LEGACY_DECK_DATABASE_NAME,
 } from "../src/decks/deck-database.ts";
 import { RESULT_WINDOW_CEILING } from "../src/deck-editor/layout/result-window.ts";
+import { createInitialStoryState } from "../src/story/model/story-state.ts";
+import {
+  STORY_SAVES_DATABASE_NAME,
+  STORY_SAVES_STORE_NAME,
+} from "../src/shell/screens/story-save-presence.ts";
+import type { StorySaveEnvelope } from "../src/story/saves/story-save-contracts.ts";
+import { storyStarterSave } from "./story-starter-save.ts";
 
 const libraryUrl = "./#/decks";
 const BLUE_EYES = 89631139;
 const OBELISK = 10000000;
 const RAIGEKI = 12580477;
 const MIRROR_FORCE = 44095762;
+const LONG_NAME_CARD = 50251045;
+const STORY_STARTER = storyStarterSave();
 /* The catalog is the whole card database, where a name is not unique: six
    printings answer to "Summoned Skull" and three to "Celtic Guardian". Pick the
    card by code, the way the rest of this file already does. */
@@ -31,6 +40,83 @@ async function deleteDeckDatabase(page: Page) {
     },
     [DECK_DATABASE_NAME, LEGACY_DECK_DATABASE_NAME],
   );
+}
+
+async function openStoryEditor(page: Page): Promise<void> {
+  await page.goto("./#/");
+  const envelope: StorySaveEnvelope = {
+    schemaVersion: 4,
+    slot: "autosave",
+    revision: 1,
+    savedAt: Date.now(),
+    state: {
+      ...createInitialStoryState(),
+      screen: "map",
+      savedScreen: "map",
+      progressExists: true,
+      decks: [STORY_STARTER.deck],
+      defaultDeckId: STORY_STARTER.deck.id,
+      collection: STORY_STARTER.collection,
+    },
+  };
+  await page.evaluate(
+    async ([databaseName, storeName, record]) => {
+      const database = await new Promise<IDBDatabase>((resolve, reject) => {
+        const request = indexedDB.open(databaseName as string, 1);
+        request.onupgradeneeded = () =>
+          request.result.createObjectStore(storeName as string);
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(request.error);
+      });
+      const transaction = database.transaction(
+        storeName as string,
+        "readwrite",
+      );
+      transaction
+        .objectStore(storeName as string)
+        .put(record, (record as { readonly slot: string }).slot);
+      await new Promise<void>((resolve, reject) => {
+        transaction.oncomplete = () => resolve();
+        transaction.onerror = () => reject(transaction.error);
+      });
+      database.close();
+    },
+    [STORY_SAVES_DATABASE_NAME, STORY_SAVES_STORE_NAME, envelope] as const,
+  );
+  await page.goto(`./#/story/decks/${STORY_STARTER.deck.id}`);
+  await expect(page.locator('[data-cy="deck-editor-layout"]')).toBeVisible({
+    timeout: 120_000,
+  });
+}
+
+async function expectContained(
+  container: Locator,
+  child: Locator,
+  label: string,
+  vertical = true,
+): Promise<void> {
+  const [containerBox, childBox] = await Promise.all([
+    container.boundingBox(),
+    child.boundingBox(),
+  ]);
+  expect(containerBox, `${label} container must be visible`).not.toBeNull();
+  expect(childBox, `${label} must be visible`).not.toBeNull();
+  expect(childBox!.x, `${label} left edge`).toBeGreaterThanOrEqual(
+    containerBox!.x - 1,
+  );
+  expect(
+    childBox!.x + childBox!.width,
+    `${label} right edge`,
+  ).toBeLessThanOrEqual(containerBox!.x + containerBox!.width + 1);
+  if (vertical) {
+    expect(childBox!.y, `${label} top edge`).toBeGreaterThanOrEqual(
+      containerBox!.y - 1,
+    );
+    expect(
+      childBox!.y + childBox!.height,
+      `${label} bottom edge`,
+    ).toBeLessThanOrEqual(containerBox!.y + containerBox!.height + 1);
+  }
 }
 
 /* The counts moved into each zone's collapse bar, so "Main 1" is now the main
@@ -1062,33 +1148,76 @@ test("the deck editor fits stage with stable gutter, single-line card name and h
     ).toBe(true);
 
     const header = page.locator('[data-cy="deck-editor-header"]');
-    const headerFit = await header.evaluate((el) => ({
-      width: el.scrollWidth - el.clientWidth,
-      height: el.scrollHeight - el.clientHeight,
-    }));
+    const nameInput = page.locator('[data-cy="deck-name-input"]');
+    const sortActions = page.locator('[data-cy="deck-workspace-sort-actions"]');
+    const [headerFit, nameBox, sortBox] = await Promise.all([
+      header.evaluate((el) => ({
+        width: el.scrollWidth - el.clientWidth,
+        height: el.scrollHeight - el.clientHeight,
+      })),
+      nameInput.boundingBox(),
+      sortActions.boundingBox(),
+    ]);
     expect(
       headerFit.width,
-      "header actions must not overlap horizontally",
+      `header actions must not overlap horizontally at ${size.width}x${size.height}`,
     ).toBeLessThanOrEqual(1);
     expect(
       headerFit.height,
-      "header actions must not wrap",
+      `header actions must not wrap at ${size.width}x${size.height}`,
     ).toBeLessThanOrEqual(1);
-  }
+    expect(nameBox).not.toBeNull();
+    expect(sortBox).not.toBeNull();
+    expect(
+      nameBox!.width,
+      `deck name should consume remaining header width at ${size.width}x${size.height}`,
+    ).toBeGreaterThan(150);
+    expect(nameBox!.x + nameBox!.width).toBeLessThanOrEqual(sortBox!.x + 1);
+    expect(
+      sortBox!.x - (nameBox!.x + nameBox!.width),
+      `deck name should reach the action-group gap at ${size.width}x${size.height}`,
+    ).toBeLessThanOrEqual(12);
 
-  const nameInput = page.locator('[data-cy="deck-name-input"]');
-  const sortActions = page.locator('[data-cy="deck-workspace-sort-actions"]');
-  const [nameBox, sortBox] = await Promise.all([
-    nameInput.boundingBox(),
-    sortActions.boundingBox(),
-  ]);
-  expect(nameBox).not.toBeNull();
-  expect(sortBox).not.toBeNull();
-  expect(
-    nameBox!.width,
-    "deck name should consume remaining header width",
-  ).toBeGreaterThan(176);
-  expect(nameBox!.x + nameBox!.width).toBeLessThanOrEqual(sortBox!.x + 1);
+    if (size.width === 1440 && size.height === 810) {
+      const density = await page
+        .locator('[data-cy="deck-catalog-results"]')
+        .evaluate((results) => {
+          const resultBottom = results.getBoundingClientRect().bottom;
+          const tiles = Array.from(
+            results.querySelectorAll<HTMLElement>(".card-tile"),
+          );
+          const rows = new Map<number, number>();
+          for (const tile of tiles) {
+            const box = tile.getBoundingClientRect();
+            const top = Math.round(box.top);
+            rows.set(top, Math.max(rows.get(top) ?? 0, box.bottom));
+          }
+          const firstTop = Math.min(...rows.keys());
+          return {
+            completeRows: Array.from(rows.values()).filter(
+              (bottom) => bottom <= resultBottom + 0.5,
+            ).length,
+            firstRowColumns: new Set(
+              tiles
+                .filter(
+                  (tile) =>
+                    Math.round(tile.getBoundingClientRect().top) === firstTop,
+                )
+                .map((tile) => Math.round(tile.getBoundingClientRect().left)),
+            ).size,
+            aspectRatios: Array.from(
+              new Set(tiles.map((tile) => getComputedStyle(tile).aspectRatio)),
+            ),
+          };
+        });
+      expect(
+        density.completeRows,
+        "one-line tile density must expose at least one row beyond the prior two",
+      ).toBeGreaterThanOrEqual(3);
+      expect(density.firstRowColumns).toBe(3);
+      expect(density.aspectRatios).toEqual(["59 / 86"]);
+    }
+  }
 
   const workspace = page.locator('[data-cy="deck-workspace"]');
   const gutter = await workspace.evaluate(
@@ -1105,18 +1234,28 @@ test("the deck editor fits stage with stable gutter, single-line card name and h
   expect(Math.abs(withOverflow - withoutOverflow)).toBeLessThanOrEqual(1);
   await workspace.evaluate((el) => el.style.removeProperty("height"));
 
-  await page.getByRole("searchbox", { name: "Name" }).fill("Blue-Eyes");
-  const tileName = catalogTile(page, BLUE_EYES).locator(
-    `[data-cy="catalog-tile-name-${BLUE_EYES}"]`,
+  await page
+    .getByRole("searchbox", { name: "Name" })
+    .fill("Calamity of the Sacred Beasts");
+  const tileName = catalogTile(page, LONG_NAME_CARD).locator(
+    `[data-cy="catalog-tile-name-${LONG_NAME_CARD}"]`,
   );
-  await expect(tileName).toBeVisible();
+  await expect(tileName).toHaveText(
+    "Calamity of the Sacred Beasts - Hamon, Lord of Striking Thunder",
+  );
   const nameStyle = await tileName.evaluate((el) => {
     const style = getComputedStyle(el);
     return {
+      clientWidth: el.clientWidth,
+      scrollWidth: el.scrollWidth,
+      clientHeight: el.clientHeight,
+      lineHeight: Number.parseFloat(style.lineHeight),
+      verticalPadding:
+        Number.parseFloat(style.paddingTop) +
+        Number.parseFloat(style.paddingBottom),
       overflow: style.overflow,
       textOverflow: style.textOverflow,
       whiteSpace: style.whiteSpace,
-      lines: el.clientHeight / Number.parseFloat(style.lineHeight),
     };
   });
   expect(nameStyle).toMatchObject({
@@ -1124,7 +1263,13 @@ test("the deck editor fits stage with stable gutter, single-line card name and h
     textOverflow: "ellipsis",
     whiteSpace: "nowrap",
   });
-  expect(nameStyle.lines).toBeLessThanOrEqual(1.8);
+  expect(
+    nameStyle.scrollWidth,
+    "long card name must actually overflow its one-line box",
+  ).toBeGreaterThan(nameStyle.clientWidth + 1);
+  expect(nameStyle.clientHeight).toBeLessThanOrEqual(
+    nameStyle.lineHeight + nameStyle.verticalPadding + 1,
+  );
 
   /* Duplicate reports through the shell toast without changing region height. */
   await page.locator('[data-cy="deck-editor-duplicate"]').click();
@@ -1140,6 +1285,56 @@ test("the deck editor fits stage with stable gutter, single-line card name and h
     withMessage.fitsHorizontally,
     "region must not scroll horizontally while a message shows",
   ).toBe(true);
+});
+
+test("the story editor fits stage with reachable portrait panes", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1440, height: 810 });
+  await openStoryEditor(page);
+
+  const region = page.locator('[data-cy="shell-region-decks"]');
+  await expectContained(
+    region,
+    page.locator('[data-cy="deck-editor-context-banner"]'),
+    "story context banner",
+  );
+  await expectContained(
+    region,
+    page.locator('[data-cy="deck-editor-header"]'),
+    "story editor header",
+  );
+  await expectContained(
+    region,
+    page.locator('[data-cy="deck-editor-layout"]'),
+    "story editor panes",
+  );
+
+  await page.setViewportSize({ width: 800, height: 1000 });
+  await expect(page.locator('[data-cy="deck-tab-catalog"]')).toBeVisible();
+  await expectContained(
+    region,
+    page.locator('[data-cy="deck-editor-context-banner"]'),
+    "portrait story context banner",
+  );
+  await expectContained(
+    region,
+    page.locator('[data-cy="deck-editor-header"]'),
+    "portrait editor header",
+    false,
+  );
+  await page.locator('[data-cy="deck-tab-catalog"]').click();
+  const catalogPane = page.locator('[data-cy="deck-pane-catalog"]');
+  await expect(catalogPane).toBeVisible();
+  await expectContained(region, catalogPane, "portrait catalog pane");
+  const scroll = await region.evaluate((el) => ({
+    clientHeight: el.clientHeight,
+    scrollHeight: el.scrollHeight,
+  }));
+  expect(
+    scroll.scrollHeight,
+    "portrait catalog should remain reachable without escaping its stage",
+  ).toBeLessThanOrEqual(scroll.clientHeight + 1);
 });
 
 test("the card viewer is card width", async ({ page }) => {

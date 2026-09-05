@@ -989,9 +989,11 @@
 
   .editor-layout {
     display: grid;
+    /* Keep the catalog narrow enough for three complete 59:86 rows at the
+       1440×810 stage; the workspace receives the reclaimed width. */
     grid-template-columns: var(--preview-w, 15.5rem) minmax(0, 1fr) minmax(
         16rem,
-        0.55fr
+        0.35fr
       );
     grid-template-rows: auto minmax(0, 1fr);
     /* No row gap: the strip is zero-height when silent, and its own message
