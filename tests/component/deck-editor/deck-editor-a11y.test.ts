@@ -39,10 +39,22 @@ describe("deck builder accessibility", () => {
     expect(
       document.querySelector('[data-cy="deck-editor-name-label"]'),
     ).toBeNull();
-    expect(screen.getByLabelText("Card type")).toBeTruthy();
-    expect(screen.getByLabelText("Subtype")).toBeTruthy();
-    expect(screen.getByLabelText("Attribute")).toBeTruthy();
-    expect(screen.getByLabelText("Monster type")).toBeTruthy();
+    expect(screen.getByRole("combobox", { name: "Types" })).toBeTruthy();
+    expect(
+      document.querySelector('[data-cy="deck-catalog-name-label"]'),
+    ).toBeNull();
+    expect(
+      document.querySelector('[data-cy="deck-catalog-family-field"]'),
+    ).toBeNull();
+    expect(
+      document.querySelector('[data-cy="deck-catalog-subtype-field"]'),
+    ).toBeNull();
+    expect(
+      document.querySelector('[data-cy="deck-catalog-attribute-field"]'),
+    ).toBeNull();
+    expect(
+      document.querySelector('[data-cy="deck-catalog-race-field"]'),
+    ).toBeNull();
     expect(
       screen.getByRole("button", { name: /Obelisk.*Forbidden, maximum 0/i }),
     ).toBeTruthy();

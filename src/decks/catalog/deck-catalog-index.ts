@@ -1,5 +1,8 @@
 import type { DeckBuilderCardView } from "./ocg-card-mapper.ts";
-import type { DeckCatalogFilters } from "./deck-catalog.ts";
+import {
+  cardMatchesCatalogType,
+  type DeckCatalogFilters,
+} from "./deck-catalog.ts";
 
 export interface DeckCatalogIndex {
   readonly cards: readonly DeckBuilderCardView[];
@@ -12,7 +15,7 @@ export function buildDeckCatalogIndex(
 ): DeckCatalogIndex {
   return {
     cards,
-    lowerNames: cards.map((c) => c.name.toLocaleLowerCase()),
+    lowerNames: cards.map((card) => card.name.toLocaleLowerCase()),
   };
 }
 
@@ -23,15 +26,12 @@ export function filterDeckCatalogIndex(
   const name = filters.name.trim().toLocaleLowerCase();
   const { cards, lowerNames } = index;
   const out: DeckBuilderCardView[] = [];
-  for (let i = 0; i < cards.length; i++) {
-    const card = cards[i]!;
-    if (name.length > 0 && !lowerNames[i]!.includes(name)) continue;
-    if (filters.family !== null && card.family !== filters.family) continue;
-    if (filters.subtype !== null && !card.subtypes.includes(filters.subtype))
-      continue;
-    if (filters.attribute !== null && card.attribute !== filters.attribute)
-      continue;
-    if (filters.race !== null && card.race !== filters.race) continue;
+  cardLoop: for (let index = 0; index < cards.length; index++) {
+    const card = cards[index]!;
+    if (name.length > 0 && !lowerNames[index]!.includes(name)) continue;
+    for (const tag of filters.types) {
+      if (!cardMatchesCatalogType(card, tag)) continue cardLoop;
+    }
     out.push(card);
   }
   return Object.freeze(out);

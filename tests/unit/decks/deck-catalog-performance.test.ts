@@ -4,7 +4,7 @@ import {
   filterDeckCatalogIndex,
 } from "../../../src/decks/catalog/deck-catalog-index.ts";
 import {
-  catalogFilterOptions,
+  catalogTypeOptions,
   filterDeckCatalog,
   EMPTY_CATALOG_FILTERS,
 } from "../../../src/decks/catalog/deck-catalog.ts";
@@ -134,9 +134,22 @@ describe("catalog performance budgets", () => {
     expect(indexed).toBeLessThan(unindexed);
   });
 
-  it("deriving filter options stays under budget (best of 20 runs)", () => {
-    const best = bestOf(20, () => catalogFilterOptions(CARDS_15K));
-    // measured: 1.15-1.89ms best-of-20 at n=15,000; budget rejects a 10x regression
+  it("a multi-tag query stays under budget (best of 20 runs)", () => {
+    const index = buildDeckCatalogIndex(CARDS_15K);
+    const options = catalogTypeOptions(CARDS_15K);
+    const filters = {
+      name: "",
+      types: options.filter(({ id }) =>
+        ["family:monster", "attribute:DARK", "race:Dragon"].includes(id),
+      ),
+    };
+    expect(filterDeckCatalogIndex(index, filters).length).toBeGreaterThan(0);
+    const best = bestOf(20, () => filterDeckCatalogIndex(index, filters));
+    expect(best).toBeLessThan(2.5);
+  });
+
+  it("deriving type options stays under budget (best of 20 runs)", () => {
+    const best = bestOf(20, () => catalogTypeOptions(CARDS_15K));
     expect(best).toBeLessThan(12);
   });
 

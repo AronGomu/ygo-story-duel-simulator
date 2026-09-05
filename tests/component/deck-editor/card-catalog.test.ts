@@ -25,7 +25,7 @@ function resultsRegionDeclarations(): string {
 }
 
 describe("CardCatalog", () => {
-  it("supports only approved name/family/subtype/Attribute/race filters", async () => {
+  it("combines compact Name and Types filters with AND", async () => {
     const user = userEvent.setup();
     render(CardCatalog, {
       cards: PROTOTYPE_CATALOG,
@@ -33,19 +33,31 @@ describe("CardCatalog", () => {
       onselect: vi.fn(),
       ondragcard: vi.fn(),
     });
-    await user.type(
-      screen.getByRole("searchbox", { name: "Name" }),
-      "Blue-Eyes",
-    );
+    const name = screen.getByRole("searchbox", { name: "Name" });
+    expect(name.getAttribute("placeholder")).toBe("Name");
+    expect(screen.getByRole("combobox", { name: "Types" })).toBeTruthy();
     expect(
-      screen.getByRole("button", { name: /Blue-Eyes White Dragon/ }),
-    ).toBeTruthy();
-    expect(screen.queryByRole("button", { name: /Dark Magician/ })).toBeNull();
-    expect(
-      screen.queryByLabelText(
-        /ATK range|effect text|archetype|format|banlist/i,
-      ),
+      document.querySelector('[data-cy="deck-catalog-name-label"]'),
     ).toBeNull();
+    expect(
+      document.querySelector('[data-cy="deck-catalog-family-select"]'),
+    ).toBeNull();
+    expect(
+      document.querySelector('[data-cy="deck-catalog-subtype-select"]'),
+    ).toBeNull();
+    expect(
+      document.querySelector('[data-cy="deck-catalog-attribute-select"]'),
+    ).toBeNull();
+    expect(
+      document.querySelector('[data-cy="deck-catalog-race-select"]'),
+    ).toBeNull();
+
+    await user.type(name, "dark");
+    const types = screen.getByRole("combobox", { name: "Types" });
+    await user.type(types, "spellcaster{Enter}");
+    expect(screen.getByText("1 results")).toBeTruthy();
+    expect(screen.getByRole("button", { name: /Dark Magician/ })).toBeTruthy();
+    expect(screen.queryByRole("button", { name: /Dark Hole/ })).toBeNull();
     expect(
       document.querySelector('[data-cy="deck-catalog-filter-summary"]'),
     ).not.toBeNull();

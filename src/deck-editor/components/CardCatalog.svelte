@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onDestroy, onMount } from "svelte";
   import {
-    catalogFilterOptions,
+    catalogTypeOptions,
     EMPTY_CATALOG_FILTERS,
     // filterDeckCatalog is the reference implementation; the UI uses the index path below.
     type DeckCatalogFilters,
@@ -29,6 +29,7 @@
   } from "../layout/result-window.ts";
   import { OverlayScrollbar } from "../../shell/index.ts";
   import CardTile from "./CardTile.svelte";
+  import CatalogTypeInput from "./CatalogTypeInput.svelte";
 
   export let cards: readonly DeckBuilderCardView[];
   export let ruleset: PinnedDeckRuleset;
@@ -75,10 +76,10 @@
   let observer: IntersectionObserver | null = null;
   let observerSupported = typeof IntersectionObserver === "function";
 
-  $: options = catalogFilterOptions(cards);
+  $: typeOptions = catalogTypeOptions(cards);
   $: index = buildDeckCatalogIndex(cards);
   $: results = filterDeckCatalogIndex(index, filters);
-  $: filterKey = `${filters.name}|${filters.family}|${filters.subtype}|${filters.attribute}|${filters.race}`;
+  $: filterKey = `${filters.name}|${filters.types.map(({ id }) => id).join("|")}`;
   $: {
     // depend on filterKey so a same-length filter change still resets
     void filterKey;
@@ -187,96 +188,27 @@
     >
   </header>
 
-  <label data-cy="deck-catalog-name-field">
-    <span data-cy="deck-catalog-name-label">Name</span>
+  <div class="name-field" data-cy="deck-catalog-name-field">
     <input
       type="search"
       value={filters.name}
-      placeholder="Filter by card name"
+      aria-label="Name"
+      placeholder="Name"
       data-cy="deck-catalog-name-input"
       bind:this={nameInput}
       oninput={(event) => setFilter("name", event.currentTarget.value)}
     />
-  </label>
-
-  <div class="filters" data-cy="deck-catalog-filters">
-    <label data-cy="deck-catalog-family-field">
-      <span data-cy="deck-catalog-family-label">Card type</span>
-      <select
-        data-cy="deck-catalog-family-select"
-        value={filters.family ?? ""}
-        onchange={(event) =>
-          setFilter(
-            "family",
-            (event.currentTarget.value || null) as DeckCatalogFilters["family"],
-          )}
-      >
-        <option value="" data-cy="deck-catalog-family-option-all">All</option>
-        <option value="monster" data-cy="deck-catalog-family-option-monster"
-          >Monster</option
-        >
-        <option value="spell" data-cy="deck-catalog-family-option-spell"
-          >Spell</option
-        >
-        <option value="trap" data-cy="deck-catalog-family-option-trap"
-          >Trap</option
-        >
-      </select>
-    </label>
-    <label data-cy="deck-catalog-subtype-field">
-      <span data-cy="deck-catalog-subtype-label">Subtype</span>
-      <select
-        data-cy="deck-catalog-subtype-select"
-        value={filters.subtype ?? ""}
-        onchange={(event) =>
-          setFilter("subtype", event.currentTarget.value || null)}
-      >
-        <option value="" data-cy="deck-catalog-subtype-option-all">All</option>
-        {#each options.subtypes as option (option)}
-          <option
-            value={option}
-            data-cy={`deck-catalog-subtype-option-${option}`}>{option}</option
-          >
-        {/each}
-      </select>
-    </label>
-    <label data-cy="deck-catalog-attribute-field">
-      <span data-cy="deck-catalog-attribute-label">Attribute</span>
-      <select
-        data-cy="deck-catalog-attribute-select"
-        value={filters.attribute ?? ""}
-        onchange={(event) =>
-          setFilter("attribute", event.currentTarget.value || null)}
-      >
-        <option value="" data-cy="deck-catalog-attribute-option-all">All</option
-        >
-        {#each options.attributes as option (option)}
-          <option
-            value={option}
-            data-cy={`deck-catalog-attribute-option-${option}`}>{option}</option
-          >
-        {/each}
-      </select>
-    </label>
-    <label data-cy="deck-catalog-race-field">
-      <span data-cy="deck-catalog-race-label">Monster type</span>
-      <select
-        data-cy="deck-catalog-race-select"
-        value={filters.race ?? ""}
-        onchange={(event) =>
-          setFilter("race", event.currentTarget.value || null)}
-      >
-        <option value="" data-cy="deck-catalog-race-option-all">All</option>
-        {#each options.races as option (option)}
-          <option value={option} data-cy={`deck-catalog-race-option-${option}`}
-            >{option}</option
-          >
-        {/each}
-      </select>
-    </label>
   </div>
 
-  {#if filters.name || filters.family || filters.subtype || filters.attribute || filters.race}
+  <div class="filters" data-cy="deck-catalog-filters">
+    <CatalogTypeInput
+      options={typeOptions}
+      value={filters.types}
+      onchange={(types) => setFilter("types", types)}
+    />
+  </div>
+
+  {#if filters.name || filters.types.length > 0}
     <div class="filter-summary" data-cy="deck-catalog-filter-summary">
       <span data-cy="deck-catalog-filter-summary-label">Filters active</span>
       <button
@@ -421,20 +353,11 @@
     text-transform: uppercase;
   }
 
-  label span {
-    color: var(--muted);
-    font-size: 0.76rem;
-    font-weight: 750;
+  .name-field {
+    margin-top: 0.5rem;
   }
 
-  label {
-    display: grid;
-    gap: 0.3rem;
-    margin-top: 0.75rem;
-  }
-
-  input,
-  select {
+  input {
     width: 100%;
     min-height: 2.5rem;
     padding: 0.5rem 0.65rem;
@@ -445,9 +368,7 @@
   }
 
   .filters {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 0 0.55rem;
+    margin-top: 0.4rem;
   }
 
   .filter-summary {

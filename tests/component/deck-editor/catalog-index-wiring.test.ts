@@ -125,4 +125,19 @@ describe("the catalog searches through the index", () => {
     expect(buildSpy.mock.calls.length).toBe(buildsBeforeTyping);
     expect(filterIndexSpy.mock.calls.length).toBeGreaterThanOrEqual(6);
   });
+
+  it("committing a type tag scans without rebuilding the card index", async () => {
+    renderCatalog();
+    await tick();
+    const buildsBeforeTag = buildSpy.mock.calls.length;
+    const filtersBeforeTag = filterIndexSpy.mock.calls.length;
+
+    await userEvent
+      .setup()
+      .type(screen.getByRole("combobox", { name: "Types" }), "monster{Enter}");
+    await tick();
+
+    expect(buildSpy.mock.calls.length).toBe(buildsBeforeTag);
+    expect(filterIndexSpy.mock.calls.length).toBeGreaterThan(filtersBeforeTag);
+  });
 });
