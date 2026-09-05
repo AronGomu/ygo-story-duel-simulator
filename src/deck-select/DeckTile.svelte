@@ -63,6 +63,7 @@
     type="button"
     class="press"
     disabled={pressDisabled}
+    aria-label={tile.name}
     onclick={() => onpress()}
     ondblclick={() => ondblpress()}
     data-cy={`deck-tile-press-${cyId}`}
@@ -303,11 +304,8 @@
     z-index: 3;
     top: 0;
     left: 0;
-    display: block;
     border: 0;
     color: inherit;
-    background: none;
-    font: inherit;
     text-align: left;
     cursor: pointer;
   }

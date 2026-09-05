@@ -26,6 +26,9 @@ describe("DeckTile", () => {
     render(DeckTile, { tile: tile({ meta: "Local deck" }) });
 
     expect(cy("deck-tile-name-k1").textContent).toBe("Prototype Control");
+    expect(cy("deck-tile-press-k1").getAttribute("aria-label")).toBe(
+      "Prototype Control",
+    );
     expect(cy("deck-tile-tags-k1").textContent).toBe("Local deck");
     expect(find("deck-tile-counts-k1")).toBeNull();
     expect(find("deck-tile-meta-k1")).toBeNull();

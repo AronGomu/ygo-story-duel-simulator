@@ -62,6 +62,7 @@ describe("RenameDeckDialog", () => {
     );
     expect(submit.disabled).toBe(true);
 
+    await user.keyboard("{Enter}");
     await user.click(submit);
     await fireEvent.submit(cy("deck-select-rename-form"));
     expect(onsubmit).not.toHaveBeenCalled();
