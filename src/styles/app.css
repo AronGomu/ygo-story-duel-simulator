@@ -1843,8 +1843,8 @@ button.duel-field-zone,
 }
 
 /* The overlay covers source art, so it repeats semantic card halos on its own
-   art. Card-action legality is solid green; selection-family legality is dashed
-   green; selected selection-family cards are dashed orange. */
+   art. Card-action legality/selection stay solid green/orange;
+   selection-family legality/selection stay dashed green/orange. */
 .hand-zoom-overlay.is-legal .hand-zoom-overlay__art {
   border: 3px solid var(--success);
   box-shadow:
@@ -1853,8 +1853,8 @@ button.duel-field-zone,
 }
 
 .hand-zoom-overlay.is-selected .hand-zoom-overlay__art {
-  border: 3px dashed var(--selected);
-  box-shadow: none;
+  border: 3px solid var(--selected);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--selected) 78%, transparent);
 }
 
 .hand-zoom-overlay.is-selection-candidate.is-legal .hand-zoom-overlay__art {
@@ -1863,7 +1863,8 @@ button.duel-field-zone,
 }
 
 .hand-zoom-overlay.is-selection-candidate.is-selected .hand-zoom-overlay__art {
-  border-color: var(--selected);
+  border: 3px dashed var(--selected);
+  box-shadow: none;
 }
 
 .hand-zoom-overlay__name {
@@ -2864,7 +2865,7 @@ button.duel-field-zone,
   min-height: 1.725rem;
   height: 1.725rem;
   padding: 0 0.45rem;
-  border-radius: 0.375rem;
+  border-radius: 0;
   font-size: 0.825rem;
 }
 

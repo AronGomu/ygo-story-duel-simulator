@@ -315,11 +315,12 @@ describe("HandZoomOverlay action rows", () => {
 });
 
 describe("HandZoomOverlay halo", () => {
-  it("wears selected halo when card is selected", () => {
+  it("wears solid card-action semantics when card is selected", () => {
     renderOverlay(FRAME_WIDTH, ANCHOR, [], { halo: "selected" });
 
     expect(overlay().classList.contains("is-selected")).toBe(true);
     expect(overlay().classList.contains("is-legal")).toBe(false);
+    expect(overlay().classList.contains("is-selection-candidate")).toBe(false);
   });
 
   it("wears legal halo for an actionable unselected card", () => {
@@ -343,12 +344,23 @@ describe("HandZoomOverlay halo", () => {
     expect(overlay().classList.contains("is-legal")).toBe(false);
   });
 
-  it("marks selection-family halo for dashed styling", () => {
+  it("marks legal selection-family halo for dashed styling", () => {
     renderOverlay(FRAME_WIDTH, ANCHOR, [], {
       halo: "legal",
       selectionCandidate: true,
     });
 
+    expect(overlay().classList.contains("is-legal")).toBe(true);
+    expect(overlay().classList.contains("is-selection-candidate")).toBe(true);
+  });
+
+  it("keeps selected selection-family halo dashed", () => {
+    renderOverlay(FRAME_WIDTH, ANCHOR, [], {
+      halo: "selected",
+      selectionCandidate: true,
+    });
+
+    expect(overlay().classList.contains("is-selected")).toBe(true);
     expect(overlay().classList.contains("is-selection-candidate")).toBe(true);
   });
 });

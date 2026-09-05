@@ -514,6 +514,11 @@ describe("global styles", () => {
      row both reveal triggers could be deleted with the suite still green. */
   it("chips use square branded controls with complete interaction states", () => {
     const css = readFileSync("src/styles/app.css", "utf8");
+    const enlargedChip = ruleBlock(
+      css,
+      ".duel-field-card .card-action-chip,\n.hand-zoom-overlay .card-action-chip {",
+    );
+    expect(enlargedChip).toContain("border-radius: 0;");
     const chip = ruleBlock(css, "button.card-action-chip {");
     expect(chip).toContain("border: 1px solid var(--gold-line)");
     expect(chip).toContain("border-radius: 0");
@@ -541,13 +546,21 @@ describe("global styles", () => {
       css,
       ".hand-zoom-overlay.is-selected .hand-zoom-overlay__art {",
     );
+    expect(selected).toContain("border: 3px solid var(--selected)");
+    expect(selected).toContain("box-shadow:");
     expect(selected).toContain("var(--selected)");
-    const dashed = ruleBlock(
+    const dashedLegal = ruleBlock(
       css,
       ".hand-zoom-overlay.is-selection-candidate.is-legal .hand-zoom-overlay__art {",
     );
-    expect(dashed).toContain("border: 3px dashed");
-    expect(dashed).toContain("box-shadow: none");
+    expect(dashedLegal).toContain("border: 3px dashed var(--success)");
+    expect(dashedLegal).toContain("box-shadow: none");
+    const dashedSelected = ruleBlock(
+      css,
+      ".hand-zoom-overlay.is-selection-candidate.is-selected .hand-zoom-overlay__art {",
+    );
+    expect(dashedSelected).toContain("border: 3px dashed var(--selected)");
+    expect(dashedSelected).toContain("box-shadow: none");
   });
 
   it("chips are hidden until hover, focus or a pin reveals them", () => {

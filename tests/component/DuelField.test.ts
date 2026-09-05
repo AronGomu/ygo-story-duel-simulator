@@ -3389,12 +3389,15 @@ describe("DuelField", () => {
     ).toBeNull();
   });
 
-  it("projects legal halo onto hovered actionable hand card zoom", async () => {
+  it("projects solid legal halo onto hovered actionable hand card zoom", async () => {
     renderDraggableHand({ singleChoice: true });
     await fireEvent.pointerEnter(handCardArticle());
 
     expect(handZoomOverlay()?.classList.contains("is-legal")).toBe(true);
     expect(handZoomOverlay()?.classList.contains("is-selected")).toBe(false);
+    expect(
+      handZoomOverlay()?.classList.contains("is-selection-candidate"),
+    ).toBe(false);
   });
 
   /* Item 4: a pointer click on a hand card freezes its zoom and its action
@@ -3413,6 +3416,9 @@ describe("DuelField", () => {
     // it covers the card's own art at 1.6x.
     expect(handCardArticle().classList.contains("is-selected")).toBe(true);
     expect(handZoomOverlay()?.classList.contains("is-selected")).toBe(true);
+    expect(
+      handZoomOverlay()?.classList.contains("is-selection-candidate"),
+    ).toBe(false);
   });
 
   /* The pin is navigation state, not an answer, so the in-flight gate leaves
@@ -3575,6 +3581,9 @@ describe("DuelField", () => {
       `hand-zoom-overlay-${HAND_CARD_ID}`,
     );
     expect(handZoomOverlay()?.classList.contains("is-selected")).toBe(true);
+    expect(
+      handZoomOverlay()?.classList.contains("is-selection-candidate"),
+    ).toBe(true);
     expect(harness.getSession().selectedChoiceIds).toEqual(["select-first"]);
   });
 
