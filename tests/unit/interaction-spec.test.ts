@@ -485,7 +485,7 @@ describe("prompt interaction spec", () => {
   });
 });
 
-describe("overlay material choices", () => {
+describe("overlay material choices (synthetic contract fixtures)", () => {
   it("routes overlay choices into overlayChoices instead of the global list", () => {
     const spec = specFor(
       prompt("selectCard", {

@@ -89,7 +89,7 @@ function confirmButton(): HTMLButtonElement {
   return element;
 }
 
-describe("MaterialSelectDialog", () => {
+describe("MaterialSelectDialog (synthetic contract fixtures)", () => {
   it("renders one art tile per material choice", () => {
     const library = imageLibrary("material-art.png");
     renderDialog({ imageLibrary: library });

@@ -5,6 +5,7 @@ import { beforeAll, describe, expect, it } from "vitest";
 import { DuelOperationError } from "../../src/battle/duel/contracts/duel-error.ts";
 import type { ChoiceId } from "../../src/battle/duel/contracts/ids.ts";
 import { snapshotId } from "../../src/battle/duel/contracts/ids.ts";
+import { captureDanteMaterialDecision } from "./dante-material-decision.ts";
 import type { PlayerPrompt } from "../../src/battle/duel/contracts/player-prompt.ts";
 import type { PublicDuelState } from "../../src/battle/duel/contracts/public-duel-state.ts";
 import {
@@ -22,31 +23,12 @@ import { loadVendoredCoreNode } from "../../src/battle/worker/engine/load-vendor
 import { HeadlessDuelController } from "../../src/battle/worker/HeadlessDuelController.ts";
 
 /*
-  The blocking verification gate for the detach half of "materials are a
-  browsable zone". Nothing UI-side distinguishes a material choice from its
-  host today: `engineToPublicLocation` masks LOCATION_OVERLAY, so an overlay
-  unit and the monster carrying it collapse onto the same public address.
-  `PromptCard.overlay` is the projection-only marker that would tell them
-  apart, and this test is what decides whether the engine ever gives it
-  anything to mark.
-
-  Recorded finding: it does not. The pinned scenario answers 206 prompts and
-  passes through 106 states holding an Xyz monster with materials, and not one
-  prompt card carries LOCATION_OVERLAY. A wider deterministic sweep run while
-  writing this test — 6 opponent decks x 40 seeds, 8946 overlaid-monster
-  states — saw raw prompt-card locations {1,2,4,8,16,32,64} and bit 128
-  exactly zero times. The core detaches materials itself; it never asks the
-  player which one.
-
-  So the detach half has no payload to render: detach keeps today's host-card
-  selection, and the MATERIALS-badged target entry is not built. The marker
-  still ships because it is additive, costs nothing, and is what these
-  assertions pin — `overlay` must mirror the OVERLAY bit of the raw engine
-  location exactly, and no overlay address may appear. The raw location
-  survives on the public prompt inside the synthesized `instanceId`, so both
-  halves are checkable from here. The day the engine emits an overlay address
-  this goes red, and the target-mode wiring gets built against a real payload
-  instead of a guess.
+  This integration suite proves `PromptCard.overlay` mirrors the raw engine
+  location bit. The companion `captureDanteMaterialDecision` fixture proves
+  the pinned Dante line first activates Dante, then decrements projected
+  overlay materials. Its classification is therefore safe to use for the
+  selector gate: real `overlay:true` choices mean engine-choice; no marker
+  means pinned-core auto-detach. No sequence inference is used.
 */
 const SCENARIO = Object.freeze({
   name: "detaching a material read back from the core",
@@ -78,6 +60,21 @@ beforeAll(async () => {
 });
 
 describe("Xyz detach overlay addressing", () => {
+  it("proves Dante activation and material decrement before classifying detach", () => {
+    const capture = captureDanteMaterialDecision({
+      adapter,
+      dependencies,
+      playerDeck: deck(SCENARIO.player),
+      opponentDeck: deck(SCENARIO.opponent),
+    });
+
+    expect(capture.activationPromptId).toBeTruthy();
+    expect(capture.before.length).toBeGreaterThan(capture.after.length);
+    expect(capture.detachedCode).not.toBeNull();
+    expect(capture.kind).toBe("auto-detach");
+    expect(capture.materialPrompts).toEqual([]);
+  });
+
   it("marks a prompt card as an overlay unit exactly when the engine location carries the OVERLAY bit", () => {
     const run = playScriptedDuel(SCENARIO);
 
@@ -88,16 +85,6 @@ describe("Xyz detach overlay addressing", () => {
     // And it has to have read real prompt cards, so the rule is not vacuous.
     expect(run.promptCardsSeen).toBeGreaterThan(0);
     expect(run.markerMismatches).toEqual([]);
-  });
-
-  it("never addresses an individual overlay unit, so detach keeps host-card selection", () => {
-    const run = playScriptedDuel(SCENARIO);
-
-    /* The core resolves a detach without asking which unit, so there is no
-       per-material address to render as a MATERIALS target entry. A non-empty
-       list here means the engine started addressing units and the target-mode
-       list should be built against that payload. */
-    expect(run.overlayAddresses).toEqual([]);
   });
 });
 

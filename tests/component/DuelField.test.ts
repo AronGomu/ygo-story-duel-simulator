@@ -260,17 +260,23 @@ function overlayChoice(
   });
 }
 
-function activeSpec(value: PlayerPrompt): ActiveInteractionSpec {
-  const snapshot = BOARD_VIEW_MODEL_FIXTURES["ST-05"];
-  const valueBoard = board("ST-05");
+function activeSpec(
+  value: PlayerPrompt,
+  boardName: keyof typeof BOARD_VIEW_MODEL_FIXTURES = "ST-05",
+): ActiveInteractionSpec {
+  const snapshot = BOARD_VIEW_MODEL_FIXTURES[boardName];
+  const valueBoard = board(boardName);
   const spec = mapPromptToInteractionSpec(value, snapshot, valueBoard, CONTEXT);
   if (spec.kind === "inactive") throw new Error("Expected active field spec");
   return spec;
 }
 
-function renderInteractive(value: PlayerPrompt) {
-  const valueBoard = board("ST-05");
-  const spec = activeSpec(value);
+function renderInteractive(
+  value: PlayerPrompt,
+  boardName: keyof typeof BOARD_VIEW_MODEL_FIXTURES = "ST-05",
+) {
+  const valueBoard = board(boardName);
+  const spec = activeSpec(value, boardName);
   let session: InteractionSession = createInteractionSession(spec);
   const commands: string[][] = [];
   const dispatch = vi.fn(async (action: InteractionSessionAction) => {
@@ -5479,7 +5485,7 @@ function candidateZoneIds(): readonly string[] {
   );
 }
 
-describe("DuelField material selection", () => {
+describe("DuelField material selection (synthetic contract fixtures)", () => {
   it("mounts the visual dialog and submits its selected material through the interaction session", async () => {
     const user = userEvent.setup();
     const value = fieldPrompt(
@@ -5515,6 +5521,18 @@ describe("DuelField material selection", () => {
       "toggleChoice",
       "confirm",
     ]);
+  });
+
+  it("does not mount dialog from projected materials without engine choices", () => {
+    const harness = renderInteractive(
+      fieldPrompt("selectCard", [mountedChoice("projected-material", "Host")]),
+      "ST-07",
+    );
+
+    expect(harness.spec.overlayChoices.size).toBe(0);
+    expect(
+      document.querySelector('[data-cy="material-select-dialog"]'),
+    ).toBeNull();
   });
 
   it("submits an empty response when an optional material prompt is cancelled", async () => {

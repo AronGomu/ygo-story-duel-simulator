@@ -322,8 +322,8 @@ export function mapPromptToInteractionSpec(
     orderedIds.push(choice.id);
     /* T10: a material's engine address is its host's monster zone, so leaving
        it to resolve below would either answer as the host or fall through to
-       the text prompt list. Diverted before either, it reaches the player as
-       the visual dialog the detach cost needs. */
+       the text prompt list. Diverted before either, real engine choices reach
+       the visual dialog; auto-detach emits no choice. */
     if (kind === "cardSelection" && rawChoice.card?.overlay === true) {
       overlayEntries.set(choice.id, choice);
       continue;
