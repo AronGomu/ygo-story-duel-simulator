@@ -61,6 +61,8 @@
   export let fullControl = false;
   export let fullControlHeld = false;
   export let onfullcontrolchange: (value: boolean) => void = () => undefined;
+  export let endTurnArmed = false;
+  export let onendturnstart: () => void = () => undefined;
   export let contextMessage: readonly PromptMessageSegment[] = [];
 
   let shouldFail: boolean = injectFailure;
@@ -135,6 +137,8 @@
     {fullControl}
     {fullControlHeld}
     {onfullcontrolchange}
+    {endTurnArmed}
+    {onendturnstart}
     {contextMessage}
   />
 </svelte:boundary>

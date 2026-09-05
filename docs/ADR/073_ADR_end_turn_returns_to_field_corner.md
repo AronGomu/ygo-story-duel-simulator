@@ -1,7 +1,8 @@
 # ADR-073: End Turn returns to field corner
 
-> Status: accepted; planned
+> Status: accepted; implemented
 > Decided: 2026-09-04
+> Implemented: 2026-09-04 — `DuelField` renders sole screen-space `EndTurnButton`; `PhaseBar` renders phase chips only
 > Owners: browser presentation architecture
 > Supersedes: ADR-065 §3 (End-turn chip inside horizontal PhaseBar), ADR-062 §5 (End-turn chip treatment inside PhaseBar)
 > Relates: ADR-010 (engine-owned phase navigation), ADR-060 (screen-space controls outside perspective plane)

@@ -11,6 +11,7 @@
     type SnapshotId,
   } from "../duel/contracts/ids.ts";
   import type {
+    PlayerIndex,
     PublicCard,
     PublicDuelState,
   } from "../duel/contracts/public-duel-state.ts";
@@ -76,6 +77,10 @@
     type CardPreviewView,
   } from "./presentation/card-preview.ts";
   import { duelRailStatusFor } from "./presentation/duel-rail-status.ts";
+  import {
+    reduceEndTurnAutomation,
+    type EndTurnAutomationState,
+  } from "./presentation/end-turn-automation.ts";
   import { promptContextMessage } from "./presentation/prompt-context-message.ts";
   import { promptSurface } from "./prompts/prompt-surface.ts";
   import {
@@ -219,6 +224,11 @@
      player set. A blurred window never sees the keyup, so blur clears it. */
   let ctrlHeld = false;
   $: effectiveFullControl = $uiSettings.fullControl || ctrlHeld;
+  let endTurnAutomation: EndTurnAutomationState = {
+    status: "idle",
+    sessionGeneration: null,
+    lastDispatchedKey: null,
+  };
   let injectDuelFieldFailure = false;
   let diagnosticPending = false;
   /* Whether the trace the store is about to hand over is one the player asked
@@ -360,6 +370,16 @@
   );
   $: fieldInteractionSpec =
     mappedInteractionSpec.kind === "inactive" ? null : mappedInteractionSpec;
+  $: endTurnAutomationFinished =
+    $duel.result !== null ||
+    ($duel.status !== "active" && $duel.status !== "awaiting-input");
+  $: synchronizeEndTurnAutomation(
+    $duel.snapshot?.turnPlayer ?? 1,
+    endTurnAutomationFinished,
+    $duel.responsePending,
+    $duel.context.sessionGeneration,
+    fieldInteractionSpec,
+  );
   /* T16: the target list is joined here, once, from the same sanitized
      snapshot the board came from. `fieldInteractionSpec` is derived from
      `effectivePrompt`, so the layout-conflict gate still holds. */
@@ -616,6 +636,7 @@
     return () => {
       disposed = true;
       appDisposed = true;
+      resetEndTurnAutomation();
       deckListingGeneration += 1;
       stopBattleCompletionReports();
       imageAbortController?.abort(
@@ -713,6 +734,47 @@
   }
 
   $: startRequestedDuel(request, $duel.status, $duel.coreVersion);
+
+  function synchronizeEndTurnAutomation(
+    turnPlayer: PlayerIndex,
+    duelFinished: boolean,
+    responsePending: boolean,
+    sessionGeneration: number,
+    spec: typeof fieldInteractionSpec,
+  ): void {
+    const reduction = reduceEndTurnAutomation(endTurnAutomation, {
+      type: "sync",
+      input: {
+        turnPlayer,
+        duelFinished,
+        responsePending,
+        sessionGeneration,
+        spec,
+      },
+    });
+    if (reduction.state !== endTurnAutomation)
+      endTurnAutomation = reduction.state;
+    if (reduction.action !== null) duel.dispatchInteraction(reduction.action);
+  }
+
+  function startEndTurnAutomation(): void {
+    endTurnAutomation = reduceEndTurnAutomation(endTurnAutomation, {
+      type: "arm",
+    }).state;
+    synchronizeEndTurnAutomation(
+      $duel.snapshot?.turnPlayer ?? 1,
+      endTurnAutomationFinished,
+      $duel.responsePending,
+      $duel.context.sessionGeneration,
+      fieldInteractionSpec,
+    );
+  }
+
+  function resetEndTurnAutomation(): void {
+    endTurnAutomation = reduceEndTurnAutomation(endTurnAutomation, {
+      type: "reset",
+    }).state;
+  }
 
   $: maybeAutoResolvePrompt(
     effectivePrompt,
@@ -1554,6 +1616,8 @@
                 fullControl={$uiSettings.fullControl}
                 fullControlHeld={ctrlHeld}
                 onfullcontrolchange={uiSettings.setFullControl}
+                endTurnArmed={endTurnAutomation.status === "armed"}
+                onendturnstart={startEndTurnAutomation}
               />
             {/key}
           </div>

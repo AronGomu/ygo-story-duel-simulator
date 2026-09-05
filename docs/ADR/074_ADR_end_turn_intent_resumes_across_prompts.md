@@ -1,7 +1,8 @@
 # ADR-074: End Turn intent resumes across prompts
 
-> Status: accepted; planned
+> Status: accepted; implemented
 > Decided: 2026-09-04
+> Implemented: 2026-09-04 — `reduceEndTurnAutomation()` dedupes keyed exits, pauses on decisions, and resets on lifecycle boundaries
 > Owners: prompt architecture, browser presentation architecture
 > Relates: ADR-009 (conservative automatic prompt resolution), ADR-010 (engine-owned phase choices), ADR-073 (End Turn field placement)
 
