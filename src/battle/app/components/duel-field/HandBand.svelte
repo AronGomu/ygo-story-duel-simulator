@@ -123,7 +123,9 @@
         pinned={pinnedTarget === card.targetId}
         zoomServed={zoomServedTarget === card.targetId}
         dragged={draggedTarget === card.targetId}
-        fanDeg={fanDegFor(index, sortedCards.length)}
+        fanDeg={mirrored
+          ? -fanDegFor(index, sortedCards.length)
+          : fanDegFor(index, sortedCards.length)}
         droopPx={droopPxFor(index, sortedCards.length)}
         draggable={!disabled &&
           spec?.kind === "cardAction" &&

@@ -3389,6 +3389,14 @@ describe("DuelField", () => {
     ).toBeNull();
   });
 
+  it("projects legal halo onto hovered actionable hand card zoom", async () => {
+    renderDraggableHand({ singleChoice: true });
+    await fireEvent.pointerEnter(handCardArticle());
+
+    expect(handZoomOverlay()?.classList.contains("is-legal")).toBe(true);
+    expect(handZoomOverlay()?.classList.contains("is-selected")).toBe(false);
+  });
+
   /* Item 4: a pointer click on a hand card freezes its zoom and its action
      list where they stand instead of answering the prompt. Only a chip in
      that list — or a drag — commits the play. */
