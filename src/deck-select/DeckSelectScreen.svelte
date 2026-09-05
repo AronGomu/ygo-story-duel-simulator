@@ -152,6 +152,10 @@
     };
   });
 
+  onMount(() => {
+    filterField.focus();
+  });
+
   /* Probes always contain the full bars, so measuring them remains stable
      after compact markup replaces the overflowing controls. Observing both
      live bars and probes catches container resizes plus copy/count changes. */
@@ -236,6 +240,12 @@
   $: selectedTile = tileFor(tiles, selectedKey);
   $: menuTile = tileFor(tiles, menu === null ? null : menu.key);
   $: renameTile = tileFor(tiles, renaming);
+  $: renameUnavailableNames =
+    renameTile === null
+      ? []
+      : tiles
+          .filter((candidate) => candidate.key !== renameTile.key)
+          .map((candidate) => candidate.name);
   $: deleteTile = tileFor(tiles, deleting);
 
   /* While the opponent seat is the one being filled the grid answers their
@@ -483,9 +493,13 @@
 
   /* The footer buttons and the kebab items are two paths to one operation, so
      both raise the same dialog rather than each confirming its own way. */
+  function openRename(key: string): void {
+    renaming = key;
+  }
+
   function renameSelected(): void {
     if (selectedTile === null) return;
-    renaming = selectedTile.key;
+    openRename(selectedTile.key);
   }
 
   function deleteSelected(): void {
@@ -925,6 +939,7 @@
         yours={seat === "opponent" && candidate.key === playerDeck?.key}
         onpress={() => onselect(candidate.key)}
         ondblpress={() => openTile(candidate)}
+        onrename={manageable ? () => openRename(candidate.key) : null}
         canSetDefault={canSetDefault(candidate)}
         onsetdefault={() => onsetdefault(candidate.key)}
         showMenu={manageable}
@@ -1093,7 +1108,7 @@
     openDisabledReason={menuTile.bundled
       ? "Bundled deck: cannot be modified"
       : null}
-    onrename={() => (renaming = key)}
+    onrename={() => openRename(key)}
     onduplicate={() => onduplicate(key)}
     ondelete={() => (deleting = key)}
   />
@@ -1103,6 +1118,7 @@
   {@const key = renameTile.key}
   <RenameDeckDialog
     deckName={renameTile.name}
+    unavailableNames={renameUnavailableNames}
     oncancel={() => (renaming = null)}
     onsubmit={(name) => {
       onrename(key, name);

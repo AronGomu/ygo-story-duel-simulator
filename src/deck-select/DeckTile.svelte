@@ -11,6 +11,7 @@
   export let canSetDefault = true;
   export let onpress: () => void = () => undefined;
   export let ondblpress: () => void = () => undefined;
+  export let onrename: (() => void) | null = null;
   export let onsetdefault: () => void = () => undefined;
   /** Kebab pressed; anchor element passed so the menu can position. */
   export let onmenu: (anchor: HTMLElement) => void = () => undefined;
@@ -30,6 +31,22 @@
       ...(yours ? ["Yours"] : []),
     ]),
   ].join(" · ");
+  /* Keep visual tags unchanged while ensuring authoritative illegal reason is
+     spoken even when host meta omits it. */
+  $: accessibleTagLine = [
+    tagLine,
+    ...(tile.legal ||
+    tile.blockReason === null ||
+    tagLine.includes(tile.blockReason)
+      ? []
+      : [tile.blockReason]),
+  ]
+    .filter((tag) => tag.length > 0)
+    .join(" · ");
+  $: pressLabel = `Select ${tile.name}${
+    accessibleTagLine.length > 0 ? `, ${accessibleTagLine}` : ""
+  }`;
+  $: renameLabel = `Rename ${tile.name}`;
   /* A deck that fails validation cannot be picked, so the press surface itself
      carries the fact — the dimming is the sighted echo, never the source. */
   let failedArtUrls: readonly string[] = [];
@@ -62,6 +79,7 @@
     type="button"
     class="press"
     disabled={pressDisabled}
+    aria-label={pressLabel}
     onclick={() => onpress()}
     ondblclick={() => ondblpress()}
     data-cy={`deck-tile-press-${cyId}`}
@@ -100,13 +118,25 @@
         />
       </svg>
     {/if}
-    <span class="name text-backdrop" data-cy={`deck-tile-name-${cyId}`}
-      >{tile.name}</span
-    >
+    {#if onrename === null}
+      <span class="name text-backdrop" data-cy={`deck-tile-name-${cyId}`}
+        >{tile.name}</span
+      >
+    {/if}
     <span class="tag-line text-backdrop" data-cy={`deck-tile-tags-${cyId}`}
       >{tagLine}</span
     >
   </button>
+
+  {#if onrename !== null}
+    <button
+      type="button"
+      class="name text-backdrop"
+      aria-label={renameLabel}
+      onclick={() => onrename?.()}
+      data-cy={`deck-tile-name-${cyId}`}>{tile.name}</button
+    >
+  {/if}
 
   {#if canSetDefault}
     <button
@@ -284,6 +314,26 @@
     text-shadow:
       0 1px 2px var(--shadow),
       0 0 0.4rem var(--shadow);
+  }
+
+  button.name {
+    position: absolute;
+    z-index: 3;
+    top: 0;
+    left: 0;
+    min-height: 0;
+    border: 0;
+    color: inherit;
+    text-align: left;
+    cursor: pointer;
+  }
+
+  button.name:hover {
+    color: var(--selected);
+  }
+
+  button.name:hover:not(:disabled) {
+    background: color-mix(in srgb, var(--shadow) 65%, transparent);
   }
 
   .corner {
