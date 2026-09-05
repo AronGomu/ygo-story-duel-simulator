@@ -22,6 +22,49 @@
 
 * {
   box-sizing: border-box;
+  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+  scrollbar-width: thin;
+}
+
+*::-webkit-scrollbar {
+  width: 0.75rem;
+  height: 0.75rem;
+}
+
+*::-webkit-scrollbar-track {
+  border: 1px solid var(--scrollbar-border);
+  background: var(--scrollbar-track);
+}
+
+*::-webkit-scrollbar-thumb {
+  border: 2px solid var(--scrollbar-border);
+  border-radius: 999px;
+  background: var(--scrollbar-thumb);
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-thumb-hover);
+}
+
+*::-webkit-scrollbar-thumb:active {
+  background: var(--scrollbar-thumb-active);
+}
+
+@media (forced-colors: active) {
+  * {
+    scrollbar-color: auto;
+    scrollbar-width: auto;
+  }
+
+  *::-webkit-scrollbar-track {
+    border-color: Canvas;
+    background: Canvas;
+  }
+
+  *::-webkit-scrollbar-thumb {
+    border-color: Canvas;
+    background: CanvasText;
+  }
 }
 
 body {
@@ -2140,7 +2183,7 @@ button.duel-field-zone,
   overflow-y: hidden;
   overscroll-behavior-inline: contain;
   background: var(--surface-panel);
-  scrollbar-color: var(--scrollbar-thumb) var(--surface-sunken);
+  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
   scrollbar-width: thin;
 }
 
@@ -2148,17 +2191,46 @@ button.duel-field-zone,
   height: 12px;
 }
 .zone-list-dialog__entries::-webkit-scrollbar-track {
-  background: var(--surface-sunken);
+  border: 1px solid var(--scrollbar-border);
+  background: var(--scrollbar-track);
 }
 .zone-list-dialog__entries::-webkit-scrollbar-thumb {
-  border: 3px solid var(--surface-sunken);
+  border: 3px solid var(--scrollbar-border);
   border-radius: 999px;
   background: var(--scrollbar-thumb);
+}
+.zone-list-dialog__entries::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-thumb-hover);
+}
+.zone-list-dialog__entries::-webkit-scrollbar-thumb:active {
+  background: var(--scrollbar-thumb-active);
 }
 
 .zone-list-dialog__empty {
   margin: auto;
   color: var(--muted);
+}
+
+@media (forced-colors: active) {
+  .zone-list-dialog__entries {
+    scrollbar-color: auto;
+    scrollbar-width: auto;
+  }
+
+  .zone-list-dialog__entries::-webkit-scrollbar {
+    width: auto;
+    height: auto;
+  }
+
+  .zone-list-dialog__entries::-webkit-scrollbar-track {
+    border-color: Canvas;
+    background: Canvas;
+  }
+
+  .zone-list-dialog__entries::-webkit-scrollbar-thumb {
+    border-color: Canvas;
+    background: CanvasText;
+  }
 }
 
 .zone-list-entry {
@@ -2656,6 +2728,13 @@ button.duel-field-zone,
 
 .overlay-scrollbar.is-vertical .overlay-scrollbar__thumb {
   width: 100%;
+}
+
+@media (forced-colors: active) {
+  .overlay-scrollbar__thumb {
+    forced-color-adjust: none;
+    background: CanvasText;
+  }
 }
 
 /* Xyz materials fan out Duel Links style: each material is a full-size
