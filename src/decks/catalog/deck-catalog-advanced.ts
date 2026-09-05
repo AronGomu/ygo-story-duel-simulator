@@ -346,19 +346,8 @@ export function prepareAdvancedDeckCatalogIndex(
   }
   const order = new Array<number>(index.cards.length);
   let position = 0;
-  for (const prefix of [...buckets.keys()].sort()) {
-    const bucket = buckets.get(prefix)!;
-    bucket.sort((left, right) => {
-      const leftName = index.lowerNames[left]!;
-      const rightName = index.lowerNames[right]!;
-      return leftName < rightName
-        ? -1
-        : leftName > rightName
-          ? 1
-          : index.cards[left]!.code - index.cards[right]!.code;
-    });
-    for (const offset of bucket) order[position++] = offset;
-  }
+  for (const prefix of [...buckets.keys()].sort())
+    for (const offset of buckets.get(prefix)!) order[position++] = offset;
   const prepared = Object.freeze({ order: Object.freeze(order) });
   ADVANCED_INDEX.set(index, prepared);
   return prepared;

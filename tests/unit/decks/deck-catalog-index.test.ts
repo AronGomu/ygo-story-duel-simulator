@@ -288,6 +288,21 @@ describe("deck-catalog-index", () => {
     expect(counts).toEqual([0, 0, 0, 21]);
   });
 
+  it("falls back to exact English collation when raw name order differs", () => {
+    const source = ["a_b", "a-b", "Ä", "a"].map((name, offset) => ({
+      ...PROTOTYPE_CATALOG[0]!,
+      code: 90_000_000 + offset,
+      name,
+    }));
+    expect(
+      filterDeckCatalogIndex(
+        buildDeckCatalogIndex(source),
+        EMPTY_DECK_CATALOG_QUERY,
+        AVAILABLE,
+      ),
+    ).toEqual(independentFilter(source, EMPTY_DECK_CATALOG_QUERY, AVAILABLE));
+  });
+
   it("matches reference on small fixture with cross-category AND", () => {
     const options = catalogTypeOptions(PROTOTYPE_CATALOG);
     const filters = {

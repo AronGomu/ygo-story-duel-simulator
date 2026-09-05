@@ -13,6 +13,22 @@ import {
   type DeckCatalogIndex,
 } from "./deck-catalog-index-base.ts";
 
+function sortDeckCatalogCards(
+  cards: DeckBuilderCardView[],
+): DeckBuilderCardView[] {
+  cards.sort((left, right) =>
+    left.name < right.name
+      ? -1
+      : left.name > right.name
+        ? 1
+        : left.code - right.code,
+  );
+  for (let offset = 1; offset < cards.length; offset++)
+    if (compareDeckCatalogCards(cards[offset - 1]!, cards[offset]!) > 0)
+      return cards.sort(compareDeckCatalogCards);
+  return cards;
+}
+
 export {
   buildDeckCatalogIndex,
   filterQuickDeckCatalogIndex,
@@ -53,5 +69,5 @@ export function filterDeckCatalogIndex(
     if (matchesAdvanced !== null && !matchesAdvanced(card)) continue;
     out.push(card);
   }
-  return Object.freeze(out.sort(compareDeckCatalogCards));
+  return Object.freeze(sortDeckCatalogCards(out));
 }
