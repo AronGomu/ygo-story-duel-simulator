@@ -1,11 +1,11 @@
 import type { DeckBuilderCardView } from "./ocg-card-mapper.ts";
 import {
   EMPTY_ADVANCED_DECK_CATALOG_FILTERS,
-  cardMatchesAdvancedFilters,
   cardNameMatches,
-  compareDeckCatalogCards,
+  compileAdvancedDeckCatalogMatcher,
   type AdvancedDeckCatalogFilters,
 } from "./deck-catalog-advanced.ts";
+import { compareDeckCatalogCards } from "./deck-catalog-index-base.ts";
 import {
   EMPTY_CATALOG_FILTERS,
   cardMatchesCatalogType,
@@ -19,7 +19,6 @@ export {
   cardMatchesAdvancedFilters,
   cardNameMatches,
   cardTextMatches,
-  compareDeckCatalogCards,
   matchesNumericCriterion,
   numericCriterionError,
   type AdvancedDeckCatalogFilters,
@@ -33,6 +32,7 @@ export {
   type SummonFrame,
   type TrapProperty,
 } from "./deck-catalog-advanced.ts";
+export { compareDeckCatalogCards } from "./deck-catalog-index-base.ts";
 
 export interface DeckCatalogQuery extends DeckCatalogFilters {
   readonly advanced: AdvancedDeckCatalogFilters;
@@ -48,6 +48,7 @@ export function filterDeckCatalog(
   query: DeckCatalogQuery,
   isAvailable: (card: DeckBuilderCardView) => boolean,
 ): readonly DeckBuilderCardView[] {
+  const matchesAdvanced = compileAdvancedDeckCatalogMatcher(query.advanced);
   return Object.freeze(
     cards
       .filter(
@@ -55,7 +56,7 @@ export function filterDeckCatalog(
           isAvailable(card) &&
           cardNameMatches(card.name, query.name, query.advanced.nameMatch) &&
           query.types.every((tag) => cardMatchesCatalogType(card, tag)) &&
-          cardMatchesAdvancedFilters(card, query.advanced),
+          matchesAdvanced(card),
       )
       .sort(compareDeckCatalogCards),
   );

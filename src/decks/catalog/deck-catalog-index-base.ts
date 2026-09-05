@@ -10,27 +10,22 @@ export interface DeckCatalogIndex {
 }
 
 const COLLATOR = new Intl.Collator("en", { sensitivity: "base" });
-const CACHE = new WeakMap<readonly DeckBuilderCardView[], DeckCatalogIndex>();
+
+export function compareDeckCatalogCards(
+  left: DeckBuilderCardView,
+  right: DeckBuilderCardView,
+): number {
+  return COLLATOR.compare(left.name, right.name) || left.code - right.code;
+}
 
 export function buildDeckCatalogIndex(
-  cards: readonly DeckBuilderCardView[],
+  source: readonly DeckBuilderCardView[],
 ): DeckCatalogIndex {
-  const cached = CACHE.get(cards);
-  if (cached !== undefined) return cached;
-  const sorted = Object.freeze(
-    [...cards].sort(
-      (left, right) =>
-        COLLATOR.compare(left.name, right.name) || left.code - right.code,
-    ),
-  );
-  const index = Object.freeze({
-    cards: sorted,
-    lowerNames: Object.freeze(
-      sorted.map((card) => card.name.toLocaleLowerCase()),
-    ),
+  const cards = [...source];
+  return Object.freeze({
+    cards: Object.freeze(cards),
+    lowerNames: Object.freeze(cards.map((card) => card.name.toLowerCase())),
   });
-  CACHE.set(cards, index);
-  return index;
 }
 
 export function filterQuickDeckCatalogIndex(
@@ -38,7 +33,7 @@ export function filterQuickDeckCatalogIndex(
   filters: DeckCatalogFilters,
   isAvailable: (card: DeckBuilderCardView) => boolean,
 ): readonly DeckBuilderCardView[] {
-  const name = filters.name.trim().toLocaleLowerCase();
+  const name = filters.name.trim().toLowerCase();
   const out: DeckBuilderCardView[] = [];
   cardLoop: for (let offset = 0; offset < index.cards.length; offset++) {
     const card = index.cards[offset]!;
@@ -48,5 +43,5 @@ export function filterQuickDeckCatalogIndex(
       if (!cardMatchesCatalogType(card, tag)) continue cardLoop;
     out.push(card);
   }
-  return Object.freeze(out);
+  return Object.freeze(out.sort(compareDeckCatalogCards));
 }

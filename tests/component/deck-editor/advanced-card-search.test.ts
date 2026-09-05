@@ -177,5 +177,26 @@ describe("AdvancedCardSearch", () => {
       "1000",
     );
     expect(screen.getByText("Minimum must not exceed maximum.")).not.toBeNull();
+
+    await user.selectOptions(
+      document.querySelector<HTMLSelectElement>(
+        '[data-cy="advanced-link-rating-operator"]',
+      )!,
+      "eq",
+    );
+    await user.type(
+      document.querySelector<HTMLInputElement>(
+        '[data-cy="advanced-link-rating-value"]',
+      )!,
+      "0",
+    );
+    expect(screen.getAllByText("Enter a valid value.").length).toBeGreaterThan(
+      0,
+    );
+    expect(
+      document
+        .querySelector('[data-cy="advanced-link-rating-field"]')
+        ?.getAttribute("aria-describedby"),
+    ).toBe("advanced-link-rating-error");
   });
 });

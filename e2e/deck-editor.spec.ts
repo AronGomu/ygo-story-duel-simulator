@@ -1332,7 +1332,7 @@ test("quick Types density and card-name entry focus", async ({ page }) => {
   ).toBeGreaterThanOrEqual(4);
 });
 
-test("advanced search overlays exact workspace bounds with live filters and focus restore", async ({
+test("advanced search owns workspace geometry, modality and live close semantics", async ({
   page,
 }) => {
   await page.setViewportSize({ width: 1440, height: 810 });
@@ -1344,29 +1344,56 @@ test("advanced search overlays exact workspace bounds with live filters and focu
   await page.locator('[data-cy="deck-library-create-submit"]').click();
 
   const trigger = page.locator('[data-cy="deck-catalog-advanced-search"]');
-  await expect(page.locator('[data-cy="advanced-search-dialog"]')).toHaveCount(
-    0,
-  );
-  await trigger.click();
-
   const dialog = page.locator('[data-cy="advanced-search-dialog"]');
-  const workspace = page.locator('[data-cy="deck-workspace"]');
+  const assertBounds = async (targetCy: string) => {
+    await expect
+      .poll(async () => {
+        const [target, overlay] = await Promise.all([
+          page.locator(`[data-cy="${targetCy}"]`).boundingBox(),
+          dialog.boundingBox(),
+        ]);
+        if (target === null || overlay === null)
+          return Number.POSITIVE_INFINITY;
+        return Math.max(
+          ...(["x", "y", "width", "height"] as const).map((key) =>
+            Math.abs(target[key] - overlay[key]),
+          ),
+        );
+      })
+      .toBeLessThanOrEqual(1);
+  };
+
+  await expect(dialog).toHaveCount(0);
+  await trigger.click();
   await expect(dialog).toBeVisible();
   await expect(page.locator('[data-cy="advanced-search-close"]')).toBeFocused();
-  const geometry = await Promise.all([
-    workspace.boundingBox(),
-    dialog.boundingBox(),
-  ]);
-  expect(geometry[0]).not.toBeNull();
-  expect(geometry[1]).not.toBeNull();
-  for (const key of ["x", "y", "width", "height"] as const)
-    expect(Math.abs(geometry[0]![key] - geometry[1]![key])).toBeLessThanOrEqual(
-      1,
-    );
   await expect(page.locator('[data-cy="advanced-search-veil"]')).toHaveCSS(
     "opacity",
     "0.34",
   );
+  for (const viewport of [
+    { width: 1024, height: 768 },
+    { width: 1440, height: 810 },
+    { width: 1920, height: 1080 },
+  ]) {
+    await page.setViewportSize(viewport);
+    await assertBounds("deck-workspace");
+  }
+
+  const outside = await page
+    .locator('[data-cy="deck-name-input"]')
+    .boundingBox();
+  expect(outside).not.toBeNull();
+  await page.mouse.click(
+    outside!.x + outside!.width / 2,
+    outside!.y + outside!.height / 2,
+  );
+  expect(
+    await page.evaluate(() =>
+      document.querySelector(":modal")?.contains(document.activeElement),
+    ),
+    "native modal must keep outside editor controls inert",
+  ).toBe(true);
 
   const initialCount = Number(
     await page
@@ -1388,15 +1415,38 @@ test("advanced search overlays exact workspace bounds with live filters and focu
       ),
     )
     .toBeLessThan(initialCount);
-  await expect
-    .poll(async () =>
-      Number(
-        await page
-          .locator('[data-cy="advanced-search-result-value"]')
-          .textContent(),
-      ),
-    )
-    .toBeGreaterThan(0);
+  const filteredCount = Number(
+    await page
+      .locator('[data-cy="advanced-search-result-value"]')
+      .textContent(),
+  );
+  expect(filteredCount).toBeGreaterThan(0);
+  await expect(
+    page.locator('[data-cy="deck-catalog-results"] > .card-tile'),
+  ).toHaveCount(filteredCount);
+
+  await page.locator('[data-cy="advanced-search-close"]').click();
+  await expect(dialog).toHaveCount(0);
+  await expect(trigger).toBeFocused();
+  await expect(page.locator('[data-cy="deck-catalog-name-input"]')).toHaveValue(
+    "Dark Magician",
+  );
+  await expect(
+    page.locator('[data-cy="deck-catalog-results"] > .card-tile'),
+  ).toHaveCount(filteredCount);
+
+  await trigger.click();
+  await page.keyboard.press("Escape");
+  await expect(dialog).toHaveCount(0);
+  await expect(trigger).toBeFocused();
+  await expect(page.locator('[data-cy="deck-catalog-name-input"]')).toHaveValue(
+    "Dark Magician",
+  );
+
+  await page.setViewportSize({ width: 800, height: 1000 });
+  await page.locator('[data-cy="deck-tab-catalog"]').click();
+  await trigger.click();
+  await assertBounds("deck-editor-layout");
   await page.locator('[data-cy="advanced-search-reset"]').click();
   await expect(dialog).toBeVisible();
   await page.locator('[data-cy="advanced-search-apply"]').click();

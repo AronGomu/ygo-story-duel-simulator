@@ -1,3 +1,7 @@
+import {
+  compareDeckCatalogCards,
+  type DeckCatalogIndex,
+} from "./deck-catalog-index-base.ts";
 import type { DeckBuilderCardView } from "./ocg-card-mapper.ts";
 
 export type NameMatch = "contains" | "exact" | "starts-with" | "exclude";
@@ -221,21 +225,31 @@ function textTerms(query: string): readonly TextTerm[] {
   return terms;
 }
 
-export function cardTextMatches(description: string, query: string): boolean {
-  const haystack = description.toLocaleLowerCase();
-  return textTerms(query).every(({ exclude, value }) =>
-    exclude ? !haystack.includes(value) : haystack.includes(value),
+function normalizedTextMatches(
+  description: string,
+  terms: readonly TextTerm[],
+): boolean {
+  return terms.every(({ exclude, value }) =>
+    exclude ? !description.includes(value) : description.includes(value),
   );
+}
+
+export function cardTextMatches(description: string, query: string): boolean {
+  return normalizedTextMatches(description.toLowerCase(), textTerms(query));
 }
 
 export function numericCriterionError(
   criterion: NumericCriterion | null,
+  minimum = Number.NEGATIVE_INFINITY,
+  maximum = Number.POSITIVE_INFINITY,
 ): "Enter a valid value." | "Minimum must not exceed maximum." | null {
   if (criterion === null) return null;
   if (criterion.op === "range") {
     if (
-      (criterion.min !== null && !Number.isFinite(criterion.min)) ||
-      (criterion.max !== null && !Number.isFinite(criterion.max)) ||
+      (criterion.min !== null &&
+        (!Number.isFinite(criterion.min) || criterion.min < minimum)) ||
+      (criterion.max !== null &&
+        (!Number.isFinite(criterion.max) || criterion.max > maximum)) ||
       (criterion.min === null && criterion.max === null)
     )
       return "Enter a valid value.";
@@ -247,7 +261,11 @@ export function numericCriterionError(
       return "Minimum must not exceed maximum.";
     return null;
   }
-  return Number.isFinite(criterion.value) ? null : "Enter a valid value.";
+  return Number.isFinite(criterion.value) &&
+    criterion.value >= minimum &&
+    criterion.value <= maximum
+    ? null
+    : "Enter a valid value.";
 }
 
 export function matchesNumericCriterion(
@@ -293,9 +311,10 @@ function markerRuleMatches(
   cardMarkers: readonly string[],
   selected: readonly string[],
   rule: LinkMarkerRule,
+  markerSet?: ReadonlySet<string>,
 ): boolean {
   if (selected.length === 0) return true;
-  const actual = new Set(cardMarkers);
+  const actual = markerSet ?? new Set(cardMarkers);
   switch (rule) {
     case "any":
       return selected.some((marker) => actual.has(marker));
@@ -309,91 +328,140 @@ function markerRuleMatches(
   }
 }
 
+interface IndexedAdvancedCard {
+  readonly description: string;
+  readonly subtypes: ReadonlySet<string>;
+  readonly linkMarkers: ReadonlySet<string>;
+}
+
+interface PreparedAdvancedDeckCatalogIndex {
+  readonly cards: readonly IndexedAdvancedCard[];
+  readonly order: readonly number[];
+}
+
+const ADVANCED_INDEX = new WeakMap<
+  DeckCatalogIndex,
+  PreparedAdvancedDeckCatalogIndex
+>();
+
+export function prepareAdvancedDeckCatalogIndex(
+  index: DeckCatalogIndex,
+): PreparedAdvancedDeckCatalogIndex {
+  const cached = ADVANCED_INDEX.get(index);
+  if (cached !== undefined) return cached;
+  const prepared = Object.freeze({
+    cards: Object.freeze(
+      index.cards.map((card) =>
+        Object.freeze({
+          description: card.description.toLowerCase(),
+          subtypes: new Set(card.subtypes),
+          linkMarkers: new Set(card.linkMarkers),
+        }),
+      ),
+    ),
+    order: Object.freeze(
+      index.cards
+        .map((_, offset) => offset)
+        .sort((left, right) =>
+          compareDeckCatalogCards(index.cards[left]!, index.cards[right]!),
+        ),
+    ),
+  });
+  ADVANCED_INDEX.set(index, prepared);
+  return prepared;
+}
+
+export function compileAdvancedDeckCatalogMatcher(
+  filters: AdvancedDeckCatalogFilters,
+): (card: DeckBuilderCardView, indexed?: IndexedAdvancedCard) => boolean {
+  const codeText = filters.code.trim();
+  const code = /^\d{8}$/u.test(codeText) ? Number(codeText) : null;
+  const terms = textTerms(filters.text);
+  const invalidNumeric =
+    numericCriterionError(filters.attack) !== null ||
+    numericCriterionError(filters.defense) !== null ||
+    numericCriterionError(filters.levelRank, 0, 13) !== null ||
+    numericCriterionError(filters.linkRating, 1, 8) !== null ||
+    numericCriterionError(filters.pendulumScale, 0, 13) !== null;
+  if (invalidNumeric) return () => false;
+
+  return (card, indexed) => {
+    const description = indexed?.description ?? card.description.toLowerCase();
+    const hasSubtype = (value: string) =>
+      indexed?.subtypes.has(value) ?? card.subtypes.includes(value);
+    if (code !== null && card.code !== code) return false;
+    if (!normalizedTextMatches(description, terms)) return false;
+    if (filters.family !== null && card.family !== filters.family) return false;
+    if (filters.attribute !== null && card.attribute !== filters.attribute)
+      return false;
+    if (filters.race !== null && card.race !== filters.race) return false;
+    if (filters.summonFrame !== null && !hasSubtype(filters.summonFrame))
+      return false;
+    if (!filters.traits.every(hasSubtype)) return false;
+    if (
+      filters.attack !== null &&
+      (card.attack === null ||
+        (card.attack < 0 && !filters.includeUnknownAttackDefense) ||
+        !matchesNumericCriterion(card.attack, filters.attack))
+    )
+      return false;
+    if (
+      filters.defense !== null &&
+      (card.defense === null ||
+        (card.defense < 0 && !filters.includeUnknownAttackDefense) ||
+        !matchesNumericCriterion(card.defense, filters.defense))
+    )
+      return false;
+    if (
+      filters.levelRank !== null &&
+      (card.levelRankLink === null ||
+        (card.ratingLabel !== "Level" && card.ratingLabel !== "Rank") ||
+        !matchesNumericCriterion(card.levelRankLink, filters.levelRank))
+    )
+      return false;
+    if (
+      filters.linkRating !== null &&
+      (card.ratingLabel !== "Link" ||
+        card.levelRankLink === null ||
+        !matchesNumericCriterion(card.levelRankLink, filters.linkRating))
+    )
+      return false;
+    if (
+      filters.pendulumScale !== null &&
+      (card.pendulumScales === null ||
+        !card.pendulumScales.some((value) =>
+          matchesNumericCriterion(value, filters.pendulumScale),
+        ))
+    )
+      return false;
+    if (
+      filters.spellProperty !== null &&
+      (card.family !== "spell" || spellProperty(card) !== filters.spellProperty)
+    )
+      return false;
+    if (
+      filters.trapProperty !== null &&
+      (card.family !== "trap" || trapProperty(card) !== filters.trapProperty)
+    )
+      return false;
+    if (
+      filters.linkMarkers.length > 0 &&
+      (card.ratingLabel !== "Link" ||
+        !markerRuleMatches(
+          card.linkMarkers,
+          filters.linkMarkers,
+          filters.linkMarkerRule,
+          indexed?.linkMarkers,
+        ))
+    )
+      return false;
+    return true;
+  };
+}
+
 export function cardMatchesAdvancedFilters(
   card: DeckBuilderCardView,
   filters: AdvancedDeckCatalogFilters,
 ): boolean {
-  const code = filters.code.trim();
-  if (/^\d{8}$/u.test(code) && card.code !== Number(code)) return false;
-  if (!cardTextMatches(card.description, filters.text)) return false;
-  if (filters.family !== null && card.family !== filters.family) return false;
-  if (filters.attribute !== null && card.attribute !== filters.attribute)
-    return false;
-  if (filters.race !== null && card.race !== filters.race) return false;
-  if (
-    filters.summonFrame !== null &&
-    !card.subtypes.includes(filters.summonFrame)
-  )
-    return false;
-  if (!filters.traits.every((trait) => card.subtypes.includes(trait)))
-    return false;
-  if (
-    filters.attack !== null &&
-    (card.attack === null ||
-      (card.attack < 0 && !filters.includeUnknownAttackDefense) ||
-      !matchesNumericCriterion(card.attack, filters.attack))
-  )
-    return false;
-  if (
-    filters.defense !== null &&
-    (card.defense === null ||
-      (card.defense < 0 && !filters.includeUnknownAttackDefense) ||
-      !matchesNumericCriterion(card.defense, filters.defense))
-  )
-    return false;
-  if (
-    filters.levelRank !== null &&
-    (card.levelRankLink === null ||
-      (card.ratingLabel !== "Level" && card.ratingLabel !== "Rank") ||
-      !matchesNumericCriterion(card.levelRankLink, filters.levelRank))
-  )
-    return false;
-  if (
-    filters.linkRating !== null &&
-    (card.ratingLabel !== "Link" ||
-      card.levelRankLink === null ||
-      !matchesNumericCriterion(card.levelRankLink, filters.linkRating))
-  )
-    return false;
-  if (
-    filters.pendulumScale !== null &&
-    (card.pendulumScales === null ||
-      !card.pendulumScales.some((value) =>
-        matchesNumericCriterion(value, filters.pendulumScale),
-      ))
-  )
-    return false;
-  if (
-    filters.spellProperty !== null &&
-    (card.family !== "spell" || spellProperty(card) !== filters.spellProperty)
-  )
-    return false;
-  if (
-    filters.trapProperty !== null &&
-    (card.family !== "trap" || trapProperty(card) !== filters.trapProperty)
-  )
-    return false;
-  if (
-    filters.linkMarkers.length > 0 &&
-    (card.ratingLabel !== "Link" ||
-      !markerRuleMatches(
-        card.linkMarkers,
-        filters.linkMarkers,
-        filters.linkMarkerRule,
-      ))
-  )
-    return false;
-  return true;
-}
-
-const ENGLISH_NAME_COLLATOR = new Intl.Collator("en", { sensitivity: "base" });
-
-export function compareDeckCatalogCards(
-  left: DeckBuilderCardView,
-  right: DeckBuilderCardView,
-): number {
-  return (
-    ENGLISH_NAME_COLLATOR.compare(left.name, right.name) ||
-    left.code - right.code
-  );
+  return compileAdvancedDeckCatalogMatcher(filters)(card);
 }

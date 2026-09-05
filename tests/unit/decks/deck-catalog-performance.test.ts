@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { prepareAdvancedDeckCatalogIndex } from "../../../src/decks/catalog/deck-catalog-advanced.ts";
 import {
   buildDeckCatalogIndex,
   filterDeckCatalogIndex,
@@ -99,9 +100,18 @@ describe("catalog performance budgets", () => {
      de-duplicating pass over 15k codes turns into the moment it reaches for
      `Array.prototype.includes` instead of a `Set`: measured at 34-43 ms, or
      120x the linear build, and the old 400 ms ceiling waved it through. */
-  it("building the index stays under budget (best of 20 runs)", () => {
-    const best = bestOf(20, () => buildDeckCatalogIndex(CARDS_15K));
-    // measured: 0.26-0.38ms best-of-20 at n=15,000; budget rejects a 10x regression
+  it("building fresh indexes stays under budget (best of 20 runs)", () => {
+    const inputs = Array.from({ length: 20 }, () =>
+      CARDS_15K.map((card) => ({ ...card })),
+    );
+    const indexes: unknown[] = [];
+    let run = 0;
+    const best = bestOf(20, () => {
+      const index = buildDeckCatalogIndex(inputs[run++]!);
+      indexes.push(index);
+      if (index.lowerNames.length !== 15_000) throw new Error("empty workload");
+    });
+    expect(new Set(indexes).size).toBe(20);
     expect(best).toBeLessThan(2.5);
   });
 
@@ -112,6 +122,7 @@ describe("catalog performance budgets", () => {
      the empty branch. */
   it("a name search stays under budget (best of 20 runs)", () => {
     const index = buildDeckCatalogIndex(CARDS_15K);
+    prepareAdvancedDeckCatalogIndex(index);
     const filters = { ...EMPTY_DECK_CATALOG_QUERY, name: "dragon" };
     expect(filterDeckCatalogIndex(index, filters, AVAILABLE)).toHaveLength(
       1_875,
@@ -132,6 +143,7 @@ describe("catalog performance budgets", () => {
      indexed path is still worth being on. */
   it("the indexed search beats the unindexed reference implementation", () => {
     const index = buildDeckCatalogIndex(CARDS_15K);
+    prepareAdvancedDeckCatalogIndex(index);
     const filters = { ...EMPTY_DECK_CATALOG_QUERY, name: "dragon" };
     const indexed = bestOf(20, () =>
       filterDeckCatalogIndex(index, filters, AVAILABLE),
@@ -145,6 +157,7 @@ describe("catalog performance budgets", () => {
 
   it("a multi-tag query stays under budget (best of 20 runs)", () => {
     const index = buildDeckCatalogIndex(CARDS_15K);
+    prepareAdvancedDeckCatalogIndex(index);
     const options = catalogTypeOptions(CARDS_15K);
     const filters = {
       ...EMPTY_DECK_CATALOG_QUERY,
@@ -162,18 +175,39 @@ describe("catalog performance budgets", () => {
     expect(best).toBeLessThan(2.5);
   });
 
-  it("a worst supported combined query stays under budget (best of 20 runs)", () => {
+  it("a representative text query stays under budget (best of 20 runs)", () => {
     const index = buildDeckCatalogIndex(CARDS_15K);
+    prepareAdvancedDeckCatalogIndex(index);
     const filters = {
       ...EMPTY_DECK_CATALOG_QUERY,
-      name: "dragon",
       advanced: {
         ...EMPTY_DECK_CATALOG_QUERY.advanced,
-        text: "effect",
+        text: "monster",
+      },
+    };
+    expect(filterDeckCatalogIndex(index, filters, AVAILABLE).length).toBe(
+      8_125,
+    );
+    const best = bestOf(20, () =>
+      filterDeckCatalogIndex(index, filters, AVAILABLE),
+    );
+    expect(best).toBeLessThan(5);
+  });
+
+  it("a worst supported combined query stays under budget (best of 20 runs)", () => {
+    const index = buildDeckCatalogIndex(CARDS_15K);
+    prepareAdvancedDeckCatalogIndex(index);
+    const filters = {
+      ...EMPTY_DECK_CATALOG_QUERY,
+      advanced: {
+        ...EMPTY_DECK_CATALOG_QUERY.advanced,
+        text: 'monster -"special summon"',
         family: "monster" as const,
         attack: { op: "gte" as const, value: 0 },
       },
     };
+    const count = filterDeckCatalogIndex(index, filters, AVAILABLE).length;
+    expect(count).toBeGreaterThan(0);
     const best = bestOf(20, () =>
       filterDeckCatalogIndex(index, filters, AVAILABLE),
     );

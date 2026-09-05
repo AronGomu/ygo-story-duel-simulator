@@ -1,15 +1,16 @@
 <script lang="ts">
   import { onDestroy, onMount, tick } from "svelte";
-  import type {
-    AdvancedDeckCatalogFilters,
-    AdvancedDeckCatalogOptions,
-    CardTrait,
-    DeckCatalogQuery,
-    LinkMarkerRule,
-    NameMatch,
-    SpellProperty,
-    SummonFrame,
-    TrapProperty,
+  import {
+    EMPTY_DECK_CATALOG_QUERY,
+    type AdvancedDeckCatalogFilters,
+    type AdvancedDeckCatalogOptions,
+    type CardTrait,
+    type DeckCatalogQuery,
+    type LinkMarkerRule,
+    type NameMatch,
+    type SpellProperty,
+    type SummonFrame,
+    type TrapProperty,
   } from "../../decks/catalog/deck-catalog.ts";
   import { handleModalKeydown } from "../focus-trap.ts";
   import AdvancedCheckboxGroup from "./AdvancedCheckboxGroup.svelte";
@@ -22,6 +23,10 @@
   export let onchange: (filters: DeckCatalogQuery) => void;
   export let onreset: () => void;
   export let onclose: () => void;
+
+  export function setResultCount(next: number): void {
+    resultCount = next;
+  }
 
   let dialog: HTMLDialogElement | null = null;
   let closeButton: HTMLButtonElement | null = null;
@@ -70,6 +75,11 @@
     };
   }
 
+  function measureAfterLayout(): void {
+    measure();
+    void tick().then(measure);
+  }
+
   onMount(async () => {
     measure();
     const target = overlayTarget();
@@ -77,7 +87,7 @@
       observer = new ResizeObserver(measure);
       observer.observe(target);
     }
-    window.addEventListener("resize", measure);
+    window.addEventListener("resize", measureAfterLayout);
     dialog?.showModal();
     await tick();
     closeButton?.focus();
@@ -85,19 +95,31 @@
 
   onDestroy(() => {
     observer?.disconnect();
-    window.removeEventListener("resize", measure);
+    window.removeEventListener("resize", measureAfterLayout);
     if (dialog?.open) dialog.close();
+    document
+      .querySelector<HTMLButtonElement>(
+        '[data-cy="deck-catalog-advanced-search"]',
+      )
+      ?.focus();
   });
 
   function update(next: Partial<DeckCatalogQuery>): void {
-    onchange({ ...filters, ...next });
+    filters = { ...filters, ...next };
+    onchange(filters);
   }
 
   function updateAdvanced(next: Partial<AdvancedDeckCatalogFilters>): void {
-    onchange({
+    filters = {
       ...filters,
       advanced: { ...filters.advanced, ...next },
-    });
+    };
+    onchange(filters);
+  }
+
+  function reset(): void {
+    filters = EMPTY_DECK_CATALOG_QUERY;
+    onreset();
   }
 </script>
 
@@ -264,18 +286,24 @@
             id="level-rank"
             label="Level / Rank"
             criterion={filters.advanced.levelRank}
+            allowedMin={0}
+            allowedMax={13}
             onchange={(levelRank) => updateAdvanced({ levelRank })}
           />
           <NumericCriterionField
             id="link-rating"
             label="Link Rating"
             criterion={filters.advanced.linkRating}
+            allowedMin={1}
+            allowedMax={8}
             onchange={(linkRating) => updateAdvanced({ linkRating })}
           />
           <NumericCriterionField
             id="pendulum-scale"
             label="Pendulum Scale"
             criterion={filters.advanced.pendulumScale}
+            allowedMin={0}
+            allowedMax={13}
             onchange={(pendulumScale) => updateAdvanced({ pendulumScale })}
           />
           <label class="check" data-cy="advanced-search-unknown-stats-field">
@@ -370,7 +398,7 @@
         type="button"
         class="secondary"
         data-cy="advanced-search-reset"
-        onclick={onreset}>Reset</button
+        onclick={reset}>Reset</button
       >
       <button type="button" data-cy="advanced-search-apply" onclick={onclose}
         >Apply filters</button

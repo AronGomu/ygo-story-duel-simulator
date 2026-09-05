@@ -1,6 +1,9 @@
 import type { DeckBuilderCardView } from "./ocg-card-mapper.ts";
 import {
-  cardMatchesAdvancedFilters,
+  compileAdvancedDeckCatalogMatcher,
+  prepareAdvancedDeckCatalogIndex,
+} from "./deck-catalog-advanced.ts";
+import {
   cardMatchesCatalogType,
   type DeckCatalogQuery,
 } from "./deck-catalog.ts";
@@ -14,10 +17,9 @@ export {
 
 function indexedNameMatches(
   value: string,
-  query: string,
+  needle: string,
   mode: DeckCatalogQuery["advanced"]["nameMatch"],
 ): boolean {
-  const needle = query.trim().toLocaleLowerCase();
   if (needle.length === 0) return true;
   switch (mode) {
     case "contains":
@@ -36,22 +38,24 @@ export function filterDeckCatalogIndex(
   query: DeckCatalogQuery,
   isAvailable: (card: DeckBuilderCardView) => boolean,
 ): readonly DeckBuilderCardView[] {
-  const { cards, lowerNames } = index;
+  const needle = query.name.trim().toLowerCase();
+  const matchesAdvanced = compileAdvancedDeckCatalogMatcher(query.advanced);
+  const advanced = prepareAdvancedDeckCatalogIndex(index);
   const out: DeckBuilderCardView[] = [];
-  cardLoop: for (let offset = 0; offset < cards.length; offset++) {
-    const card = cards[offset]!;
+  cardLoop: for (const offset of advanced.order) {
+    const card = index.cards[offset]!;
     if (!isAvailable(card)) continue;
     if (
       !indexedNameMatches(
-        lowerNames[offset]!,
-        query.name,
+        index.lowerNames[offset]!,
+        needle,
         query.advanced.nameMatch,
       )
     )
       continue;
     for (const tag of query.types)
       if (!cardMatchesCatalogType(card, tag)) continue cardLoop;
-    if (!cardMatchesAdvancedFilters(card, query.advanced)) continue;
+    if (!matchesAdvanced(card, advanced.cards[offset]!)) continue;
     out.push(card);
   }
   return Object.freeze(out);

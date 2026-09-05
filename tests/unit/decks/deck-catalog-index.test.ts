@@ -46,28 +46,47 @@ describe("deck-catalog-index", () => {
     });
   }
 
-  it("matches reference for generated advanced queries and availability", () => {
-    const advancedQueries = [
-      { nameMatch: "exclude" as const, text: "dragon" },
-      {
-        family: "monster" as const,
-        attack: { op: "gte" as const, value: 2000 },
-      },
-      {
-        summonFrame: "Link" as const,
-        linkMarkerRule: "any" as const,
-        linkMarkers: ["Bottom"],
-      },
-      { restriction: 1 as const },
+  it("matches reference across generated advanced queries and availability", () => {
+    const cases: readonly Partial<DeckCatalogQuery["advanced"]>[] = [
+      { nameMatch: "exclude", text: "dragon" },
+      { text: 'monster -"special summon"' },
+      { code: "89631139" },
+      { family: "monster" },
+      { attribute: "DARK" },
+      { race: "Dragon" },
+      { summonFrame: "Link" },
+      { traits: ["Tuner"] },
+      { attack: { op: "eq", value: 3000 } },
+      { defense: { op: "lt", value: 2000 } },
+      { levelRank: { op: "range", min: 4, max: 8 } },
+      { linkRating: { op: "gte", value: 2 } },
+      { pendulumScale: { op: "lte", value: 8 } },
+      { includeUnknownAttackDefense: true, attack: { op: "eq", value: -2 } },
+      { spellProperty: "Quick-Play" },
+      { trapProperty: "Counter" },
+      { linkMarkerRule: "any", linkMarkers: ["Bottom"] },
+      { linkMarkerRule: "all", linkMarkers: ["Bottom", "Left"] },
+      { linkMarkerRule: "exact", linkMarkers: ["Bottom"] },
+      { restriction: 0 },
+      { restriction: 1 },
+      { restriction: 2 },
+      { restriction: 3 },
     ];
-    for (const advanced of advancedQueries) {
-      const query = {
+    for (let run = 0; run < 64; run++) {
+      const first = cases[run % cases.length]!;
+      const second = cases[(run * 7 + 3) % cases.length]!;
+      const query: DeckCatalogQuery = {
         ...EMPTY_DECK_CATALOG_QUERY,
-        name: advanced.nameMatch === "exclude" ? "synthetic" : "",
-        advanced: { ...EMPTY_DECK_CATALOG_QUERY.advanced, ...advanced },
+        name: run % 4 === 0 ? "dragon" : "",
+        advanced: {
+          ...EMPTY_DECK_CATALOG_QUERY.advanced,
+          ...first,
+          ...second,
+        },
       };
+      const divisor = 2 + (run % 5);
       const isAvailable = ({ code }: { readonly code: number }) =>
-        code % 3 !== 0;
+        code % divisor !== 0;
       expect(filterDeckCatalogIndex(index, query, isAvailable)).toEqual(
         filterDeckCatalog(CARDS, query, isAvailable),
       );

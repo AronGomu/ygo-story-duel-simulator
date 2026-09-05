@@ -5,6 +5,7 @@ import {
   cardMatchesCatalogType,
   catalogTypeOptions,
   filterDeckCatalog,
+  numericCriterionError,
   type AdvancedDeckCatalogFilters,
   type CatalogTypeTag,
   type DeckCatalogQuery,
@@ -257,6 +258,69 @@ describe("deck catalog filters", () => {
     expect(names({ pendulumScale: { op: "eq", value: 3 } })).toEqual([
       "Angello Vaalmonica",
     ]);
+  });
+
+  it("rejects out-of-domain Level/Rank, Link Rating and Pendulum criteria", () => {
+    expect(numericCriterionError({ op: "eq", value: -1 }, 0, 13)).toBe(
+      "Enter a valid value.",
+    );
+    expect(numericCriterionError({ op: "range", min: 0, max: 14 }, 0, 13)).toBe(
+      "Enter a valid value.",
+    );
+    expect(numericCriterionError({ op: "eq", value: 0 }, 1, 8)).toBe(
+      "Enter a valid value.",
+    );
+    expect(
+      numericCriterionError({ op: "range", min: 1, max: 8 }, 1, 8),
+    ).toBeNull();
+    for (const filters of [
+      { levelRank: { op: "eq" as const, value: 14 } },
+      { linkRating: { op: "eq" as const, value: 0 } },
+      { pendulumScale: { op: "range" as const, min: -1, max: 13 } },
+    ]) {
+      expect(
+        filterDeckCatalog(PROTOTYPE_CATALOG, advanced(filters), AVAILABLE),
+      ).toEqual([]);
+    }
+  });
+
+  it("covers name modes, passcode forms, identities, traits and availability", () => {
+    const names = (
+      query: DeckCatalogQuery,
+      available: (
+        card: (typeof PROTOTYPE_CATALOG)[number],
+      ) => boolean = AVAILABLE,
+    ) =>
+      filterDeckCatalog(PROTOTYPE_CATALOG, query, available).map(
+        ({ name }) => name,
+      );
+    expect(
+      names({ ...advanced({ nameMatch: "contains" }), name: "dark" }),
+    ).toEqual(["Dark Hole", "Dark Magician", "Sword of Dark Destruction"]);
+    expect(
+      names({ ...advanced({ nameMatch: "exact" }), name: "dark magician" }),
+    ).toEqual(["Dark Magician"]);
+    expect(
+      names({ ...advanced({ nameMatch: "exclude" }), name: "dark" }),
+    ).not.toContain("Dark Magician");
+    expect(names(advanced({ code: "not-code" }))).toHaveLength(
+      PROTOTYPE_CATALOG.length,
+    );
+    expect(names(advanced({ code: "46986414" }))).toEqual(["Dark Magician"]);
+    expect(
+      names(advanced({ family: "trap" })).every(
+        (name) =>
+          PROTOTYPE_CATALOG.find((card) => card.name === name)?.family ===
+          "trap",
+      ),
+    ).toBe(true);
+    expect(names(advanced({ attribute: "DARK", race: "Spellcaster" }))).toEqual(
+      ["Dark Magician"],
+    );
+    expect(names(advanced({ traits: ["Tuner"] })).length).toBeGreaterThan(0);
+    expect(
+      names(advanced({ restriction: 1 }), ({ code }) => code === 12580477),
+    ).toEqual(["Raigeki"]);
   });
 
   it("implements any/all/exact marker rules and all selected traits", () => {

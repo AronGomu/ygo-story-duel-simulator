@@ -1,8 +1,7 @@
 <script lang="ts">
-  import { onDestroy, onMount, tick } from "svelte";
+  import { onDestroy, onMount } from "svelte";
   import type {
     AdvancedDeckCatalogFilters,
-    AdvancedDeckCatalogOptions,
     DeckCatalogQuery,
   } from "../../decks/catalog/deck-catalog.ts";
   import {
@@ -69,21 +68,26 @@
   let resultsScroller: HTMLElement | null = null;
   let nameInput: HTMLInputElement | null = null;
   interface AdvancedSession {
-    readonly component: typeof import("./AdvancedCardSearch.svelte").default;
     readonly emptyFilters: AdvancedDeckCatalogFilters;
-    readonly options: AdvancedDeckCatalogOptions;
     readonly filter: (
       index: DeckCatalogIndex,
       query: DeckCatalogQuery,
       isAvailable: (card: DeckBuilderCardView) => boolean,
     ) => readonly DeckBuilderCardView[];
-    readonly filters: AdvancedDeckCatalogFilters;
+    readonly open: (input: {
+      filters: DeckCatalogQuery;
+      resultCount: number;
+      onchange: (filters: DeckCatalogQuery) => void;
+      onreset: () => void;
+    }) => void;
+    readonly setResultCount: (resultCount: number) => void;
+    readonly destroy: () => void;
   }
 
-  let advancedTrigger: HTMLButtonElement | null = null;
   let advanced: AdvancedSession | null = null;
-  let filters: DeckCatalogFilters = { ...EMPTY_CATALOG_FILTERS };
-  let advancedOpen = false;
+  let advancedFilters: AdvancedDeckCatalogFilters | null = null;
+  let filters: DeckCatalogFilters = EMPTY_CATALOG_FILTERS;
+  let advancedError = false;
   let results: readonly DeckBuilderCardView[] = [];
   let visibleCount = INITIAL_RESULT_WINDOW;
   let sentinel: HTMLElement | null = null;
@@ -96,21 +100,17 @@
     void copies;
     void ownership;
     void ruleset;
+    const query =
+      advancedFilters === null
+        ? null
+        : { ...filters, advanced: advancedFilters };
     results =
-      advanced === null
+      query === null
         ? filterQuickDeckCatalogIndex(index, filters, isAvailable)
-        : advanced.filter(
-            index,
-            { ...filters, advanced: advanced.filters },
-            isAvailable,
-          );
+        : advanced!.filter(index, query, isAvailable);
+    if (query !== null) advanced!.setResultCount(results.length);
   }
-  $: filterKey = JSON.stringify({ filters, advanced: advanced?.filters });
-  $: {
-    // depend on filterKey so a same-length filter change still resets
-    void filterKey;
-    visibleCount = initialResultWindow(results.length);
-  }
+  $: visibleCount = initialResultWindow(results.length);
   $: visible = observerSupported
     ? results.slice(0, visibleCount)
     : results.slice(0, FALLBACK_RESULT_CAP);
@@ -153,7 +153,10 @@
     if (nameInput !== null) onnameinputmount(nameInput);
   });
 
-  onDestroy(() => observer?.disconnect());
+  onDestroy(() => {
+    observer?.disconnect();
+    advanced?.destroy();
+  });
 
   function setFilter<Key extends "name" | "types">(
     key: Key,
@@ -165,34 +168,37 @@
   function isAvailable(card: DeckBuilderCardView): boolean {
     const limit = quantityLimit(ruleset, card.code);
     return (
-      (advanced?.filters.restriction == null ||
-        limit === advanced.filters.restriction) &&
+      (advancedFilters?.restriction == null ||
+        limit === advancedFilters.restriction) &&
       availableCopies(card.code, ownership, limit, copies.get(card.code) ?? 0) >
         0
     );
   }
 
   async function openAdvancedSearch(): Promise<void> {
-    const loaded = (
-      await import("../advanced-search-loader.ts")
-    ).loadAdvancedSearch(cards);
-    advanced = {
-      ...loaded,
-      filters: advanced?.filters ?? { ...loaded.emptyFilters },
-    };
-    advancedOpen = true;
-  }
-
-  async function closeAdvancedSearch(): Promise<void> {
-    advancedOpen = false;
-    await tick();
-    advancedTrigger?.focus();
+    try {
+      advanced ??= (
+        await import("../advanced-search-loader.ts")
+      ).loadAdvancedSearch(cards, index);
+      advancedFilters ??= advanced.emptyFilters;
+      advanced.open({
+        filters: { ...filters, advanced: advancedFilters },
+        resultCount: results.length,
+        onchange: (next) => {
+          filters = { name: next.name, types: next.types };
+          advancedFilters = next.advanced;
+        },
+        onreset: resetFilters,
+      });
+      advancedError = false;
+    } catch {
+      advancedError = true;
+    }
   }
 
   function resetFilters(): void {
-    filters = { ...EMPTY_CATALOG_FILTERS };
-    if (advanced !== null)
-      advanced = { ...advanced, filters: { ...advanced.emptyFilters } };
+    filters = EMPTY_CATALOG_FILTERS;
+    if (advanced !== null) advancedFilters = advanced.emptyFilters;
   }
 </script>
 
@@ -207,11 +213,10 @@
       >{results.length} results</span
     >
     <button
-      bind:this={advancedTrigger}
       type="button"
-      class="secondary"
       data-cy="deck-catalog-advanced-search"
-      onclick={() => void openAdvancedSearch()}>Advanced Search</button
+      onclick={() => void openAdvancedSearch()}
+      >Advanced Search{advancedError ? " failed. Retry" : ""}</button
     >
   </header>
 
@@ -262,14 +267,12 @@
   {:else}
     {#if fallbackTruncated}
       <p class="fallback-notice" data-cy="deck-catalog-fallback-notice">
-        Showing the first {FALLBACK_RESULT_CAP} of {results.length} cards. Narrow
-        the filters to reach the rest.
+        {FALLBACK_RESULT_CAP}/{results.length} shown. Filter more.
       </p>
     {/if}
     {#if ceilingTruncated}
       <p class="ceiling-notice" data-cy="deck-catalog-ceiling-notice">
-        Showing {RESULT_WINDOW_CEILING} of {results.length} cards. Narrow the filters
-        to reach the rest.
+        {RESULT_WINDOW_CEILING}/{results.length} shown. Filter more.
       </p>
     {/if}
     <div class="results-region" data-cy="deck-catalog-results-region">
@@ -287,8 +290,6 @@
             limit={quantityLimit(ruleset, card.code)}
             currentCopies={copies.get(card.code) ?? 0}
             selected={selectedCode === card.code}
-            draggable={true}
-            describedby={null}
             dataCyPrefix="catalog"
             dataCyId={card.code}
             onselect={() => onselect(card)}
@@ -299,7 +300,6 @@
             ondragcard={(event) => ondragcard(card, event)}
             {ondragcancel}
             onhover={() => onhovercard(card)}
-            maxed={false}
             oncontext={() => oncontextadd(card)}
           />
         {/each}
@@ -321,21 +321,6 @@
     </div>
   {/if}
 </section>
-
-{#if advancedOpen && advanced !== null}
-  {@const AdvancedSearch = advanced.component}
-  <AdvancedSearch
-    filters={{ ...filters, advanced: advanced.filters }}
-    options={advanced.options}
-    resultCount={results.length}
-    onchange={(next) => {
-      filters = { name: next.name, types: next.types };
-      advanced = { ...advanced!, filters: next.advanced };
-    }}
-    onreset={resetFilters}
-    onclose={() => void closeAdvancedSearch()}
-  />
-{/if}
 
 <style>
   .catalog {

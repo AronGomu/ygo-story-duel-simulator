@@ -9,13 +9,15 @@
   export let label: string;
   export let criterion: NumericCriterion | null;
   export let onchange: (criterion: NumericCriterion | null) => void;
+  export let allowedMin = Number.NEGATIVE_INFINITY;
+  export let allowedMax = Number.POSITIVE_INFINITY;
 
   $: operator = criterion?.op ?? "range";
   $: minimum = criterion?.op === "range" ? criterion.min : null;
   $: maximum = criterion?.op === "range" ? criterion.max : null;
   $: value =
     criterion !== null && criterion.op !== "range" ? criterion.value : null;
-  $: error = numericCriterionError(criterion);
+  $: error = numericCriterionError(criterion, allowedMin, allowedMax);
 
   function parsed(raw: string): number | null {
     if (raw.trim() === "") return null;
@@ -76,6 +78,8 @@
     <input
       type="number"
       value={minimum ?? ""}
+      min={Number.isFinite(allowedMin) ? allowedMin : undefined}
+      max={Number.isFinite(allowedMax) ? allowedMax : undefined}
       aria-label={`${label} minimum`}
       aria-invalid={error !== null}
       data-cy={`advanced-${id}-minimum`}
@@ -84,6 +88,8 @@
     <input
       type="number"
       value={maximum ?? ""}
+      min={Number.isFinite(allowedMin) ? allowedMin : undefined}
+      max={Number.isFinite(allowedMax) ? allowedMax : undefined}
       aria-label={`${label} maximum`}
       aria-invalid={error !== null}
       data-cy={`advanced-${id}-maximum`}
@@ -93,6 +99,8 @@
     <input
       type="number"
       value={value ?? ""}
+      min={Number.isFinite(allowedMin) ? allowedMin : undefined}
+      max={Number.isFinite(allowedMax) ? allowedMax : undefined}
       aria-label={`${label} value`}
       aria-invalid={error !== null}
       data-cy={`advanced-${id}-value`}
