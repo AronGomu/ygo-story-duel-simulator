@@ -8,10 +8,9 @@
   } from "../../images/card-image-cache.ts";
   import type { InteractionChoice } from "../../prompts/interaction-spec.ts";
 
-  /* Feedback item 12: a detach cost asks which material to spend, and a
-     material has no control of its own on the field — it rides on its host's
-     zone. So the choice is answered here, as art, instead of in the plain text
-     prompt list where a material reads as a row of identical labels. */
+  /* An engine-issued material choice has no control of its own on the field —
+     it rides on its host's zone. Answer it here, as art, instead of in the
+     plain text prompt list where a material reads as an identical label. */
   export let choices: readonly InteractionChoice[];
   export let minSelections: number;
   export let maxSelections: number;

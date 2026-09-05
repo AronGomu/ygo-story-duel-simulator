@@ -1,12 +1,34 @@
+// @vitest-environment jsdom
+
 import { readFile } from "node:fs/promises";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
-import { beforeAll, describe, expect, it } from "vitest";
+import { cleanup, fireEvent, render } from "@testing-library/svelte";
+import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
+import DuelField from "../../src/battle/app/components/DuelField.svelte";
+import {
+  createInteractionSession,
+  reduceInteractionSession,
+  type InteractionSession,
+  type InteractionSessionAction,
+} from "../../src/battle/app/prompts/interaction-session.ts";
+import {
+  mapPromptToInteractionSpec,
+  type ActiveInteractionSpec,
+} from "../../src/battle/app/prompts/interaction-spec.ts";
 import { DuelOperationError } from "../../src/battle/duel/contracts/duel-error.ts";
 import type { ChoiceId } from "../../src/battle/duel/contracts/ids.ts";
 import { snapshotId } from "../../src/battle/duel/contracts/ids.ts";
+import {
+  captureDanteMaterialDecision,
+  type DanteMaterialDecisionCapture,
+  type DanteMaterialPromptCapture,
+} from "./dante-material-decision.ts";
 import type { PlayerPrompt } from "../../src/battle/duel/contracts/player-prompt.ts";
 import type { PublicDuelState } from "../../src/battle/duel/contracts/public-duel-state.ts";
+import {
+  mapSnapshotToBoard,
+  type BoardViewModel,
+} from "../../src/battle/field/board-view-model.ts";
 import {
   parseYdk,
   uniqueDeckCodes,
@@ -17,36 +39,16 @@ import type { ActiveDuelDependencies } from "../../src/battle/worker/assets/acti
 import { loadActiveDuelDependenciesNode } from "../../src/battle/worker/assets/active-duel-dependencies-node.ts";
 import type { DuelSeed } from "../../src/battle/worker/engine/duel-seed.ts";
 import { DuelSession } from "../../src/battle/worker/engine/DuelSession.ts";
-import type { OcgCoreAdapter } from "../../src/battle/worker/engine/OcgCoreAdapter.ts";
-import { loadVendoredCoreNode } from "../../src/battle/worker/engine/load-vendored-core-node.ts";
+import { OcgCoreAdapter } from "../../src/battle/worker/engine/OcgCoreAdapter.ts";
 import { HeadlessDuelController } from "../../src/battle/worker/HeadlessDuelController.ts";
 
 /*
-  The blocking verification gate for the detach half of "materials are a
-  browsable zone". Nothing UI-side distinguishes a material choice from its
-  host today: `engineToPublicLocation` masks LOCATION_OVERLAY, so an overlay
-  unit and the monster carrying it collapse onto the same public address.
-  `PromptCard.overlay` is the projection-only marker that would tell them
-  apart, and this test is what decides whether the engine ever gives it
-  anything to mark.
-
-  Recorded finding: it does not. The pinned scenario answers 206 prompts and
-  passes through 106 states holding an Xyz monster with materials, and not one
-  prompt card carries LOCATION_OVERLAY. A wider deterministic sweep run while
-  writing this test — 6 opponent decks x 40 seeds, 8946 overlaid-monster
-  states — saw raw prompt-card locations {1,2,4,8,16,32,64} and bit 128
-  exactly zero times. The core detaches materials itself; it never asks the
-  player which one.
-
-  So the detach half has no payload to render: detach keeps today's host-card
-  selection, and the MATERIALS-badged target entry is not built. The marker
-  still ships because it is additive, costs nothing, and is what these
-  assertions pin — `overlay` must mirror the OVERLAY bit of the raw engine
-  location exactly, and no overlay address may appear. The raw location
-  survives on the public prompt inside the synthesized `instanceId`, so both
-  halves are checkable from here. The day the engine emits an overlay address
-  this goes red, and the target-mode wiring gets built against a real payload
-  instead of a guess.
+  This integration suite proves `PromptCard.overlay` mirrors the raw engine
+  location bit. The companion `captureDanteMaterialDecision` fixture proves
+  the pinned Dante line first activates Dante, then decrements projected
+  overlay materials. Its classification is therefore safe to use for the
+  selector gate: real `overlay:true` choices mean engine-choice; no marker
+  means pinned-core auto-detach. No sequence inference is used.
 */
 const SCENARIO = Object.freeze({
   name: "detaching a material read back from the core",
@@ -66,18 +68,52 @@ const ENGINE_LOCATION_OVERLAY = 128;
 let adapter: OcgCoreAdapter;
 const decks = new Map<string, ParsedDeck>();
 let dependencies: ActiveDuelDependencies;
+let danteCapture: DanteMaterialDecisionCapture;
 
 beforeAll(async () => {
-  adapter = await loadVendoredCoreNode();
+  adapter = await loadCoreForDomTest();
   for (const name of [SCENARIO.player, SCENARIO.opponent])
     decks.set(name, await loadDeck(name));
   dependencies = await loadActiveDuelDependenciesNode(
     path.resolve("generated/assets/current"),
     uniqueDeckCodes(...decks.values()),
   );
+  danteCapture = captureDanteMaterialDecision({
+    adapter,
+    dependencies,
+    playerDeck: deck(SCENARIO.player),
+    opponentDeck: deck(SCENARIO.opponent),
+  });
+});
+
+afterEach(() => {
+  cleanup();
+  vi.unstubAllGlobals();
 });
 
 describe("Xyz detach overlay addressing", () => {
+  it("proves player Dante host loses one captured material id before classifying detach", () => {
+    const beforeIds = danteCapture.before.map(({ instanceId }) => instanceId);
+    const afterIds = danteCapture.after.map(({ instanceId }) => instanceId);
+
+    expect(danteCapture.activationPromptId).toBeTruthy();
+    expect(danteCapture.player).toBe(0);
+    expect(danteCapture.hostInstanceId).toBeTruthy();
+    expect(new Set(beforeIds).size).toBe(beforeIds.length);
+    expect(afterIds.every((id) => beforeIds.includes(id))).toBe(true);
+    expect(beforeIds.filter((id) => !afterIds.includes(id))).toHaveLength(1);
+    expect(danteCapture.before.length - danteCapture.after.length).toBe(1);
+    expect(danteCapture.detachedCode).not.toBeNull();
+    expect(danteCapture.kind).toBe("auto-detach");
+    expect(
+      danteCapture.materialPromptCaptures.map(({ prompt }) => prompt),
+    ).toEqual(danteCapture.materialPrompts);
+  });
+
+  it("feeds captured prompt and state through the production material-dialog gate", async () => {
+    await assertCapturedMaterialDialogContract(danteCapture);
+  });
+
   it("marks a prompt card as an overlay unit exactly when the engine location carries the OVERLAY bit", () => {
     const run = playScriptedDuel(SCENARIO);
 
@@ -89,17 +125,167 @@ describe("Xyz detach overlay addressing", () => {
     expect(run.promptCardsSeen).toBeGreaterThan(0);
     expect(run.markerMismatches).toEqual([]);
   });
-
-  it("never addresses an individual overlay unit, so detach keeps host-card selection", () => {
-    const run = playScriptedDuel(SCENARIO);
-
-    /* The core resolves a detach without asking which unit, so there is no
-       per-material address to render as a MATERIALS target entry. A non-empty
-       list here means the engine started addressing units and the target-mode
-       list should be built against that payload. */
-    expect(run.overlayAddresses).toEqual([]);
-  });
 });
+
+async function assertCapturedMaterialDialogContract(
+  capture: DanteMaterialDecisionCapture,
+): Promise<void> {
+  const engineChoiceCapture = capture.materialPromptCaptures.find(
+    ({ prompt }) => prompt.choices.some(hasOverlayChoice),
+  );
+
+  if (capture.kind === "engine-choice") {
+    if (engineChoiceCapture === undefined)
+      throw new Error("Engine material choices did not reach capture");
+    const harness = renderCapturedPrompt(engineChoiceCapture);
+    const offeredIds = engineChoiceCapture.prompt.choices
+      .filter(hasOverlayChoice)
+      .map(({ id }) => id);
+    const responseIds = new Set(engineChoiceCapture.responseChoiceIds);
+    const submittedIds = offeredIds.filter((id) => responseIds.has(id));
+
+    expect(engineChoiceCapture.responseChoiceIds).toHaveLength(
+      submittedIds.length,
+    );
+    expect([...harness.spec.overlayChoices.keys()]).toEqual(offeredIds);
+    expect(materialDialogTileIds()).toEqual(offeredIds);
+    if (document.querySelector('[data-cy="material-select-dialog"]') === null) {
+      throw new Error(
+        "Engine material choices did not reach MaterialSelectDialog",
+      );
+    }
+
+    await selectMaterialResponse(engineChoiceCapture, offeredIds, submittedIds);
+    expect(harness.commands).toEqual([submittedIds]);
+    return;
+  }
+
+  expect(engineChoiceCapture).toBeUndefined();
+  if (capture.materialPromptCaptures.length === 0) {
+    const board = mappedBoard(capture.afterState, null);
+    expect(
+      mapPromptToInteractionSpec(null, capture.afterState, board, {
+        workerGeneration: 1,
+        sessionGeneration: 1,
+      }).kind,
+    ).toBe("inactive");
+    render(DuelField, { board });
+    assertNoMaterialDialog();
+    return;
+  }
+
+  for (const promptCapture of capture.materialPromptCaptures) {
+    const harness = renderCapturedPrompt(promptCapture);
+    expect([...harness.spec.overlayChoices.keys()]).toEqual([]);
+    expect(harness.spec.choiceOrder).toEqual(
+      promptCapture.prompt.choices.map(({ id }) => id),
+    );
+    assertNoMaterialDialog();
+    cleanup();
+  }
+}
+
+function renderCapturedPrompt(capture: DanteMaterialPromptCapture): {
+  readonly spec: ActiveInteractionSpec;
+  readonly commands: readonly (readonly ChoiceId[])[];
+} {
+  const board = mappedBoard(capture.state, capture.prompt);
+  const mapped = mapPromptToInteractionSpec(
+    capture.prompt,
+    capture.state,
+    board,
+    { workerGeneration: 1, sessionGeneration: 1 },
+  );
+  if (mapped.kind === "inactive")
+    throw new Error(`Captured ${capture.prompt.kind} prompt mapped inactive`);
+  const spec = mapped;
+  let session: InteractionSession = createInteractionSession(spec);
+  const commands: ChoiceId[][] = [];
+  const dispatch = vi.fn(async (action: InteractionSessionAction) => {
+    const reduction = reduceInteractionSession(session, spec, action);
+    const changed = reduction.session !== session;
+    session = reduction.session;
+    if (reduction.command !== null)
+      commands.push([...reduction.command.choiceIds]);
+    await rendered.rerender({ session });
+    return reduction.command !== null || changed;
+  });
+  const rendered = render(DuelField, {
+    board,
+    prompt: capture.prompt,
+    spec,
+    session,
+    pending: false,
+    oninteraction: dispatch,
+  });
+  return { spec, commands };
+}
+
+async function selectMaterialResponse(
+  capture: DanteMaterialPromptCapture,
+  offeredIds: readonly ChoiceId[],
+  submittedIds: readonly ChoiceId[],
+): Promise<void> {
+  const wanted = new Set(submittedIds);
+  const selected = new Set(
+    capture.prompt.choices
+      .filter(
+        ({ id, selected }) => selected === true && offeredIds.includes(id),
+      )
+      .map(({ id }) => id),
+  );
+  for (const id of offeredIds) {
+    if (selected.has(id) && !wanted.has(id))
+      await fireEvent.click(materialTile(id));
+  }
+  for (const id of submittedIds) {
+    if (!selected.has(id)) await fireEvent.click(materialTile(id));
+  }
+  const confirm = document.querySelector<HTMLButtonElement>(
+    '[data-cy="material-select-confirm"]',
+  );
+  if (confirm === null) throw new Error("Missing material confirm control");
+  await fireEvent.click(confirm);
+}
+
+function materialDialogTileIds(): readonly string[] {
+  return [
+    ...document.querySelectorAll<HTMLButtonElement>(
+      'button[data-cy^="material-select-tile-"]',
+    ),
+  ].map(({ dataset }) =>
+    (dataset.cy ?? "").replace("material-select-tile-", ""),
+  );
+}
+
+function materialTile(id: ChoiceId): HTMLButtonElement {
+  const tile = document.querySelector<HTMLButtonElement>(
+    `[data-cy="material-select-tile-${id}"]`,
+  );
+  if (tile === null) throw new Error(`Missing material tile ${id}`);
+  return tile;
+}
+
+function assertNoMaterialDialog(): void {
+  if (document.querySelector('[data-cy="material-select-dialog"]') !== null)
+    throw new Error(
+      "Material selector rendered without an engine material choice",
+    );
+}
+
+function mappedBoard(
+  state: PublicDuelState,
+  prompt: PlayerPrompt | null,
+): BoardViewModel {
+  const result = mapSnapshotToBoard(state, new Map(), prompt);
+  if (!result.ok)
+    throw new Error(`Captured state mapping failed: ${result.error.type}`);
+  return result.value;
+}
+
+function hasOverlayChoice(choice: PlayerPrompt["choices"][number]): boolean {
+  return choice.card?.overlay === true;
+}
 
 /** One prompt card the engine addressed as an overlay unit. */
 interface OverlayAddress {
@@ -313,15 +499,22 @@ function seedOf(index: number): DuelSeed {
   return [value(1), value(2), value(3), value(4)];
 }
 
+async function loadCoreForDomTest(): Promise<OcgCoreAdapter> {
+  const bytes = await readFile(
+    path.resolve("vendor/ocgcore-wasm/0.1.2/lib/ocgcore.sync.wasm"),
+  );
+  return OcgCoreAdapter.initialize({
+    wasmBinary: bytes.buffer.slice(
+      bytes.byteOffset,
+      bytes.byteOffset + bytes.byteLength,
+    ) as ArrayBuffer,
+  });
+}
+
 async function loadDeck(name: string): Promise<ParsedDeck> {
   return parseYdk(
     await readFile(
-      fileURLToPath(
-        new URL(
-          `../../src/battle/duel/presets/decks/${name}.ydk`,
-          import.meta.url,
-        ),
-      ),
+      path.resolve(`src/battle/duel/presets/decks/${name}.ydk`),
       "utf8",
     ),
   );
