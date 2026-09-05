@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 
 import { readFileSync } from "node:fs";
-import { cleanup, fireEvent, render } from "@testing-library/svelte";
+import { cleanup, fireEvent, render, screen } from "@testing-library/svelte";
 import { userEvent } from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import DeckTile from "../../../src/deck-select/DeckTile.svelte";
@@ -27,7 +27,7 @@ describe("DeckTile", () => {
 
     expect(cy("deck-tile-name-k1").textContent).toBe("Prototype Control");
     expect(cy("deck-tile-press-k1").getAttribute("aria-label")).toBe(
-      "Prototype Control",
+      "Select Prototype Control, Local deck",
     );
     expect(cy("deck-tile-tags-k1").textContent).toBe("Local deck");
     expect(find("deck-tile-counts-k1")).toBeNull();
@@ -99,6 +99,19 @@ describe("DeckTile", () => {
     expect(ondblpress).toHaveBeenCalledTimes(1);
   });
 
+  it("names body and rename controls by distinct actions", () => {
+    render(DeckTile, { tile: tile(), onrename: vi.fn() });
+
+    expect(
+      screen.getByRole("button", {
+        name: "Select Prototype Control, Local deck",
+      }),
+    ).toBe(cy("deck-tile-press-k1"));
+    expect(
+      screen.getByRole("button", { name: "Rename Prototype Control" }),
+    ).toBe(cy("deck-tile-name-k1"));
+  });
+
   it("name activation opens rename without selecting or opening tile", async () => {
     const onrename = vi.fn();
     const onpress = vi.fn();
@@ -167,19 +180,22 @@ describe("DeckTile", () => {
     expect(find("deck-tile-badges-k1")).toBeNull();
   });
 
-  it("illegal tile is disabled and badged", () => {
+  it("illegal tile is disabled and exposes exact reason in body name", () => {
     render(DeckTile, {
       tile: tile({
         legal: false,
         blockReason: "Main Deck needs 5 more card(s).",
-        meta: "Main Deck needs 5 more card(s).",
+        meta: "Local deck",
       }),
     });
 
     expect((cy("deck-tile-press-k1") as HTMLButtonElement).disabled).toBe(true);
-    expect(cy("deck-tile-tags-k1").textContent).toBe(
-      "Illegal · Main Deck needs 5 more card(s).",
-    );
+    expect(cy("deck-tile-tags-k1").textContent).toBe("Illegal · Local deck");
+    expect(
+      screen.getByRole("button", {
+        name: "Select Prototype Control, Illegal · Local deck · Main Deck needs 5 more card(s).",
+      }),
+    ).toBe(cy("deck-tile-press-k1"));
   });
 
   it("halo classes applied", () => {

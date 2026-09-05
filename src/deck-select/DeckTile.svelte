@@ -31,6 +31,22 @@
       ...(yours ? ["Yours"] : []),
     ]),
   ].join(" · ");
+  /* Keep visual tags unchanged while ensuring authoritative illegal reason is
+     spoken even when host meta omits it. */
+  $: accessibleTagLine = [
+    tagLine,
+    ...(tile.legal ||
+    tile.blockReason === null ||
+    tagLine.includes(tile.blockReason)
+      ? []
+      : [tile.blockReason]),
+  ]
+    .filter((tag) => tag.length > 0)
+    .join(" · ");
+  $: pressLabel = `Select ${tile.name}${
+    accessibleTagLine.length > 0 ? `, ${accessibleTagLine}` : ""
+  }`;
+  $: renameLabel = `Rename ${tile.name}`;
   /* A deck that fails validation cannot be picked, so the press surface itself
      carries the fact — the dimming is the sighted echo, never the source. */
   let failedArtUrls: readonly string[] = [];
@@ -63,7 +79,7 @@
     type="button"
     class="press"
     disabled={pressDisabled}
-    aria-label={tile.name}
+    aria-label={pressLabel}
     onclick={() => onpress()}
     ondblclick={() => ondblpress()}
     data-cy={`deck-tile-press-${cyId}`}
@@ -116,6 +132,7 @@
     <button
       type="button"
       class="name text-backdrop"
+      aria-label={renameLabel}
       onclick={() => onrename?.()}
       data-cy={`deck-tile-name-${cyId}`}>{tile.name}</button
     >
