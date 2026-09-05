@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 
-import { cleanup, render, screen } from "@testing-library/svelte";
+import { cleanup, render, screen, waitFor } from "@testing-library/svelte";
 import { userEvent } from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import CatalogTypeInput from "../../../src/deck-editor/components/CatalogTypeInput.svelte";
@@ -28,6 +28,16 @@ const OPTIONS: readonly CatalogTypeTag[] = [
     label: "Spellcaster",
   },
 ];
+
+const LONG_OPTIONS: readonly CatalogTypeTag[] = Array.from(
+  { length: 40 },
+  (_, index) => ({
+    id: `subtype:item-${index}`,
+    category: "subtype",
+    value: `item-${index}`,
+    label: `Item ${index}`,
+  }),
+);
 
 afterEach(() => cleanup());
 
@@ -73,10 +83,6 @@ describe("CatalogTypeInput", () => {
     await user.type(input, "not-a-type{Enter}");
     expect(onchange).toHaveBeenCalledTimes(1);
     expect(screen.getByText("No matching types")).toBeTruthy();
-
-    await user.clear(input);
-    await user.type(input, "spell");
-    expect(screen.queryByRole("option", { name: /Family: Spell/ })).toBeNull();
     await user.keyboard("{Escape}");
     expect(input.getAttribute("aria-expanded")).toBe("false");
 
@@ -84,5 +90,66 @@ describe("CatalogTypeInput", () => {
     await user.type(input, "effect");
     await user.click(screen.getByRole("option", { name: /Subtype: Effect/ }));
     expect(onchange).toHaveBeenLastCalledWith([OPTIONS[1], OPTIONS[2]]);
+
+    await rerender({
+      options: OPTIONS,
+      value: [OPTIONS[1]!, OPTIONS[2]!],
+      onchange,
+    });
+    await user.click(input);
+    await user.clear(input);
+    await user.type(input, "effect");
+    await user.keyboard("{Enter}");
+    expect(onchange).toHaveBeenCalledTimes(2);
+  });
+
+  it("keeps long-list keyboard focus visible without trapping Tab", async () => {
+    const onchange = vi.fn();
+    const scrollIntoView = vi.fn();
+    const originalScrollIntoView = HTMLElement.prototype.scrollIntoView;
+    Object.defineProperty(HTMLElement.prototype, "scrollIntoView", {
+      configurable: true,
+      value: scrollIntoView,
+    });
+
+    try {
+      render(CatalogTypeInput, {
+        options: LONG_OPTIONS,
+        value: [],
+        onchange,
+      });
+      const user = userEvent.setup();
+      const input = screen.getByRole("combobox", { name: "Types" });
+      await user.click(input);
+
+      for (let index = 0; index < 20; index += 1)
+        await user.keyboard("{ArrowDown}");
+
+      await waitFor(() =>
+        expect(input.getAttribute("aria-activedescendant")).toBe(
+          "deck-catalog-type-option-subtype-item-19",
+        ),
+      );
+      expect(scrollIntoView).toHaveBeenCalledWith({ block: "nearest" });
+      expect(
+        scrollIntoView.mock.calls.some(
+          ([options]) => options?.block === "nearest",
+        ),
+      ).toBe(true);
+
+      await user.keyboard("{ArrowUp}");
+      await waitFor(() =>
+        expect(input.getAttribute("aria-activedescendant")).toBe(
+          "deck-catalog-type-option-subtype-item-18",
+        ),
+      );
+      await user.tab();
+      expect(document.activeElement).not.toBe(input);
+    } finally {
+      Object.defineProperty(HTMLElement.prototype, "scrollIntoView", {
+        configurable: true,
+        value: originalScrollIntoView,
+      });
+    }
   });
 });

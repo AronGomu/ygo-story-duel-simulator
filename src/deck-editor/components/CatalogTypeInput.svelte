@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { tick } from "svelte";
   import type { CatalogTypeTag } from "../../decks/catalog/deck-catalog.ts";
 
   export let options: readonly CatalogTypeTag[];
@@ -45,6 +46,15 @@
     emit(value.filter((tag) => tag.id !== id));
   }
 
+  function scrollActiveOptionIntoView(): void {
+    void tick().then(() => {
+      if (!listOpen || activeOption === null) return;
+      document
+        .getElementById(`deck-catalog-type-option-${cySuffix(activeOption)}`)
+        ?.scrollIntoView?.({ block: "nearest" });
+    });
+  }
+
   function handleInput(event: Event): void {
     query = (event.currentTarget as HTMLInputElement).value;
     open = true;
@@ -57,6 +67,7 @@
       open = true;
       activeIndex =
         suggestions.length === 0 ? -1 : (activeIndex + 1) % suggestions.length;
+      scrollActiveOptionIntoView();
       return;
     }
     if (event.key === "ArrowUp") {
@@ -68,6 +79,7 @@
           : activeIndex <= 0
             ? suggestions.length - 1
             : activeIndex - 1;
+      scrollActiveOptionIntoView();
       return;
     }
     if (event.key === "Enter") {
