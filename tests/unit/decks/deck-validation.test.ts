@@ -102,7 +102,7 @@ describe("deck validation", () => {
       false,
     );
     expect(result.issues.some(({ code }) => code === "empty-extra")).toBe(true);
-    expect(result.issues.some(({ code }) => code === "empty-side")).toBe(true);
+    expect(result.issues.some(({ code }) => code === "empty-side")).toBe(false);
   });
 
   it("says nothing about a deck the build has no art for", () => {

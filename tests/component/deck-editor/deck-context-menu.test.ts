@@ -164,16 +164,14 @@ describe("context-menu deck editing", () => {
     });
   });
 
-  it("right-click on a catalog monster with a full main deck adds to the side deck", async () => {
+  it("right-click on a catalog card with a full canonical deck does not add to Side", async () => {
     const onmutate = vi.fn<(command: DeckCommand) => void>();
     const { container } = render(DeckEditor, props(onmutate, stateFixture(60)));
     const catalogTile = container.querySelector(
       `[data-cy="deck-catalog-results"] [data-cy="catalog-tile-${MAIN_LIMIT_3_CODES[0]!}"]`,
     )!;
     await fireEvent.contextMenu(catalogTile);
-    expect(onmutate).toHaveBeenCalledWith(
-      expect.objectContaining({ type: "add", zone: "side" }),
-    );
+    expect(onmutate).not.toHaveBeenCalled();
   });
 
   it("right-click adds nothing when side is also full", async () => {

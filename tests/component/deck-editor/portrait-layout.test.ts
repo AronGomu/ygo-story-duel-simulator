@@ -46,24 +46,30 @@ async function openCatalog(user: ReturnType<typeof userEvent.setup>) {
 }
 
 describe("deck editor portrait layout", () => {
-  it("renders exactly one pane at a time below the breakpoint", () => {
+  it("renders catalog as initial pane for entry focus", () => {
     renderEditor("tabs");
-    expect(pane("deck")).not.toBeNull();
-    expect(pane("catalog")).toBeNull();
+    expect(pane("catalog")).not.toBeNull();
+    expect(pane("deck")).toBeNull();
     expect(pane("details")).toBeNull();
+    expect(document.activeElement).toBe(
+      screen.getByRole("searchbox", { name: "Name" }),
+    );
     expect(
       screen.getByRole("tablist", { name: "Deck editor panes" }),
     ).toBeTruthy();
   });
 
-  it("switches panes from the tab list", async () => {
+  it("switches panes from the tab list without stealing tab focus", async () => {
     const user = userEvent.setup();
     renderEditor("tabs");
+    await user.click(document.querySelector('[data-cy="deck-tab-deck"]')!);
+    expect(pane("deck")).not.toBeNull();
     await openCatalog(user);
     expect(pane("catalog")).not.toBeNull();
     expect(pane("deck")).toBeNull();
     const tab = document.querySelector('[data-cy="deck-tab-catalog"]')!;
     expect(tab.getAttribute("aria-selected")).toBe("true");
+    expect(document.activeElement).toBe(tab);
   });
 
   it("moves between tabs with the arrow keys and keeps return with details", async () => {
@@ -86,6 +92,27 @@ describe("deck editor portrait layout", () => {
     expect(document.activeElement).toBe(returnButton);
   });
 
+  it("does not steal focus when catalog remounts after dialog close", async () => {
+    const user = userEvent.setup();
+    renderEditor("tabs");
+    await user.click(document.querySelector('[data-cy="deck-tab-deck"]')!);
+    await user.click(document.querySelector('[data-cy="deck-editor-import"]')!);
+    expect(document.activeElement).toBe(
+      document.querySelector('[data-cy="deck-ydk-import-heading"]'),
+    );
+    await user.click(
+      document.querySelector('[data-cy="deck-ydk-import-cancel"]')!,
+    );
+    const importButton = document.querySelector(
+      '[data-cy="deck-editor-import"]',
+    );
+    expect(document.activeElement).toBe(importButton);
+    await openCatalog(user);
+    expect(document.activeElement).toBe(
+      document.querySelector('[data-cy="deck-tab-catalog"]'),
+    );
+  });
+
   it("adds a tapped catalog card to its canonical zone and stays on the catalog", async () => {
     const user = userEvent.setup();
     const onmutate = renderEditor("tabs");
@@ -101,23 +128,13 @@ describe("deck editor portrait layout", () => {
     expect(pane("catalog")).not.toBeNull();
   });
 
-  /* The touch tap and the desktop click run the same intent function, so the
-     sideboard checkbox cannot be a control that only desktop obeys. */
-  it("sends a tapped catalog card to the sideboard when the checkbox is ticked", async () => {
+  it("does not render catalog sideboard toggle", async () => {
     const user = userEvent.setup();
-    const onmutate = renderEditor("tabs");
+    renderEditor("tabs");
     await openCatalog(user);
-    await user.click(
-      document.querySelector('[data-cy="deck-catalog-to-sideboard"]')!,
-    );
-    await user.click(
-      screen.getByRole("button", { name: /Blue-Eyes White Dragon/ }),
-    );
-    expect(onmutate).toHaveBeenCalledWith({
-      type: "add",
-      cardCode: 89631139,
-      zone: "side",
-    });
+    expect(
+      document.querySelector('[data-cy="deck-catalog-to-sideboard-field"]'),
+    ).toBeNull();
   });
 
   it("announces the reason instead of adding a card at its copy limit", async () => {
@@ -164,6 +181,7 @@ describe("deck editor portrait layout", () => {
   it("opens a target menu with the legal targets only when a deck card is tapped", async () => {
     const user = userEvent.setup();
     const onmutate = renderEditor("tabs");
+    await user.click(document.querySelector('[data-cy="deck-tab-deck"]')!);
     await user.click(
       screen.getAllByRole("button", { name: /Blue-Eyes White Dragon/ })[0]!,
     );
@@ -189,6 +207,7 @@ describe("deck editor portrait layout", () => {
   it("removes a deck card from the target menu", async () => {
     const user = userEvent.setup();
     const onmutate = renderEditor("tabs");
+    await user.click(document.querySelector('[data-cy="deck-tab-deck"]')!);
     await user.click(
       screen.getAllByRole("button", { name: /Blue-Eyes White Dragon/ })[0]!,
     );
@@ -206,6 +225,7 @@ describe("deck editor portrait layout", () => {
   it("closes the target menu on Escape without mutating", async () => {
     const user = userEvent.setup();
     const onmutate = renderEditor("tabs");
+    await user.click(document.querySelector('[data-cy="deck-tab-deck"]')!);
     await user.click(
       screen.getAllByRole("button", { name: /Blue-Eyes White Dragon/ })[0]!,
     );
