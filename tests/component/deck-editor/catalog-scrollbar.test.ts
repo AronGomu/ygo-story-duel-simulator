@@ -35,14 +35,17 @@ describe("CardCatalog overlay scrollbar", () => {
     expect(scrollbar!.parentElement).toBe(region);
   });
 
-  it("the native results scrollbar is hidden", () => {
+  it("the native results scrollbar is hidden by scoped host rules", () => {
     const src = readFileSync(
       resolve("src/deck-editor/components/CardCatalog.svelte"),
       "utf8",
     );
-    expect(src).toMatch(/scrollbar-width:\s*none/);
-    expect(src).toContain("::-webkit-scrollbar");
-    expect(src).toContain("display: none");
+    expect(src).toMatch(
+      /\.results\s*\{[\s\S]*scrollbar-width:\s*none[\s\S]*\}/,
+    );
+    expect(src).toMatch(
+      /\.results::-webkit-scrollbar\s*\{[\s\S]*display:\s*none[\s\S]*\}/,
+    );
   });
 
   /* jsdom computes no grid, so the rule itself is the assertion. Without it an

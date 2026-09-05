@@ -137,7 +137,7 @@ describe("global styles", () => {
     expect(forcedColors).not.toContain("display: none");
   });
 
-  it("keeps native-hide declarations on every custom overlay host", () => {
+  it("scopes native-hide declarations to every custom overlay host", () => {
     const hosts = [
       ["src/styles/app.css", ".card-preview-panel__text"],
       ["src/styles/app.css", ".duel-field-hand-band__viewport"],
@@ -145,12 +145,14 @@ describe("global styles", () => {
     ] as const;
     for (const [file, selector] of hosts) {
       const source = readFileSync(file, "utf8");
-      expect(source, `${file} ${selector} hides native width`).toMatch(
-        /scrollbar-width:\s*none/,
-      );
-      expect(source, `${file} ${selector} hides WebKit rail`).toMatch(
-        /::-webkit-scrollbar[^{]*\{[\s\S]*?display:\s*none/,
-      );
+      expect(
+        ruleBlock(source, `${selector} {`),
+        `${file} ${selector}`,
+      ).toContain("scrollbar-width: none");
+      expect(
+        ruleBlock(source, `${selector}::-webkit-scrollbar {`),
+        `${file} ${selector}`,
+      ).toContain("display: none");
     }
   });
 
@@ -166,6 +168,52 @@ describe("global styles", () => {
     expect(css).toContain(
       ".zone-list-dialog__entries::-webkit-scrollbar-thumb:active {",
     );
+
+    const forcedColorsStart = css.indexOf(
+      "@media (forced-colors: active)",
+      css.indexOf("@media (forced-colors: active)") + 1,
+    );
+    expect(forcedColorsStart).toBeGreaterThan(-1);
+    expect(
+      ruleBlock(css, ".zone-list-dialog__entries {", forcedColorsStart),
+    ).toContain("scrollbar-color: auto");
+    expect(
+      ruleBlock(css, ".zone-list-dialog__entries {", forcedColorsStart),
+    ).toContain("scrollbar-width: auto");
+    expect(
+      ruleBlock(
+        css,
+        ".zone-list-dialog__entries::-webkit-scrollbar {",
+        forcedColorsStart,
+      ),
+    ).toContain("height: auto");
+    expect(
+      ruleBlock(
+        css,
+        ".zone-list-dialog__entries::-webkit-scrollbar-thumb {",
+        forcedColorsStart,
+      ),
+    ).toContain("background: CanvasText");
+  });
+
+  it("gives custom overlay thumbs visible forced-color system styling", () => {
+    const css = readFileSync("src/styles/app.css", "utf8");
+    const forcedColorsStart = css.indexOf(
+      "@media (forced-colors: active)",
+      css.indexOf("@media (forced-colors: active)") + 1,
+    );
+    expect(forcedColorsStart).toBeGreaterThan(-1);
+    const overlayForcedColorsStart = css.lastIndexOf(
+      ".overlay-scrollbar__thumb {",
+    );
+    expect(overlayForcedColorsStart).toBeGreaterThan(forcedColorsStart);
+    const overlayThumb = ruleBlock(
+      css,
+      ".overlay-scrollbar__thumb {",
+      overlayForcedColorsStart,
+    );
+    expect(overlayThumb).toContain("background: CanvasText");
+    expect(overlayThumb).toContain("forced-color-adjust: none");
   });
 
   it("declares a global .visually-hidden clip utility", () => {
