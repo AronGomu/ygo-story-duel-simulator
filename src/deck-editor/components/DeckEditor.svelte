@@ -529,293 +529,298 @@
 <svelte:window onkeydown={handleKeydown} />
 
 {#if deck}
-  <header class="editor-header" data-cy="deck-editor-header">
-    <label class="name-field" data-cy="deck-editor-name-field">
-      <span data-cy="deck-editor-name-label">Deck name</span>
-      <input
-        id="deck-name"
-        data-cy="deck-name-input"
-        bind:value={deckName}
-        maxlength={MAXIMUM_DECK_NAME_LENGTH}
-        onblur={() => {
-          if (deckName.trim() && deckName.trim() !== deck?.name)
-            onrename(deckName);
-        }}
-      />
-    </label>
-    <div class="sort-actions" data-cy="deck-workspace-sort-actions">
-      <select
-        bind:value={sortMode}
-        aria-label="Sort By"
-        data-cy="deck-workspace-sort-mode"
-        onchange={selectSortMode}
-      >
-        <option value="" disabled data-cy="deck-workspace-sort-option-none"
-          >Sort By</option
+  <div class="editor-root" data-cy="deck-editor-root">
+    <header class="editor-header" data-cy="deck-editor-header">
+      <label class="name-field" data-cy="deck-editor-name-field">
+        <span data-cy="deck-editor-name-label">Deck name</span>
+        <input
+          id="deck-name"
+          data-cy="deck-name-input"
+          bind:value={deckName}
+          maxlength={MAXIMUM_DECK_NAME_LENGTH}
+          onblur={() => {
+            if (deckName.trim() && deckName.trim() !== deck?.name)
+              onrename(deckName);
+          }}
+        />
+      </label>
+      <div class="sort-actions" data-cy="deck-workspace-sort-actions">
+        <select
+          bind:value={sortMode}
+          aria-label="Sort By"
+          data-cy="deck-workspace-sort-mode"
+          onchange={selectSortMode}
         >
-        <option value="alpha" data-cy="deck-workspace-sort-option-alpha"
-          >A–Z</option
+          <option value="" disabled data-cy="deck-workspace-sort-option-none"
+            >Sort By</option
+          >
+          <option value="alpha" data-cy="deck-workspace-sort-option-alpha"
+            >A–Z</option
+          >
+          <option value="type" data-cy="deck-workspace-sort-option-type"
+            >CardType>A–Z</option
+          >
+          <option value="level" data-cy="deck-workspace-sort-option-level"
+            >Level>CardType>A–Z</option
+          >
+          <option
+            value="attribute"
+            data-cy="deck-workspace-sort-option-attribute"
+            >Attribute>CardType>A–Z</option
+          >
+          <option value="race" data-cy="deck-workspace-sort-option-race"
+            >MonsterType>CardType>A–Z</option
+          >
+          <option value="atk" data-cy="deck-workspace-sort-option-atk"
+            >ATK>CardType>A–Z</option
+          >
+          <option value="def" data-cy="deck-workspace-sort-option-def"
+            >DEF>CardType>A–Z</option
+          >
+        </select>
+        <button
+          type="button"
+          class="secondary"
+          disabled={sortMode === ""}
+          aria-label={sortDirection === "asc"
+            ? "Sort descending"
+            : "Sort ascending"}
+          data-cy="deck-workspace-sort-direction"
+          onclick={toggleSortDirection}
+          >{sortDirection === "asc" ? "Descending" : "Ascending"}</button
         >
-        <option value="type" data-cy="deck-workspace-sort-option-type"
-          >CardType>A–Z</option
-        >
-        <option value="level" data-cy="deck-workspace-sort-option-level"
-          >Level>CardType>A–Z</option
-        >
-        <option value="attribute" data-cy="deck-workspace-sort-option-attribute"
-          >Attribute>CardType>A–Z</option
-        >
-        <option value="race" data-cy="deck-workspace-sort-option-race"
-          >MonsterType>CardType>A–Z</option
-        >
-        <option value="atk" data-cy="deck-workspace-sort-option-atk"
-          >ATK>CardType>A–Z</option
-        >
-        <option value="def" data-cy="deck-workspace-sort-option-def"
-          >DEF>CardType>A–Z</option
-        >
-      </select>
+      </div>
       <button
         type="button"
         class="secondary"
-        disabled={sortMode === ""}
-        aria-label={sortDirection === "asc"
-          ? "Sort descending"
-          : "Sort ascending"}
-        data-cy="deck-workspace-sort-direction"
-        onclick={toggleSortDirection}
-        >{sortDirection === "asc" ? "Descending" : "Ascending"}</button
+        data-cy="deck-editor-duplicate"
+        onclick={onduplicate}>Duplicate</button
       >
-    </div>
-    <button
-      type="button"
-      class="secondary"
-      data-cy="deck-editor-duplicate"
-      onclick={onduplicate}>Duplicate</button
-    >
-    <button
-      type="button"
-      class="secondary"
-      data-cy="deck-editor-export"
-      onclick={onexport}>Export</button
-    >
-    <button
-      type="button"
-      class="secondary"
-      data-cy="deck-editor-set-default"
-      disabled={deck?.id === defaultDeckId}
-      onclick={onsetdefault}>Set default</button
-    >
-    <button
-      type="button"
-      class="danger"
-      data-cy="deck-editor-delete"
-      bind:this={deleteButton}
-      onclick={() => (confirmingDelete = true)}>Delete</button
-    >
-    <button
-      type="button"
-      class="secondary"
-      disabled={state.current?.history.undo.length === 0}
-      data-cy="deck-editor-undo"
-      onclick={onundo}
-      aria-keyshortcuts="Control+Z">Undo</button
-    >
-    <button
-      type="button"
-      class="secondary"
-      disabled={state.current?.history.redo.length === 0}
-      data-cy="deck-editor-redo"
-      onclick={onredo}
-      aria-keyshortcuts="Control+Y Control+Shift+Z">Redo</button
-    >
-    <button
-      type="button"
-      class="secondary"
-      data-cy="deck-editor-import"
-      bind:this={importButton}
-      onclick={() => (showImport = true)}>Import</button
-    >
-    <button
-      type="button"
-      class="secondary"
-      data-cy="deck-editor-load"
-      bind:this={loadButton}
-      onclick={() => void openLoadDialog()}>Load</button
-    >
-  </header>
+      <button
+        type="button"
+        class="secondary"
+        data-cy="deck-editor-export"
+        onclick={onexport}>Export</button
+      >
+      <button
+        type="button"
+        class="secondary"
+        data-cy="deck-editor-set-default"
+        disabled={deck?.id === defaultDeckId}
+        onclick={onsetdefault}>Set default</button
+      >
+      <button
+        type="button"
+        class="danger"
+        data-cy="deck-editor-delete"
+        bind:this={deleteButton}
+        onclick={() => (confirmingDelete = true)}>Delete</button
+      >
+      <button
+        type="button"
+        class="secondary"
+        disabled={state.current?.history.undo.length === 0}
+        data-cy="deck-editor-undo"
+        onclick={onundo}
+        aria-keyshortcuts="Control+Z">Undo</button
+      >
+      <button
+        type="button"
+        class="secondary"
+        disabled={state.current?.history.redo.length === 0}
+        data-cy="deck-editor-redo"
+        onclick={onredo}
+        aria-keyshortcuts="Control+Y Control+Shift+Z">Redo</button
+      >
+      <button
+        type="button"
+        class="secondary"
+        data-cy="deck-editor-import"
+        bind:this={importButton}
+        onclick={() => (showImport = true)}>Import</button
+      >
+      <button
+        type="button"
+        class="secondary"
+        data-cy="deck-editor-load"
+        bind:this={loadButton}
+        onclick={() => void openLoadDialog()}>Load</button
+      >
+    </header>
 
-  <p
-    class="visually-hidden"
-    role="status"
-    aria-live="polite"
-    aria-atomic="true"
-    data-cy="deck-editor-announcement"
-  >
-    {announcement}
-  </p>
+    <p
+      class="visually-hidden"
+      role="status"
+      aria-live="polite"
+      aria-atomic="true"
+      data-cy="deck-editor-announcement"
+    >
+      {announcement}
+    </p>
 
-  <main
-    class="editor-layout"
-    class:tabs
-    aria-busy={state.saveState === "saving"}
-    data-cy="deck-editor-layout"
-  >
-    <!-- Always rendered, and empty it is a zero-height row: a message that
+    <main
+      class="editor-layout"
+      class:tabs
+      aria-busy={state.saveState === "saving"}
+      data-cy="deck-editor-layout"
+    >
+      <!-- Always rendered, and empty it is a zero-height row: a message that
          appeared outside the sized grid would push the panes past the stage
          and hand the region a scrollbar (ADR-042). -->
-    <div class="message-strip" data-cy="deck-editor-message-strip">
-      {#if state.saveState === "failed"}
-        <section
-          class="message error"
-          role="alert"
-          data-cy="deck-editor-save-failed"
-        >
-          <p data-cy="deck-editor-save-failed-message">{state.message}</p>
-          <button
-            type="button"
-            data-cy="deck-editor-retry-save"
-            onclick={onretrysave}>Retry autosave</button
+      <div class="message-strip" data-cy="deck-editor-message-strip">
+        {#if state.saveState === "failed"}
+          <section
+            class="message error"
+            role="alert"
+            data-cy="deck-editor-save-failed"
           >
-          <button
-            type="button"
-            class="secondary"
-            data-cy="deck-editor-reload-saved"
-            onclick={onreload}>Reload saved deck</button
+            <p data-cy="deck-editor-save-failed-message">{state.message}</p>
+            <button
+              type="button"
+              data-cy="deck-editor-retry-save"
+              onclick={onretrysave}>Retry autosave</button
+            >
+            <button
+              type="button"
+              class="secondary"
+              data-cy="deck-editor-reload-saved"
+              onclick={onreload}>Reload saved deck</button
+            >
+          </section>
+        {:else if state.saveState === "conflict"}
+          <section
+            class="message error"
+            role="alert"
+            data-cy="deck-editor-conflict"
           >
-        </section>
-      {:else if state.saveState === "conflict"}
-        <section
-          class="message error"
-          role="alert"
-          data-cy="deck-editor-conflict"
-        >
-          <p data-cy="deck-editor-conflict-message">{state.message}</p>
-          <button
-            type="button"
-            data-cy="deck-editor-reload-revision"
-            onclick={onreload}>Reload newer revision</button
-          >
-          <button
-            type="button"
-            class="secondary"
-            data-cy="deck-editor-preserve-copy"
-            onclick={onpreservecopy}>Preserve local edits as copy</button
-          >
-        </section>
-      {:else if state.message && toasts === undefined}
-        <p class="message" role="status" data-cy="deck-editor-message">
-          {state.message}
-        </p>
+            <p data-cy="deck-editor-conflict-message">{state.message}</p>
+            <button
+              type="button"
+              data-cy="deck-editor-reload-revision"
+              onclick={onreload}>Reload newer revision</button
+            >
+            <button
+              type="button"
+              class="secondary"
+              data-cy="deck-editor-preserve-copy"
+              onclick={onpreservecopy}>Preserve local edits as copy</button
+            >
+          </section>
+        {:else if state.message && toasts === undefined}
+          <p class="message" role="status" data-cy="deck-editor-message">
+            {state.message}
+          </p>
+        {/if}
+      </div>
+
+      {#if tabs}
+        <EditorTabs {pane} onselectpane={(next) => (pane = next)} />
       {/if}
-    </div>
 
-    {#if tabs}
-      <EditorTabs {pane} onselectpane={(next) => (pane = next)} />
-    {/if}
-
-    {#if !tabs || pane === "details"}
-      <div
-        class="pane details-pane"
-        id="deck-pane-details"
-        role={tabs ? "tabpanel" : undefined}
-        data-cy="deck-pane-details"
-      >
-        <CardPreviewPanel
-          preview={previewView}
-          imageLibrary={null}
-          staticImageUrl={previewImageUrl}
-          placeholderUrl=""
-        />
-        <button
-          type="button"
-          class="danger return-button"
-          data-cy="deck-editor-return"
-          onclick={onreturn}>Return to {returnLabel}</button
+      {#if !tabs || pane === "details"}
+        <div
+          class="pane details-pane"
+          id="deck-pane-details"
+          role={tabs ? "tabpanel" : undefined}
+          data-cy="deck-pane-details"
         >
-      </div>
-    {/if}
+          <CardPreviewPanel
+            preview={previewView}
+            imageLibrary={null}
+            staticImageUrl={previewImageUrl}
+            placeholderUrl=""
+          />
+          <button
+            type="button"
+            class="danger return-button"
+            data-cy="deck-editor-return"
+            onclick={onreturn}>Return to {returnLabel}</button
+          >
+        </div>
+      {/if}
 
-    {#if !tabs || pane === "deck"}
-      <div
-        class="pane"
-        id="deck-pane-deck"
-        role={tabs ? "tabpanel" : undefined}
-        data-cy="deck-pane-deck"
-      >
-        <DeckWorkspace
-          {deck}
-          {catalog}
-          {ruleset}
-          {ownership}
-          {selectedCode}
-          {picked}
-          filled={tabs}
-          onselect={selectCard}
-          ontap={tabs ? tapDeckCard : null}
-          ondoubleclick={tabs ? null : doubleClickDeckCard}
-          ondragcard={(code, zone, index, event) =>
-            startZoneDrag(code, zone, index, event)}
-          ondragcancel={endZoneDrag}
-          onreorderdrop={reorderInZone}
-          ondropzone={dropInZone}
-          oncontextremove={openCardContext}
-          onhovercard={(code) => {
-            hovered = catalog.get(code) ?? null;
-            hoveredCode = code;
-          }}
-          onhoverend={() => {
-            hovered = null;
-            hoveredCode = null;
-          }}
-        />
-      </div>
-    {/if}
+      {#if !tabs || pane === "deck"}
+        <div
+          class="pane"
+          id="deck-pane-deck"
+          role={tabs ? "tabpanel" : undefined}
+          data-cy="deck-pane-deck"
+        >
+          <DeckWorkspace
+            {deck}
+            {catalog}
+            {ruleset}
+            {ownership}
+            {selectedCode}
+            {picked}
+            filled={tabs}
+            onselect={selectCard}
+            ontap={tabs ? tapDeckCard : null}
+            ondoubleclick={tabs ? null : doubleClickDeckCard}
+            ondragcard={(code, zone, index, event) =>
+              startZoneDrag(code, zone, index, event)}
+            ondragcancel={endZoneDrag}
+            onreorderdrop={reorderInZone}
+            ondropzone={dropInZone}
+            oncontextremove={openCardContext}
+            onhovercard={(code) => {
+              hovered = catalog.get(code) ?? null;
+              hoveredCode = code;
+            }}
+            onhoverend={() => {
+              hovered = null;
+              hoveredCode = null;
+            }}
+          />
+        </div>
+      {/if}
 
-    {#if !tabs || pane === "catalog"}
-      <div
-        class="pane"
-        id="deck-pane-catalog"
-        role={tabs ? "tabpanel" : undefined}
-        data-cy="deck-pane-catalog"
-      >
-        <CardCatalog
-          {cards}
-          {ruleset}
-          {ownership}
-          {selectedCode}
-          {copies}
-          filled={tabs}
-          onselect={(card) => {
-            selected = card;
-            selectedCode = card.code;
-          }}
-          ontap={tabs ? tapCatalogCard : null}
-          ondoubleclick={tabs ? null : doubleClickCatalogCard}
-          ondragcard={(card, event) => startCatalogDrag(card, event)}
-          ondragcancel={endZoneDrag}
-          oncontextadd={contextAdd}
-          {toSideboard}
-          ontosideboardchange={(value) => (toSideboard = value)}
-          onblocked={(card, reason) => {
-            selected = card;
-            selectedCode = card.code;
-            if (toasts === undefined) announcement = `${card.name}: ${reason}`;
-            else toasts.show({ message: reason, tone: "warning" });
-            pane = paneAfterSelect(pane, layoutMode);
-          }}
-          onhovercard={(card) => {
-            hovered = card;
-            hoveredCode = card.code;
-          }}
-          onhoverend={() => {
-            hovered = null;
-            hoveredCode = null;
-          }}
-        />
-      </div>
-    {/if}
-  </main>
+      {#if !tabs || pane === "catalog"}
+        <div
+          class="pane"
+          id="deck-pane-catalog"
+          role={tabs ? "tabpanel" : undefined}
+          data-cy="deck-pane-catalog"
+        >
+          <CardCatalog
+            {cards}
+            {ruleset}
+            {ownership}
+            {selectedCode}
+            {copies}
+            filled={tabs}
+            onselect={(card) => {
+              selected = card;
+              selectedCode = card.code;
+            }}
+            ontap={tabs ? tapCatalogCard : null}
+            ondoubleclick={tabs ? null : doubleClickCatalogCard}
+            ondragcard={(card, event) => startCatalogDrag(card, event)}
+            ondragcancel={endZoneDrag}
+            oncontextadd={contextAdd}
+            {toSideboard}
+            ontosideboardchange={(value) => (toSideboard = value)}
+            onblocked={(card, reason) => {
+              selected = card;
+              selectedCode = card.code;
+              if (toasts === undefined)
+                announcement = `${card.name}: ${reason}`;
+              else toasts.show({ message: reason, tone: "warning" });
+              pane = paneAfterSelect(pane, layoutMode);
+            }}
+            onhovercard={(card) => {
+              hovered = card;
+              hoveredCode = card.code;
+            }}
+            onhoverend={() => {
+              hovered = null;
+              hoveredCode = null;
+            }}
+          />
+        </div>
+      {/if}
+    </main>
+  </div>
 
   {#if contextCard !== null}
     <DeckCardContextMenu
@@ -918,9 +923,17 @@
 {/if}
 
 <style>
+  .editor-root {
+    display: grid;
+    height: 100%;
+    min-width: 0;
+    min-height: 0;
+    grid-template-rows: auto minmax(0, 1fr);
+  }
+
   .editor-header {
     display: grid;
-    grid-template-columns: auto 1fr repeat(8, auto);
+    grid-template-columns: minmax(0, 1fr) auto repeat(8, auto);
     align-items: end;
     gap: 0.55rem;
     width: 100%;
@@ -930,7 +943,8 @@
 
   .editor-header button {
     min-height: 2.45rem;
-    padding: 0.45rem 0.65rem;
+    padding: 0.35rem 0.45rem;
+    font-size: var(--text-xs);
   }
 
   .sort-actions {
@@ -939,13 +953,14 @@
   }
 
   .sort-actions select {
-    min-width: 12rem;
+    min-width: 8.5rem;
     min-height: 2.45rem;
-    padding: 0.45rem 0.6rem;
+    padding: 0.35rem 0.45rem;
     color: var(--text);
     border: 1px solid var(--border);
     border-radius: var(--radius-md);
     background: var(--surface-chain);
+    font-size: var(--text-xs);
     font-weight: 700;
     cursor: pointer;
   }
@@ -953,6 +968,7 @@
   .name-field {
     display: grid;
     gap: 0.2rem;
+    min-width: 0;
   }
 
   .name-field span {
@@ -961,7 +977,7 @@
   }
 
   .name-field input {
-    width: 11rem;
+    width: 100%;
     min-height: 2.45rem;
     padding: 0.45rem 0.6rem;
     color: var(--text);
@@ -972,14 +988,12 @@
   }
 
   .editor-layout {
-    /* Free play pays only for the editor header. `DeckEditorApp` raises this
-       when a story-save context banner is present above it. */
-    --deck-editor-header-h: 4.75rem;
-
     display: grid;
+    /* Keep the catalog narrow enough for three complete 59:86 rows at the
+       1440×810 stage; the workspace receives the reclaimed width. */
     grid-template-columns: var(--preview-w, 15.5rem) minmax(0, 1fr) minmax(
         16rem,
-        0.55fr
+        0.35fr
       );
     grid-template-rows: auto minmax(0, 1fr);
     /* No row gap: the strip is zero-height when silent, and its own message
@@ -987,7 +1001,8 @@
     column-gap: 0.5rem;
     row-gap: 0;
     width: 100%;
-    height: calc(var(--stage-h, 100svh) - var(--deck-editor-header-h));
+    height: 100%;
+    min-height: 0;
     margin-inline: 0;
     padding: 0 0.25rem 0.5rem;
   }
@@ -1085,6 +1100,10 @@
   /* Below the stage breakpoint the header wraps rather than scrolling sideways.
      The width matches `STAGE_BREAKPOINT_PX` in `src/shell/stage-layout.ts`. */
   @media (max-width: 1023.98px) {
+    .editor-root {
+      height: auto;
+    }
+
     .editor-header {
       display: flex;
       flex-wrap: wrap;

@@ -258,9 +258,9 @@ describe("global styles", () => {
     expect(css).toContain(
       "@media (max-width: 1023.98px) and (orientation: portrait)",
     );
-    expect(ruleBlock(css, ".shell-region--decks {")).toContain(
-      "overflow: auto",
-    );
+    const decks = ruleBlock(css, ".shell-region--decks {");
+    expect(decks).toContain("min-height: 0");
+    expect(decks).toContain("overflow: hidden");
   });
 
   /* The duel must measure the stage, not the viewport, or it keeps its old

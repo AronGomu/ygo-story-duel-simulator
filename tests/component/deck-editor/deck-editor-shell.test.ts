@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 
 import "fake-indexeddb/auto";
+import { readFileSync } from "fs";
 import { cleanup, render, screen, waitFor } from "@testing-library/svelte";
 import { userEvent } from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
@@ -17,6 +18,12 @@ import {
 import { installPrototypeActiveCatalog } from "../../fixtures/active-catalog.ts";
 
 installPrototypeActiveCatalog();
+
+const EDITOR_SOURCE = readFileSync(
+  "src/deck-editor/components/DeckEditor.svelte",
+  "utf8",
+);
+const APP_SOURCE = readFileSync("src/deck-editor/DeckEditorApp.svelte", "utf8");
 
 afterEach(async () => {
   cleanup();
@@ -61,6 +68,27 @@ describe("DeckEditor shell", () => {
     expect(
       screen.queryByRole("button", { name: /compact|list view/i }),
     ).toBeNull();
+  });
+
+  it("owns stage height through parent grid tracks instead of header subtraction", () => {
+    expect(APP_SOURCE).toMatch(
+      /\.deck-editor-app\s*\{[^}]*height:\s*100%;[^}]*min-height:\s*0;[^}]*grid-template-rows:\s*minmax\(0,\s*1fr\);/s,
+    );
+    expect(EDITOR_SOURCE).toMatch(
+      /\.editor-root\s*\{[^}]*height:\s*100%;[^}]*min-height:\s*0;[^}]*grid-template-rows:\s*auto\s+minmax\(0,\s*1fr\);/s,
+    );
+    expect(EDITOR_SOURCE).not.toContain("--deck-editor-header-h");
+    expect(EDITOR_SOURCE).not.toContain("height: calc(var(--stage-h");
+  });
+
+  it("gives the deck name the header's remaining width", () => {
+    expect(EDITOR_SOURCE).toMatch(
+      /grid-template-columns:\s*minmax\(0,\s*1fr\)\s+auto\s+repeat\(8,\s*auto\)/,
+    );
+    expect(EDITOR_SOURCE).toMatch(/\.name-field\s*\{[^}]*min-width:\s*0;/s);
+    expect(EDITOR_SOURCE).toMatch(
+      /\.name-field input\s*\{[^}]*width:\s*100%;/s,
+    );
   });
 
   it("the header has name, action buttons and history controls without library", () => {
