@@ -98,7 +98,8 @@
   let dropHandled = false;
   let announcement = "";
   let deckName = state.current?.deck.name ?? "";
-  let pane: EditorPane = defaultPane();
+  let pane: EditorPane = defaultPane(layoutMode);
+  let focusCatalogOnMount = true;
   let tapped: { code: number; zone: DeckZone; index: number } | null = null;
   let tapOpener: HTMLElement | null = null;
   let contextCard: {
@@ -403,7 +404,10 @@
   }
 
   function focusCatalogNameInput(input: HTMLInputElement): void {
-    if (!showLoad && !showImport && !confirmingDelete) input.focus();
+    if (!focusCatalogOnMount || showLoad || showImport || confirmingDelete)
+      return;
+    focusCatalogOnMount = false;
+    input.focus();
   }
 
   function openCardContext(

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   catalogCardClickIntent,
+  catalogCardContextIntent,
   deckCardClickIntent,
   type ZoneCounts,
 } from "../../../src/deck-editor/layout/click-intent.ts";
@@ -25,6 +26,15 @@ describe("catalogCardClickIntent", () => {
 
   it("a full canonical zone blocks instead of falling back to side", () => {
     expect(catalogCardClickIntent("main", counts({ main: 60 }))).toEqual({
+      kind: "blocked",
+      reason: "Main Deck is full.",
+    });
+  });
+});
+
+describe("catalogCardContextIntent", () => {
+  it("uses same canonical-only rule as catalog activation", () => {
+    expect(catalogCardContextIntent("main", counts({ main: 60 }))).toEqual({
       kind: "blocked",
       reason: "Main Deck is full.",
     });

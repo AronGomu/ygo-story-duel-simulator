@@ -63,6 +63,16 @@ describe("DeckEditor shell", () => {
     ).toBeNull();
   });
 
+  it("does not surface an empty Side warning from validated editor state", () => {
+    const { container } = renderEditor();
+    expect(
+      container.querySelector('[data-cy="deck-zone-error-side"]'),
+    ).toBeNull();
+    expect(
+      container.querySelector('[data-cy="deck-zone-error-extra"]'),
+    ).not.toBeNull();
+  });
+
   it("the header has name, action buttons and history controls without library", () => {
     renderEditor();
     expect(

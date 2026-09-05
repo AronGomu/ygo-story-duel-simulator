@@ -18,8 +18,12 @@ describe("selectEditorLayoutMode", () => {
 });
 
 describe("pane selection", () => {
-  it("opens on the deck the user came to edit", () => {
+  it("opens on the deck by default", () => {
     expect(defaultPane()).toBe("deck");
+  });
+
+  it("opens tabbed editors on catalog for entry focus", () => {
+    expect(defaultPane("tabs")).toBe("catalog");
   });
 
   it("stays on the catalog after an add, so a second card is one tap away", () => {

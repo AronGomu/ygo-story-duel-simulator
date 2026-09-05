@@ -10,9 +10,10 @@ export function selectEditorLayoutMode(stageMode: StageMode): EditorLayoutMode {
   return stageMode === "stage" ? "panels" : "tabs";
 }
 
-/** The editor is opened to edit a deck, so the deck is what it opens on. */
-export function defaultPane(): EditorPane {
-  return "deck";
+/** Panels show deck beside catalog; tabs open catalog so entry focus has a
+    mounted card-name field. */
+export function defaultPane(mode: EditorLayoutMode = "panels"): EditorPane {
+  return mode === "tabs" ? "catalog" : "deck";
 }
 
 /** Adding is a repeated action: the pane the add came from is the pane the

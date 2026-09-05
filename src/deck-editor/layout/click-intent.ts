@@ -47,9 +47,5 @@ export function catalogCardContextIntent(
   canonicalZone: "main" | "extra",
   counts: ZoneCounts,
 ): ClickIntent {
-  const order: readonly DeckZone[] = [canonicalZone, "side"];
-  const open = order.find((zone) => !isFull(zone, counts));
-  return open === undefined
-    ? { kind: "blocked", reason: "No space left." }
-    : { kind: "add", zone: open };
+  return catalogCardClickIntent(canonicalZone, counts);
 }
