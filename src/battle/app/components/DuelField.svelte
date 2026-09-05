@@ -1390,6 +1390,13 @@
      so it stops being drawn. Suppressed rather than cleared: `submissionRejected`
      returns the session to `editing` with these ids intact, and the halo set has
      to come back exactly as it was. */
+  function handZoomHalo(card: BoardCardView): "legal" | "selected" | null {
+    if (selectedTargets.has(card.targetId)) return "selected";
+    if (!pending && spec?.cardChoices.has(card.targetId) === true)
+      return "legal";
+    return null;
+  }
+
   function targetSelections(
     value: ActiveInteractionSpec,
     draft: InteractionSession,
@@ -1510,7 +1517,8 @@
       choices={spec === null || spec.kind === "cardSelection"
         ? []
         : (spec.cardChoices.get(handZoomView.card.targetId) ?? [])}
-      selected={selectedTargets.has(handZoomView.card.targetId)}
+      halo={handZoomHalo(handZoomView.card)}
+      selectionCandidate={spec?.kind === "cardSelection"}
       disabled={pending}
       onchoose={(choice) => {
         dispatch({ type: "chooseChoice", choiceId: choice.id });

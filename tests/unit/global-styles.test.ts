@@ -640,6 +640,57 @@ describe("global styles", () => {
   /* jsdom loads no stylesheet, so no component test can observe `display`, and
      the e2e only ever reaches the chips through the pinned path. Without this
      row both reveal triggers could be deleted with the suite still green. */
+  it("chips use square branded controls with complete interaction states", () => {
+    const css = readFileSync("src/styles/app.css", "utf8");
+    const enlargedChip = ruleBlock(
+      css,
+      ".duel-field-card .card-action-chip,\n.hand-zoom-overlay .card-action-chip {",
+    );
+    expect(enlargedChip).toContain("border-radius: 0;");
+    const chip = ruleBlock(css, "button.card-action-chip {");
+    expect(chip).toContain("border: 1px solid var(--gold-line)");
+    expect(chip).toContain("border-radius: 0");
+    expect(chip).toContain("cursor: pointer");
+    const hover = ruleBlock(
+      css,
+      "button.card-action-chip:hover:not(:disabled) {",
+    );
+    expect(hover).toContain("background: var(--selected-strong)");
+    const focus = ruleBlock(css, "button.card-action-chip:focus-visible {");
+    expect(focus).toContain("outline: 2px solid var(--focus-ring)");
+    const disabled = ruleBlock(css, "button.card-action-chip:disabled {");
+    expect(disabled).toContain("cursor: not-allowed");
+    expect(disabled).toContain("background: var(--neutral)");
+  });
+
+  it("zoom halo styles preserve legal, selected and selection-family semantics", () => {
+    const css = readFileSync("src/styles/app.css", "utf8");
+    const legal = ruleBlock(
+      css,
+      ".hand-zoom-overlay.is-legal .hand-zoom-overlay__art {",
+    );
+    expect(legal).toContain("var(--legal)");
+    const selected = ruleBlock(
+      css,
+      ".hand-zoom-overlay.is-selected .hand-zoom-overlay__art {",
+    );
+    expect(selected).toContain("border: 3px solid var(--selected)");
+    expect(selected).toContain("box-shadow:");
+    expect(selected).toContain("var(--selected)");
+    const dashedLegal = ruleBlock(
+      css,
+      ".hand-zoom-overlay.is-selection-candidate.is-legal .hand-zoom-overlay__art {",
+    );
+    expect(dashedLegal).toContain("border: 3px dashed var(--success)");
+    expect(dashedLegal).toContain("box-shadow: none");
+    const dashedSelected = ruleBlock(
+      css,
+      ".hand-zoom-overlay.is-selection-candidate.is-selected .hand-zoom-overlay__art {",
+    );
+    expect(dashedSelected).toContain("border: 3px dashed var(--selected)");
+    expect(dashedSelected).toContain("box-shadow: none");
+  });
+
   it("chips are hidden until hover, focus or a pin reveals them", () => {
     const css = readFileSync("src/styles/app.css", "utf8");
     const chips = ruleBlock(css, "\n.card-action-chips {");

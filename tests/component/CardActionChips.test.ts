@@ -155,6 +155,15 @@ describe("CardActionChips", () => {
     for (const chip of chips()) expect(chip.disabled).toBe(true);
   });
 
+  it("does not emit a choice from a disabled chip", async () => {
+    const user = userEvent.setup();
+    const { onchoose } = renderChips({ disabled: true });
+
+    await user.click(chips()[0]!);
+
+    expect(onchoose).not.toHaveBeenCalled();
+  });
+
   it("renders list actions plus local Details without fabricating a choice", async () => {
     const onchoose = vi.fn();
     const ondetails = vi.fn();

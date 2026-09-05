@@ -25,10 +25,11 @@
      axis (`readFrameWidth` in `presentation/stage-frame.ts`). */
   export let frameWidth: number;
   export let choices: readonly InteractionChoice[] = [];
-  /* Item 4: the click-pinned zoom wears the orange selected halo. It has to be
-     drawn here as well as on the card: this box covers the card's own art, so
-     the halo the card renders is behind it. */
-  export let selected = false;
+  /* Semantic halo copied onto enlarged art: the overlay covers source card art,
+     so source feedback would be hidden. Selected state wins over legal state
+     before this prop reaches the component. */
+  export let halo: "legal" | "selected" | null = null;
+  export let selectionCandidate = false;
   export let disabled = false;
   export let scale = 1.6;
   export let onchoose: (choice: InteractionChoice) => void = () => undefined;
@@ -98,7 +99,9 @@
      opens this overlay at all — ADR-032 §4) -->
 <div
   class="hand-zoom-overlay"
-  class:is-selected={selected}
+  class:is-legal={halo === "legal"}
+  class:is-selected={halo === "selected"}
+  class:is-selection-candidate={selectionCandidate}
   data-cy={`hand-zoom-overlay-${card.id}`}
   style={overlayStyle}
   onpointerleave={(event) => onzoomleave(event.relatedTarget)}

@@ -267,6 +267,19 @@ describe("HandBand", () => {
     expect(ids).toEqual(["p1-hand-0", "p1-hand-1", "p1-hand-2"]);
   });
 
+  it("negates opponent fan angles while preserving player fan angles", () => {
+    renderBand({ player: 0, cards: handCards(0, 5) });
+    expect(
+      cardArticles().map((card) => card.style.getPropertyValue("--card-fan")),
+    ).toEqual(["-6deg", "-3deg", "0deg", "3deg", "6deg"]);
+
+    cleanup();
+    renderBand({ player: 1, cards: handCards(1, 5) });
+    expect(
+      cardArticles().map((card) => card.style.getPropertyValue("--card-fan")),
+    ).toEqual(["6deg", "3deg", "0deg", "-3deg", "-6deg"]);
+  });
+
   it("forwards preview, activation and drag callbacks", async () => {
     const onpreview = vi.fn();
     const onactivate = vi.fn();

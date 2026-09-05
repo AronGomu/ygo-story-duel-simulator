@@ -3361,6 +3361,121 @@ test("a passive opponent hand card receives a real hover", async ({ page }) => {
   }
 });
 
+test("opponent hand fan mirrors player while zoom halo and action chip hover preserve semantics", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1366, height: 768 });
+  await openDuel(page);
+  await startPresetDuel(page);
+  await expect(page.locator("[data-prompt-kind]")).toBeVisible({
+    timeout: 120_000,
+  });
+
+  const field = page.locator('[data-cy="duel-field"]');
+  const playerHand = field.locator(
+    '.duel-field-card[data-card-zone-id="p0:hand"]',
+  );
+  const opponentHand = field.locator(
+    '.duel-field-card[data-card-zone-id="p1:hand"]',
+  );
+  await expect(playerHand.first()).toBeVisible();
+  await expect(opponentHand.first()).toBeVisible();
+  const fanAngles = async (cards: Locator): Promise<readonly number[]> =>
+    cards.evaluateAll((elements) =>
+      elements.map((element) =>
+        Number.parseFloat(
+          (element as HTMLElement).style.getPropertyValue("--card-fan"),
+        ),
+      ),
+    );
+  const playerAngles = await fanAngles(playerHand);
+  const opponentAngles = await fanAngles(opponentHand);
+  expect(playerAngles.length).toBeGreaterThan(1);
+  expect(opponentAngles).toHaveLength(playerAngles.length);
+  expect(opponentAngles).toEqual(
+    playerAngles.map((angle) => (angle === 0 ? 0 : -angle)),
+  );
+
+  const actionTarget = field
+    .locator(
+      '.duel-field-card[data-card-zone-id="p0:hand"] [aria-label^="Legal action, Open actions"]',
+    )
+    .first();
+  await expect(actionTarget).toBeVisible();
+  const cardId = await actionTarget.evaluate(
+    (element) =>
+      element.closest<HTMLElement>("[data-card-id]")?.dataset.cardId ?? "",
+  );
+  expect(cardId).not.toBe("");
+  const sourceCard = field.locator(`[data-card-id="${cardId}"]`);
+  const sourceArt = sourceCard.locator(".duel-field-card__art");
+
+  await actionTarget.hover({ force: true });
+  const overlay = field.locator("div.hand-zoom-overlay");
+  await expect(overlay).toBeVisible();
+  await expect(overlay).toHaveClass(/\bis-legal\b/);
+  await expect(overlay).not.toHaveClass(/\bis-selected\b/);
+  await expect(overlay).not.toHaveClass(/\bis-selection-candidate\b/);
+  const overlayArt = overlay.locator(".hand-zoom-overlay__art");
+  const haloStyle = (art: Locator) =>
+    art.evaluate((element) => {
+      const style = getComputedStyle(element);
+      return {
+        borderColor: style.borderTopColor,
+        borderStyle: style.borderTopStyle,
+        boxShadow: style.boxShadow,
+      };
+    });
+  const legalSource = await haloStyle(sourceArt);
+  const legalOverlay = await haloStyle(overlayArt);
+  expect(legalOverlay.borderStyle).toBe("solid");
+  expect(legalOverlay.borderColor).toBe(legalSource.borderColor);
+  expect(legalOverlay.boxShadow).toBe(legalSource.boxShadow);
+
+  await actionTarget.dispatchEvent("pointerdown", {
+    clientX: 10,
+    clientY: 10,
+    pointerId: 1,
+  });
+  await actionTarget.dispatchEvent("pointerup", {
+    clientX: 10,
+    clientY: 10,
+    pointerId: 1,
+  });
+  await actionTarget.dispatchEvent("click");
+  await expect(sourceCard).toHaveClass(/\bis-selected\b/);
+  await expect(overlay).toHaveClass(/\bis-selected\b/);
+  await expect(overlay).not.toHaveClass(/\bis-legal\b/);
+  await expect(overlay).not.toHaveClass(/\bis-selection-candidate\b/);
+  const selectedSource = await haloStyle(sourceArt);
+  const selectedOverlay = await haloStyle(overlayArt);
+  expect(selectedOverlay.borderStyle).toBe("solid");
+  expect(selectedOverlay.borderColor).toBe(selectedSource.borderColor);
+  expect(selectedOverlay.boxShadow).toBe(selectedSource.boxShadow);
+
+  const chip = overlay.locator("button.card-action-chip").first();
+  await expect(chip).toBeVisible();
+  await expect(chip).toHaveCSS("border-radius", "0px");
+  await expect(chip).toHaveCSS("cursor", "pointer");
+  const restBackground = await chip.evaluate(
+    (element) => getComputedStyle(element).backgroundColor,
+  );
+  await chip.hover();
+  const hoverStyle = await chip.evaluate((element) => {
+    const probe = document.createElement("span");
+    probe.style.backgroundColor = "var(--selected-strong)";
+    document.body.append(probe);
+    const selectedStrong = getComputedStyle(probe).backgroundColor;
+    probe.remove();
+    return {
+      background: getComputedStyle(element).backgroundColor,
+      selectedStrong,
+    };
+  });
+  expect(hoverStyle.background).toBe(hoverStyle.selectedStrong);
+  expect(hoverStyle.background).not.toBe(restBackground);
+});
+
 test("T12: hand hover opens a 1.6x overlay, keyboard focus lifts the card 1.35x in place, chips stay hit-testable, and reduced motion disables the zoom", async ({
   page,
 }) => {

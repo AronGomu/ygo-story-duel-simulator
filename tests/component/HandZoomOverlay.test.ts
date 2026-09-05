@@ -115,7 +115,8 @@ function renderOverlay(
     readonly card?: BoardCardView;
     readonly imageLibrary?: Pick<CardImageLibrary, "lease"> | null;
     readonly onzoomleave?: (related: EventTarget | null) => void;
-    readonly selected?: boolean;
+    readonly halo?: "legal" | "selected" | null;
+    readonly selectionCandidate?: boolean;
   } = {},
 ) {
   return render(HandZoomOverlay, {
@@ -124,7 +125,8 @@ function renderOverlay(
       anchor,
       frameWidth,
       choices,
-      selected: overrides.selected ?? false,
+      halo: overrides.halo ?? null,
+      selectionCandidate: overrides.selectionCandidate ?? false,
       imageLibrary: overrides.imageLibrary ?? null,
       cardBackUrl: CARD_BACK_URL,
       placeholderUrl: PLACEHOLDER_URL,
@@ -312,20 +314,54 @@ describe("HandZoomOverlay action rows", () => {
   });
 });
 
-describe("HandZoomOverlay selection", () => {
-  /* The box covers the card it serves at 1.6x, so the card's own orange ring is
-     drawn behind it: `.is-selected` here is the copy the player actually sees,
-     and `app.css` hangs the halo off it on the art. */
-  it("wears the selected halo when the field says the card is selected", () => {
-    renderOverlay(FRAME_WIDTH, ANCHOR, [], { selected: true });
+describe("HandZoomOverlay halo", () => {
+  it("wears solid card-action semantics when card is selected", () => {
+    renderOverlay(FRAME_WIDTH, ANCHOR, [], { halo: "selected" });
 
     expect(overlay().classList.contains("is-selected")).toBe(true);
+    expect(overlay().classList.contains("is-legal")).toBe(false);
+    expect(overlay().classList.contains("is-selection-candidate")).toBe(false);
+  });
+
+  it("wears legal halo for an actionable unselected card", () => {
+    renderOverlay(FRAME_WIDTH, ANCHOR, [], { halo: "legal" });
+
+    expect(overlay().classList.contains("is-legal")).toBe(true);
+    expect(overlay().classList.contains("is-selected")).toBe(false);
+  });
+
+  it("gives selected halo priority when both states are requested", () => {
+    renderOverlay(FRAME_WIDTH, ANCHOR, [], { halo: "selected" });
+
+    expect(overlay().classList.contains("is-selected")).toBe(true);
+    expect(overlay().classList.contains("is-legal")).toBe(false);
   });
 
   it("wears no halo by default", () => {
     renderOverlay(FRAME_WIDTH, ANCHOR, []);
 
     expect(overlay().classList.contains("is-selected")).toBe(false);
+    expect(overlay().classList.contains("is-legal")).toBe(false);
+  });
+
+  it("marks legal selection-family halo for dashed styling", () => {
+    renderOverlay(FRAME_WIDTH, ANCHOR, [], {
+      halo: "legal",
+      selectionCandidate: true,
+    });
+
+    expect(overlay().classList.contains("is-legal")).toBe(true);
+    expect(overlay().classList.contains("is-selection-candidate")).toBe(true);
+  });
+
+  it("keeps selected selection-family halo dashed", () => {
+    renderOverlay(FRAME_WIDTH, ANCHOR, [], {
+      halo: "selected",
+      selectionCandidate: true,
+    });
+
+    expect(overlay().classList.contains("is-selected")).toBe(true);
+    expect(overlay().classList.contains("is-selection-candidate")).toBe(true);
   });
 });
 
