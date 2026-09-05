@@ -1,6 +1,7 @@
 import { DuelOperationError } from "../../src/battle/duel/contracts/duel-error.ts";
 import type {
   CardCode,
+  CardInstanceId,
   ChoiceId,
   PromptId,
 } from "../../src/battle/duel/contracts/ids.ts";
@@ -10,6 +11,8 @@ import type {
   PromptChoice,
 } from "../../src/battle/duel/contracts/player-prompt.ts";
 import type {
+  PlayerIndex,
+  PublicCard,
   PublicDuelState,
   PublicOverlayMaterial,
 } from "../../src/battle/duel/contracts/public-duel-state.ts";
@@ -21,11 +24,24 @@ import type { OcgCoreAdapter } from "../../src/battle/worker/engine/OcgCoreAdapt
 import { DuelSession } from "../../src/battle/worker/engine/DuelSession.ts";
 import { HeadlessDuelController } from "../../src/battle/worker/HeadlessDuelController.ts";
 
+export interface DanteMaterialPromptCapture {
+  readonly prompt: PlayerPrompt;
+  readonly state: PublicDuelState;
+  /** Exact response accepted by core while advancing deterministic line. */
+  readonly responseChoiceIds: readonly ChoiceId[];
+}
+
 /** Test-only evidence for Dante's engine-authentic detach path. */
 export interface DanteMaterialDecisionCapture {
   readonly kind: "engine-choice" | "auto-detach";
   readonly activationPromptId: PromptId;
+  readonly player: PlayerIndex;
+  readonly hostInstanceId: CardInstanceId;
   readonly materialPrompts: readonly PlayerPrompt[];
+  readonly materialPromptCaptures: readonly DanteMaterialPromptCapture[];
+  readonly beforeState: PublicDuelState;
+  readonly afterState: PublicDuelState;
+  /** Materials attached to captured Dante host, never aggregate field data. */
   readonly before: readonly PublicOverlayMaterial[];
   readonly after: readonly PublicOverlayMaterial[];
   readonly detachedCode: CardCode | null;
@@ -96,26 +112,43 @@ export function captureDanteMaterialDecision(
     maximumAutomaticResponses: 5_000,
   });
   const ladder = new DanteActivationLadder();
-  const materialPrompts: PlayerPrompt[] = [];
+  const materialPromptCaptures: DanteMaterialPromptCapture[] = [];
   let activationPromptId: PromptId | undefined;
+  let player: PlayerIndex | undefined;
+  let hostInstanceId: CardInstanceId | undefined;
+  let beforeState: PublicDuelState | undefined;
   let before: readonly PublicOverlayMaterial[] | undefined;
   let advance = controller.advance();
 
   try {
     for (let step = 0; step < PROMPT_BUDGET; step += 1) {
       if (ladder.activated) {
-        const current = overlayMaterials(advance.state);
-        if (before === undefined)
-          throw new Error("Dante activation has no pre-detach material state");
+        if (
+          beforeState === undefined ||
+          before === undefined ||
+          player === undefined ||
+          hostInstanceId === undefined
+        ) {
+          throw new Error("Dante activation has no pre-detach host state");
+        }
+        const current = danteMaterials(advance.state, player, hostInstanceId);
         if (current.length < before.length) {
           if (activationPromptId === undefined)
             throw new Error("Dante decrement has no activation prompt");
+          const materialPrompts = materialPromptCaptures.map(
+            ({ prompt }) => prompt,
+          );
           return Object.freeze({
             kind: materialPrompts.some(hasOverlayChoice)
               ? "engine-choice"
               : "auto-detach",
             activationPromptId,
-            materialPrompts: Object.freeze([...materialPrompts]),
+            player,
+            hostInstanceId,
+            materialPrompts: Object.freeze(materialPrompts),
+            materialPromptCaptures: Object.freeze([...materialPromptCaptures]),
+            beforeState,
+            afterState: advance.state,
             before,
             after: current,
             detachedCode: detachedCode(before, current),
@@ -124,8 +157,15 @@ export function captureDanteMaterialDecision(
         const prompt = advance.prompt;
         if (prompt === undefined)
           throw new Error("Dante detach stopped without material decrement");
-        materialPrompts.push(prompt);
-        advance = respond(controller, prompt, ladder);
+        const response = respond(controller, prompt, ladder);
+        materialPromptCaptures.push(
+          Object.freeze({
+            prompt,
+            state: advance.state,
+            responseChoiceIds: response.choiceIds,
+          }),
+        );
+        advance = response.advance;
         continue;
       }
 
@@ -134,15 +174,26 @@ export function captureDanteMaterialDecision(
         throw new Error("Dante activation stopped without a prompt");
       const activationChoice = ladder.activationChoice(prompt);
       if (activationChoice !== undefined) {
-        before = overlayMaterials(advance.state);
+        const activationCard = activationChoice.card;
+        if (activationCard === undefined)
+          throw new Error("Dante activation choice has no card address");
+        const host = danteHost(
+          advance.state,
+          activationCard.controller,
+          activationCard.sequence,
+        );
+        beforeState = advance.state;
+        before = host.overlayMaterials;
         if (before.length === 0)
           throw new Error("Dante activation has no overlay material");
         activationPromptId = prompt.id;
-        advance = controller.respond(prompt.id, [activationChoice]);
+        player = host.controller;
+        hostInstanceId = host.instanceId;
+        advance = controller.respond(prompt.id, [activationChoice.id]);
         ladder.markActivated();
         continue;
       }
-      advance = respond(controller, prompt, ladder);
+      advance = respond(controller, prompt, ladder).advance;
     }
     throw new Error(
       "Dante material decrement not observed within prompt budget",
@@ -166,11 +217,11 @@ class DanteActivationLadder {
     this.#activated = true;
   }
 
-  activationChoice(prompt: PlayerPrompt): ChoiceId | undefined {
+  activationChoice(prompt: PlayerPrompt): PromptChoice | undefined {
     if (prompt.kind !== "idleCommand") return undefined;
     return prompt.choices.find(
       (choice) => choice.action === "activate" && choice.card?.code === DANTE,
-    )?.id;
+    );
   }
 
   choose(prompt: PlayerPrompt): readonly ChoiceId[] | undefined {
@@ -220,15 +271,23 @@ class DanteActivationLadder {
   }
 }
 
+interface AcceptedResponse {
+  readonly advance: ReturnType<HeadlessDuelController["respond"]>;
+  readonly choiceIds: readonly ChoiceId[];
+}
+
 function respond(
   controller: HeadlessDuelController,
   prompt: PlayerPrompt,
   ladder: DanteActivationLadder,
-): ReturnType<HeadlessDuelController["respond"]> {
+): AcceptedResponse {
   let lastRejection: DuelOperationError | undefined;
   for (const ids of candidateResponses(prompt, ladder)) {
     try {
-      return controller.respond(prompt.id, ids);
+      return Object.freeze({
+        advance: controller.respond(prompt.id, ids),
+        choiceIds: Object.freeze([...ids]),
+      });
     } catch (error) {
       if (
         !(error instanceof DuelOperationError) ||
@@ -266,14 +325,34 @@ function candidateResponses(
   return candidates;
 }
 
-function overlayMaterials(
+function danteHost(
   state: PublicDuelState,
-): readonly PublicOverlayMaterial[] {
-  return Object.freeze(
-    state.players.flatMap((seat) =>
-      seat.monsters.flatMap((monster) => monster.overlayMaterials),
-    ),
+  player: PlayerIndex,
+  sequence: number,
+): PublicCard {
+  const host = state.players[player].monsters.find(
+    (card) =>
+      card.code === DANTE &&
+      card.controller === player &&
+      card.location === "monster" &&
+      card.sequence === sequence,
   );
+  if (host === undefined)
+    throw new Error(`Dante host missing for player ${player}`);
+  return host;
+}
+
+function danteMaterials(
+  state: PublicDuelState,
+  player: PlayerIndex,
+  hostInstanceId: CardInstanceId,
+): readonly PublicOverlayMaterial[] {
+  const host = state.players[player].monsters.find(
+    ({ instanceId }) => instanceId === hostInstanceId,
+  );
+  if (host === undefined)
+    throw new Error(`Dante host ${hostInstanceId} left player ${player} field`);
+  return host.overlayMaterials;
 }
 
 function detachedCode(
