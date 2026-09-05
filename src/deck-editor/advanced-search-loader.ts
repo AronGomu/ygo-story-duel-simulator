@@ -40,6 +40,7 @@ export interface AdvancedSearchHost {
   };
   onchange(filters: DeckCatalogQuery): void;
   reset(): void;
+  onopenchange(open: boolean): void;
 }
 
 export async function openAdvancedSearch(
@@ -50,7 +51,8 @@ export async function openAdvancedSearch(
   if (host.disposed || generation !== host.generation) return;
   const state = host.read();
   const session =
-    host.session ?? (host.session = loadAdvancedSearch(state.cards));
+    host.session ??
+    (host.session = loadAdvancedSearch(state.cards, host.onopenchange));
   const advanced = state.filters.advanced ?? session.emptyFilters;
   host.onchange({ ...state.filters, advanced });
   session.open({
@@ -61,13 +63,17 @@ export async function openAdvancedSearch(
   });
 }
 
-export function loadAdvancedSearch(cards: readonly DeckBuilderCardView[]) {
+export function loadAdvancedSearch(
+  cards: readonly DeckBuilderCardView[],
+  onopenchange: (open: boolean) => void,
+) {
   let mounted: (ReturnType<typeof mount> & AdvancedSearchHandle) | null = null;
   const close = async () => {
     if (mounted === null) return;
     const current = mounted;
     mounted = null;
     await unmount(current);
+    onopenchange(false);
   };
   return {
     emptyFilters: EMPTY_ADVANCED_DECK_CATALOG_FILTERS,
@@ -85,13 +91,18 @@ export function loadAdvancedSearch(cards: readonly DeckBuilderCardView[]) {
           onclose: () => void close(),
         },
       }) as ReturnType<typeof mount> & AdvancedSearchHandle;
+      onopenchange(true);
     },
     setResultCount(resultCount: number) {
       mounted?.setResultCount(resultCount);
     },
     destroy() {
-      if (mounted !== null) void unmount(mounted);
-      mounted = null;
+      if (mounted !== null) {
+        const current = mounted;
+        mounted = null;
+        onopenchange(false);
+        void unmount(current);
+      }
     },
   } as const;
 }

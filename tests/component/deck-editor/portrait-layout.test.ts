@@ -59,6 +59,68 @@ describe("deck editor portrait layout", () => {
     ).toBeTruthy();
   });
 
+  it("keeps an open advanced search mounted when panels become tabs", async () => {
+    HTMLDialogElement.prototype.showModal = function showModal() {
+      this.setAttribute("open", "");
+    };
+    HTMLDialogElement.prototype.close = function close() {
+      this.removeAttribute("open");
+    };
+    globalThis.ResizeObserver = class {
+      observe() {}
+      disconnect() {}
+      unobserve() {}
+    } as unknown as typeof ResizeObserver;
+    globalThis.IntersectionObserver = class {
+      observe() {}
+      disconnect() {}
+      unobserve() {}
+      takeRecords() {
+        return [];
+      }
+      root = null;
+      rootMargin = "";
+      thresholds = [];
+    } as unknown as typeof IntersectionObserver;
+    const props = {
+      state: stateFixture(1),
+      cards: PROTOTYPE_CATALOG,
+      catalog: prototypeCatalogMap,
+      ruleset: PROTOTYPE_RULESET,
+      layoutMode: "panels" as EditorLayoutMode,
+      returnLabel: "Deck Selection",
+      onreturn: vi.fn(),
+      onrename: vi.fn(),
+      onmutate: vi.fn(),
+      onundo: vi.fn(),
+      onredo: vi.fn(),
+      onretrysave: vi.fn(),
+      onreload: vi.fn(),
+      onpreservecopy: vi.fn(),
+    };
+    const view = render(DeckEditor, props);
+    const user = userEvent.setup();
+    await user.click(screen.getByRole("button", { name: "Advanced Search" }));
+    const dialog = await screen.findByRole("dialog", {
+      name: "Advanced Search",
+    });
+
+    await view.rerender({ ...props, layoutMode: "tabs" });
+
+    expect(pane("catalog")).not.toBeNull();
+    expect(dialog.isConnected).toBe(true);
+    expect(document.activeElement).toBe(
+      screen.getByRole("button", { name: "Close advanced search" }),
+    );
+    await user.click(screen.getByRole("button", { name: "Apply filters" }));
+    expect(
+      screen.queryByRole("dialog", { name: "Advanced Search" }),
+    ).toBeNull();
+    expect(document.activeElement).toBe(
+      screen.getByRole("button", { name: "Advanced Search" }),
+    );
+  });
+
   it("switches panes from the tab list without stealing tab focus", async () => {
     const user = userEvent.setup();
     renderEditor("tabs");

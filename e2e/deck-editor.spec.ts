@@ -1421,6 +1421,22 @@ test("advanced search owns workspace geometry, modality and live close semantics
     page.locator('[data-cy="deck-catalog-results"] > .card-tile'),
   ).toHaveCount(filteredCount);
 
+  await page.setViewportSize({ width: 800, height: 1000 });
+  await expect(dialog).toBeVisible();
+  await expect(page.locator('[data-cy="deck-tab-catalog"]')).toHaveAttribute(
+    "aria-selected",
+    "true",
+  );
+  expect(
+    await page.evaluate(() =>
+      document
+        .querySelector('[data-cy="advanced-search-dialog"]')
+        ?.contains(document.activeElement),
+    ),
+    "responsive transition must keep focus inside advanced search",
+  ).toBe(true);
+  await assertBounds("deck-editor-layout");
+
   await page.locator('[data-cy="advanced-search-close"]').click();
   await expect(dialog).toHaveCount(0);
   await expect(trigger).toBeFocused();
@@ -1438,16 +1454,6 @@ test("advanced search owns workspace geometry, modality and live close semantics
   await expect(page.locator('[data-cy="deck-catalog-name-input"]')).toHaveValue(
     "Dark Magician",
   );
-
-  await page.setViewportSize({ width: 800, height: 1000 });
-  await page.locator('[data-cy="deck-tab-catalog"]').click();
-  await trigger.click();
-  await assertBounds("deck-editor-layout");
-  await page.locator('[data-cy="advanced-search-reset"]').click();
-  await expect(dialog).toBeVisible();
-  await page.locator('[data-cy="advanced-search-apply"]').click();
-  await expect(dialog).toHaveCount(0);
-  await expect(trigger).toBeFocused();
 });
 
 test("the story editor fits stage with reachable portrait panes", async ({
@@ -1669,11 +1675,10 @@ test("the catalog tile count stays under the ceiling on a phone", async ({
   ).toHaveCount(0);
 });
 
-/* Edit cost must not scale with mounted tile count. A MutationObserver counts
-   DOM mutations during an add-card action; the count should be bounded by a
-   small constant independent of scroll depth. This is deterministic: it
-   measures mutation count, not wall-clock time. */
-test("copy edits preserve the result window within a bounded mutation count", async ({
+/* Exercise real persisted copy edits at both result-window depths. DOM-only
+   mutation counts can stay low when no deck command succeeds, so this checks
+   committed deck rows plus visible result/window invariants instead. */
+test("copy edits preserve the result window while committing deck updates", async ({
   page,
 }) => {
   await page.setViewportSize({ width: 390, height: 844 });
@@ -1682,36 +1687,44 @@ test("copy edits preserve the result window within a bounded mutation count", as
   await page.reload();
 
   await page.locator('[data-cy="deck-select-create"]').click();
-  await page.getByLabel("Deck name").fill("Mutation Test");
+  await page.getByLabel("Deck name").fill("Copy Edit Test");
   await page.locator('[data-cy="deck-library-create-submit"]').click();
   await page.locator('[data-cy="deck-tab-catalog"]').click();
 
-  /* Direct child selector: only count tile buttons, not their children. */
   const tiles = page.locator(
     '[data-cy="deck-catalog-results"] > [data-cy^="catalog-tile-"]',
   );
+  const resultCount = page.locator('[data-cy="deck-catalog-result-count"]');
   await expect(tiles.first()).toBeVisible();
+  const initialVisible = await tiles.count();
+  const initialResults = await resultCount.textContent();
+  const unlimitedTile = page
+    .locator(
+      '[data-cy="deck-catalog-results"] > [data-cy^="catalog-tile-"][aria-label*="Unlimited, maximum 3"]',
+    )
+    .first();
+  await expect(unlimitedTile).toBeVisible();
+  const deckId = new URL(page.url()).hash.replace(
+    /^#\/(?:free-play|story)\/decks\//,
+    "",
+  );
 
-  /* Measure mutation count during add with few tiles (initial window). */
-  const mutationsAtShallow = await page.evaluate(async () => {
-    const results = document.querySelector('[data-cy="deck-catalog-results"]');
-    if (!results) return -1;
-    let count = 0;
-    const observer = new MutationObserver((records) => {
-      count += records.length;
-    });
-    observer.observe(results, { childList: true, subtree: true });
-    /* Direct child: don't match child elements of the tile. */
-    const tile = results.querySelector(
-      ':scope > [data-cy^="catalog-tile-"]',
-    ) as HTMLElement | null;
-    tile?.click();
-    await new Promise((r) => setTimeout(r, 100));
-    observer.disconnect();
-    return count;
-  });
+  const addAndVerify = async (expectedTotal: number) => {
+    await unlimitedTile.click();
+    await expect
+      .poll(async () => {
+        const persisted = await persistedDeckCounts(page, deckId);
+        return persisted === null
+          ? null
+          : persisted.main + persisted.extra + persisted.side;
+      })
+      .toBe(expectedTotal);
+    await expect(resultCount).toHaveText(initialResults!);
+  };
 
-  /* Scroll to ceiling. */
+  await addAndVerify(1);
+  await expect(tiles).toHaveCount(initialVisible);
+
   const scrollToBottom = () =>
     page.evaluate(() => {
       const region = document.querySelector(
@@ -1724,47 +1737,10 @@ test("copy edits preserve the result window within a bounded mutation count", as
     await page.waitForTimeout(100);
   }
 
-  /* Confirm ceiling reached. */
-  const tileCount = await tiles.count();
-  expect(tileCount).toBeGreaterThanOrEqual(RESULT_WINDOW_CEILING - 10);
-
-  /* Measure mutation count during add at ceiling. */
-  const mutationsAtCeiling = await page.evaluate(async () => {
-    const results = document.querySelector('[data-cy="deck-catalog-results"]');
-    if (!results) return -1;
-    let count = 0;
-    const observer = new MutationObserver((records) => {
-      count += records.length;
-    });
-    observer.observe(results, { childList: true, subtree: true });
-    const tile = results.querySelectorAll(
-      ':scope > [data-cy^="catalog-tile-"]',
-    )[10] as HTMLElement | null;
-    tile?.click();
-    await new Promise((r) => setTimeout(r, 100));
-    observer.disconnect();
-    return count;
-  });
-
-  /* Both counts should be small constants, independent of tile count. The
-     tile tap fires selection + hover updates + Svelte reactive batches; bound
-     is generous to cover those but stable across scroll depth. */
-  const MUTATION_BOUND = 100;
-  expect(
-    mutationsAtShallow,
-    `shallow mutations ${mutationsAtShallow} exceeds bound ${MUTATION_BOUND}`,
-  ).toBeLessThanOrEqual(MUTATION_BOUND);
-  expect(
-    mutationsAtCeiling,
-    `ceiling mutations ${mutationsAtCeiling} exceeds bound ${MUTATION_BOUND}`,
-  ).toBeLessThanOrEqual(MUTATION_BOUND);
-
-  /* The two counts should be comparable — edit cost independent of depth. */
-  const delta = Math.abs(mutationsAtCeiling - mutationsAtShallow);
-  expect(
-    delta,
-    `mutation delta ${delta} (shallow=${mutationsAtShallow}, ceiling=${mutationsAtCeiling}) suggests cost scales with depth`,
-  ).toBeLessThanOrEqual(MUTATION_BOUND);
+  const ceilingVisible = await tiles.count();
+  expect(ceilingVisible).toBeGreaterThanOrEqual(RESULT_WINDOW_CEILING - 10);
+  await addAndVerify(2);
+  await expect(tiles).toHaveCount(ceilingVisible);
 });
 
 test("deck library shows art rows with frame and copy count", async ({

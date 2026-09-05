@@ -54,6 +54,7 @@
     undefined;
   export let onnameinputmount: (element: HTMLInputElement) => void = () =>
     undefined;
+  export let onadvancedchange: (open: boolean) => void = () => undefined;
 
   /* Without an observer nothing ever appends, so the window can only be what
      the first render mounts. Every result would be 14,551 tiles at once, which
@@ -89,6 +90,7 @@
       resetResultWindow();
     },
     reset: resetFilters,
+    onopenchange: (open) => onadvancedchange(open),
   };
   void import("./CatalogTypeInput.svelte").then(
     ({ default: component }) => {

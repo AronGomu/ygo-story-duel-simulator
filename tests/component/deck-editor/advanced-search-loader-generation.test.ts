@@ -14,6 +14,7 @@ function host(): AdvancedSearchHost {
     read: vi.fn(),
     onchange: vi.fn(),
     reset: vi.fn(),
+    onopenchange: vi.fn(),
   };
 }
 
