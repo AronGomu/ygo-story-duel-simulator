@@ -4,30 +4,8 @@ import {
   compileAdvancedDeckCatalogMatcher,
   prepareAdvancedDeckCatalogIndex,
 } from "./deck-catalog-advanced.ts";
-import {
-  cardMatchesCatalogType,
-  type DeckCatalogQuery,
-} from "./deck-catalog.ts";
-import {
-  compareDeckCatalogCards,
-  type DeckCatalogIndex,
-} from "./deck-catalog-index-base.ts";
-
-function sortDeckCatalogCards(
-  cards: DeckBuilderCardView[],
-): DeckBuilderCardView[] {
-  cards.sort((left, right) =>
-    left.name < right.name
-      ? -1
-      : left.name > right.name
-        ? 1
-        : left.code - right.code,
-  );
-  for (let offset = 1; offset < cards.length; offset++)
-    if (compareDeckCatalogCards(cards[offset - 1]!, cards[offset]!) > 0)
-      return cards.sort(compareDeckCatalogCards);
-  return cards;
-}
+import type { DeckCatalogQuery } from "./deck-catalog.ts";
+import type { DeckCatalogIndex } from "./deck-catalog-index-base.ts";
 
 export {
   buildDeckCatalogIndex,
@@ -47,8 +25,52 @@ export function filterDeckCatalogIndex(
       ? null
       : compileAdvancedDeckCatalogMatcher(query.advanced);
   const advanced = prepareAdvancedDeckCatalogIndex(index);
+  if (
+    query.types.length === 0 &&
+    matchesAdvanced === null &&
+    nameMode === "contains"
+  ) {
+    const out: DeckBuilderCardView[] = [];
+    for (let position = 0; position < advanced.order.length; position++) {
+      const offset = advanced.order[position]!;
+      const card = index.cards[offset]!;
+      if (
+        isAvailable(card) &&
+        (needle.length === 0 || index.lowerNames[offset]!.includes(needle))
+      )
+        out.push(card);
+    }
+    return Object.freeze(out);
+  }
+  let family: string | null = null;
+  let attribute: string | null = null;
+  let race: string | null = null;
+  const subtypes: string[] = [];
+  for (const tag of query.types)
+    switch (tag.category) {
+      case "family":
+        if (family !== null && family !== tag.value) return Object.freeze([]);
+        family = tag.value;
+        break;
+      case "attribute":
+        if (attribute !== null && attribute !== tag.value)
+          return Object.freeze([]);
+        attribute = tag.value;
+        break;
+      case "race":
+        if (race !== null && race !== tag.value) return Object.freeze([]);
+        race = tag.value;
+        break;
+      case "subtype":
+        if (!subtypes.includes(tag.value)) subtypes.push(tag.value);
+    }
   const out: DeckBuilderCardView[] = [];
-  cardLoop: for (const offset of advanced.order) {
+  cardLoop: for (
+    let position = 0;
+    position < advanced.order.length;
+    position++
+  ) {
+    const offset = advanced.order[position]!;
     const card = index.cards[offset]!;
     if (!isAvailable(card)) continue;
     if (needle) {
@@ -64,10 +86,13 @@ export function filterDeckCatalogIndex(
       )
         continue;
     }
-    for (const tag of query.types)
-      if (!cardMatchesCatalogType(card, tag)) continue cardLoop;
+    if (family !== null && card.family !== family) continue;
+    if (attribute !== null && card.attribute !== attribute) continue;
+    if (race !== null && card.race !== race) continue;
+    for (let subtype = 0; subtype < subtypes.length; subtype++)
+      if (!card.subtypes.includes(subtypes[subtype]!)) continue cardLoop;
     if (matchesAdvanced !== null && !matchesAdvanced(card)) continue;
     out.push(card);
   }
-  return Object.freeze(sortDeckCatalogCards(out));
+  return Object.freeze(out);
 }

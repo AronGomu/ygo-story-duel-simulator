@@ -18,6 +18,20 @@ export function compareDeckCatalogCards(
   return COLLATOR.compare(left.name, right.name) || left.code - right.code;
 }
 
+export function deckCatalogOrderIsSorted(
+  cards: readonly DeckBuilderCardView[],
+  order: readonly number[],
+): boolean {
+  const compare = COLLATOR.compare;
+  for (let offset = 1; offset < order.length; offset++) {
+    const left = cards[order[offset - 1]!]!;
+    const right = cards[order[offset]!]!;
+    if ((compare(left.name, right.name) || left.code - right.code) > 0)
+      return false;
+  }
+  return true;
+}
+
 export function buildDeckCatalogIndex(
   source: readonly DeckBuilderCardView[],
 ): DeckCatalogIndex {

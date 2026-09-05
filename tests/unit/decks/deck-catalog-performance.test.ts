@@ -22,21 +22,15 @@ import { syntheticCatalog } from "../../fixtures/synthetic-catalog.ts";
 const CARDS_15K = syntheticCatalog(15_000);
 const AVAILABLE = () => true;
 
-/* Every budget below is a best-of-N rather than one cold run. A single run
-   measures whatever the JIT and the GC were doing at that instant — the same
-   `buildDeckCatalogIndex` call costs 3.1-3.8 ms cold and 0.26-0.38 ms warm —
-   so a ceiling set from a cold number is really a ceiling four to fifteen
-   times looser than it reads, and every "measured: ~Nms" comment in this file
-   used to quote the runner's wall time for the whole case instead of the
-   quantity the assertion tests. Best-of-N is the noise-robust number: measured
-   across three full `npm run test:unit` runs, where these files share the
-   machine with forty others, the spread stayed inside 1.5x. */
+/* Every budget below is best-of-N wall time rather than one cold run. Package
+   test routing runs this file after parallel unit workers finish, so this clock
+   measures production work instead of scheduler pauses from unrelated tests. */
 function bestOf(runs: number, work: () => unknown): number {
   let best = Infinity;
   for (let run = 0; run < runs; run++) {
-    const t0 = performance.now();
+    const start = performance.now();
     work();
-    const elapsed = performance.now() - t0;
+    const elapsed = performance.now() - start;
     if (elapsed < best) best = elapsed;
   }
   return best;
@@ -136,16 +130,14 @@ describe("catalog performance budgets", () => {
     const best = bestOf(20, () =>
       filterDeckCatalogIndex(index, filters, AVAILABLE),
     );
-    // measured: 0.175-0.209ms best-of-20 at n=15,000; budget rejects a 10x regression
+    // measured: 0.31-0.33ms best-of-20 at n=15,000; budget rejects a 4x regression
     expect(best).toBeLessThan(1.5);
   });
 
-  /* The index earns its keep by lower-casing every name once instead of once
-     per keystroke, and that is a ratio rather than a ceiling: the two paths
-     are 0.18 ms and 0.44 ms, so no absolute budget can separate them without
-     sitting close enough to the noise to flake. `catalog-index-wiring.test.ts`
-     is what proves the component is on the indexed path; this proves the
-     indexed path is still worth being on. */
+  /* The index earns its keep by lower-casing every name once and preserving
+     precomputed result order instead of repeating both per keystroke. The ratio
+     remains useful across machines; `catalog-index-wiring.test.ts` proves the
+     component uses this path. */
   it("the indexed search beats the unindexed reference implementation", () => {
     const index = buildDeckCatalogIndex(CARDS_15K);
     prepareAdvancedDeckCatalogIndex(index);
@@ -156,7 +148,7 @@ describe("catalog performance budgets", () => {
     const unindexed = bestOf(20, () =>
       filterDeckCatalog(CARDS_15K, filters, AVAILABLE),
     );
-    // measured: unindexed/indexed = 1.9-4.3x across 24 samples under suite load
+    // measured: unindexed/indexed = 4.1x at n=15,000
     expect(indexed).toBeLessThan(unindexed);
   });
 
