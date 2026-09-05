@@ -38,6 +38,14 @@ const REQUIRED_TOKENS = [
   "--duel-field-layer-menu",
 ];
 
+const SCROLLBAR_TOKENS = [
+  "--scrollbar-track",
+  "--scrollbar-thumb",
+  "--scrollbar-thumb-hover",
+  "--scrollbar-thumb-active",
+  "--scrollbar-border",
+] as const;
+
 describe("design tokens", () => {
   it("token file declares every required token exactly once", () => {
     const tokens = readFileSync("src/styles/tokens.css", "utf8");
@@ -88,6 +96,78 @@ describe("design tokens", () => {
 });
 
 describe("global styles", () => {
+  it("declares Basilica Slate tokens for every native scrollbar state", () => {
+    const tokens = readFileSync("src/styles/tokens.css", "utf8");
+    for (const token of SCROLLBAR_TOKENS) {
+      expect(
+        tokens.match(new RegExp(`^\\s*${token}:`, "gm")),
+        token,
+      ).toHaveLength(1);
+    }
+    expect(tokens).toContain("--scrollbar-track: var(--surface-sunken);");
+    expect(tokens).toContain("--scrollbar-thumb-hover: var(--border-light);");
+    expect(tokens).toContain("--scrollbar-thumb-active: var(--accent-strong);");
+    expect(tokens).toContain("--scrollbar-border: var(--border);");
+  });
+
+  it("brands visible native scrollbars globally without changing overlay hosts", () => {
+    const css = readFileSync("src/styles/app.css", "utf8");
+    const universal = ruleBlock(css, "* {");
+    expect(universal).toContain(
+      "scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track)",
+    );
+    expect(universal).toContain("scrollbar-width: thin");
+    for (const selector of [
+      "*::-webkit-scrollbar {",
+      "*::-webkit-scrollbar-track {",
+      "*::-webkit-scrollbar-thumb {",
+      "*::-webkit-scrollbar-thumb:hover {",
+      "*::-webkit-scrollbar-thumb:active {",
+    ]) {
+      expect(css, `${selector} missing`).toContain(selector);
+    }
+    expect(css).toContain("@media (forced-colors: active)");
+    const forcedColorsStart = css.indexOf("@media (forced-colors: active)");
+    expect(forcedColorsStart).toBeGreaterThan(-1);
+    const forcedColors = css.slice(
+      forcedColorsStart,
+      css.indexOf("\nbody {", forcedColorsStart),
+    );
+    expect(forcedColors).toContain("scrollbar-color: auto");
+    expect(forcedColors).not.toContain("display: none");
+  });
+
+  it("keeps native-hide declarations on every custom overlay host", () => {
+    const hosts = [
+      ["src/styles/app.css", ".card-preview-panel__text"],
+      ["src/styles/app.css", ".duel-field-hand-band__viewport"],
+      ["src/deck-editor/components/CardCatalog.svelte", ".results"],
+    ] as const;
+    for (const [file, selector] of hosts) {
+      const source = readFileSync(file, "utf8");
+      expect(source, `${file} ${selector} hides native width`).toMatch(
+        /scrollbar-width:\s*none/,
+      );
+      expect(source, `${file} ${selector} hides WebKit rail`).toMatch(
+        /::-webkit-scrollbar[^{]*\{[\s\S]*?display:\s*none/,
+      );
+    }
+  });
+
+  it("keeps zone-list native chrome on shared scrollbar tokens", () => {
+    const css = readFileSync("src/styles/app.css", "utf8");
+    const entries = ruleBlock(css, ".zone-list-dialog__entries {", 0);
+    expect(entries).toContain(
+      "scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track)",
+    );
+    expect(css).toContain(
+      ".zone-list-dialog__entries::-webkit-scrollbar-thumb:hover {",
+    );
+    expect(css).toContain(
+      ".zone-list-dialog__entries::-webkit-scrollbar-thumb:active {",
+    );
+  });
+
   it("declares a global .visually-hidden clip utility", () => {
     const css = readFileSync("src/styles/app.css", "utf8");
     expect(css).toContain(".visually-hidden");

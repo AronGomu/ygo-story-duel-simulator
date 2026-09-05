@@ -26,7 +26,11 @@
   --border-strong: #486078;
   --border-soft: #53627e;
   --border-light: #8ba0bf;
+  --scrollbar-track: var(--surface-sunken);
   --scrollbar-thumb: #73829d;
+  --scrollbar-thumb-hover: var(--border-light);
+  --scrollbar-thumb-active: var(--accent-strong);
+  --scrollbar-border: var(--border);
 
   /* text */
   --text: #eef1f7;
