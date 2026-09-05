@@ -114,15 +114,25 @@ describe("reduceEndTurnAutomation", () => {
     expect(repeated.action).toBeNull();
   });
 
-  it("pauses on a non-end prompt then resumes after the player answers", () => {
+  it("pauses through a manual non-end response then resumes on the next end choice", () => {
     const first = sync(arm(), spec("first"));
+    const decisionSpec = spec("decision", "yes");
 
-    const paused = sync(first.state, spec("decision", "yes"));
+    const paused = sync(first.state, decisionSpec);
+    const manuallyAnswering = sync(paused.state, decisionSpec, {
+      responsePending: true,
+    });
     const resumedSpec = spec("resumed");
-    const resumed = sync(paused.state, resumedSpec);
+    const resumed = sync(manuallyAnswering.state, resumedSpec);
 
-    expect(paused.state.status).toBe("armed");
+    expect(paused.state).toEqual({
+      status: "armed",
+      sessionGeneration: 4,
+      lastDispatchedKey: first.state.lastDispatchedKey,
+    });
     expect(paused.action).toBeNull();
+    expect(manuallyAnswering.state).toBe(paused.state);
+    expect(manuallyAnswering.action).toBeNull();
     expect(resumed.action).toEqual({
       type: "chooseChoice",
       choiceId: choiceId("resumed-choice"),

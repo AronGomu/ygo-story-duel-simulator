@@ -56,8 +56,7 @@ vi.mock("../../src/battle/app/DuelWorkerClient.ts", () => {
     }
 
     respond(...args: unknown[]) {
-      workerClientSpies.respond(...args);
-      return false;
+      return workerClientSpies.respond(...args) === true;
     }
 
     surrender() {
@@ -718,6 +717,26 @@ async function startOwnEffectChainWindow(
   );
 }
 
+function endPhasePrompt(id: string): PlayerPrompt {
+  return {
+    id: promptId(id),
+    kind: "idleCommand",
+    player: 0,
+    title: "Choose a Main Phase action",
+    choices: [
+      {
+        id: choiceId(`${id}-end`),
+        label: "End turn",
+        action: "endPhase",
+      },
+    ],
+    minimum: 1,
+    maximum: 1,
+    cancelable: false,
+    ordered: false,
+  };
+}
+
 function holdCtrl(): void {
   fireEvent.keyDown(window, { key: "Control" });
 }
@@ -725,6 +744,58 @@ function holdCtrl(): void {
 function releaseCtrl(): void {
   fireEvent.keyUp(window, { key: "Control" });
 }
+
+describe("App End Turn automation", () => {
+  it("pauses prompt auto-response for a manual decision then resumes end-phase exits", async () => {
+    const user = userEvent.setup();
+    const firstEnd = endPhasePrompt("first-end");
+    const resumedEnd = endPhasePrompt("resumed-end");
+    workerClientSpies.respond.mockReturnValue(true);
+    await renderReadyApp();
+    await startDuelFromPicker(user);
+    emitDuelState(EMPTY_SNAPSHOT);
+    emitPrompt(firstEnd);
+
+    const endTurn = await vi.waitFor(() => {
+      const button = document.querySelector(
+        '[data-cy="field-end-turn-button"]',
+      ) as HTMLButtonElement;
+      expect(button.disabled).toBe(false);
+      return button;
+    });
+    await user.click(endTurn);
+    expect(workerClientSpies.respond).toHaveBeenCalledWith(firstEnd.id, [
+      choiceId("first-end-end"),
+    ]);
+
+    emitDuelState(OWN_CHAIN_SNAPSHOT);
+    emitPrompt(OWN_EFFECT_CHAIN_PROMPT);
+    await settleAutoResolve();
+
+    expect(workerClientSpies.respond).toHaveBeenCalledTimes(1);
+    expect(endTurn.getAttribute("data-armed")).toBe("true");
+    await user.click(
+      document.querySelector(
+        '[data-cy="field-action-bar-choice-own-chain-pass"]',
+      ) as HTMLButtonElement,
+    );
+    expect(workerClientSpies.respond).toHaveBeenNthCalledWith(
+      2,
+      OWN_EFFECT_CHAIN_PROMPT.id,
+      [OWN_CHAIN_PASS],
+    );
+
+    emitPrompt(resumedEnd);
+    await settleAutoResolve();
+
+    expect(workerClientSpies.respond).toHaveBeenNthCalledWith(
+      3,
+      resumedEnd.id,
+      [choiceId("resumed-end-end")],
+    );
+    expect(workerClientSpies.respond).toHaveBeenCalledTimes(3);
+  });
+});
 
 describe("App Full Control", () => {
   it("passes on a chain window the player opened themselves", async () => {

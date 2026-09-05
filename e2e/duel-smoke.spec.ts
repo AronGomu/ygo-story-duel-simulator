@@ -2517,12 +2517,16 @@ test("End Turn one press reaches the opponent turn while phase bar stays visible
   await expect(playerHalf).toHaveAttribute("data-current-phase", "main1");
   await disableAutoResolveTrivialPrompts(page);
   await disableAutoPlaceCards(page);
-  const endTurn = page.locator('[data-cy="field-end-turn-button"]');
+  const endTurn = field.locator('[data-cy="field-end-turn-button"]');
+  await expect(
+    phaseBar.locator('[data-cy="field-end-turn-button"]'),
+  ).toHaveCount(0);
   await expect(endTurn).toBeEnabled();
   await endTurn.click();
   await expect(playerHalf).not.toHaveAttribute("data-current-phase", "main1");
   await expect(opponentHalf).toHaveAttribute("data-current-phase", /.+/);
   await expect(phaseBar.locator("button:enabled")).toHaveCount(0);
+  await expect(endTurn).toBeDisabled();
   await advanceToPlayerPhase(page, playerHalf, "main1", endTurn);
   await expect(playerHalf).toHaveAttribute("data-current-phase", "main1");
 
@@ -3826,13 +3830,18 @@ test("enabled phase controls stay unobstructed on mobile", async ({ page }) => {
   await expect(page.locator("[data-prompt-kind]")).toBeVisible({
     timeout: 120_000,
   });
+  await page.locator('[data-cy="duel-rotation-dismiss"]').click();
+  await expect(page.locator('[data-cy="duel-rotation-notice"]')).toHaveCount(0);
 
   for (const viewport of viewports) {
     await page.setViewportSize(viewport);
+    await page.mouse.move(0, 0);
     await expect
       .poll(async () => {
         const controls = await page
-          .locator('[data-cy="phase-bar"] button.phase-chip:not(:disabled)')
+          .locator(
+            '[data-cy="phase-bar"] button.phase-chip:not(:disabled), [data-cy="field-end-turn-button"]:not(:disabled)',
+          )
           .evaluateAll((elements) =>
             elements.map((element) => {
               const box = element.getBoundingClientRect();
@@ -4445,29 +4454,12 @@ test("responsive field compositions contain controls across supported viewports"
       );
     }
 
-    const enabledPhaseControls = await page
-      .locator('[data-cy="phase-bar"] button.phase-chip:not(:disabled)')
-      .evaluateAll((elements) =>
-        elements.map((element) => {
-          const box = element.getBoundingClientRect();
-          const hit = document.elementFromPoint(
-            box.left + box.width / 2,
-            box.top + box.height / 2,
-          );
-          return {
-            width: box.width,
-            height: box.height,
-            hit: hit === element || (hit !== null && element.contains(hit)),
-          };
-        }),
-      );
-    expect(enabledPhaseControls.length).toBeGreaterThan(0);
-    expect(
-      enabledPhaseControls.every(
-        ({ width, height, hit }) => width >= 44 && height >= 44 && hit,
-      ),
-      `${viewportLabel} enabled phase controls keep a 44px unobstructed target`,
-    ).toBe(true);
+    /* Opening Main 1 exposes only End Turn. That control now lives in Duel
+       Field, so PhaseBar correctly has no enabled button of its own. */
+    await expect(
+      phaseBar.locator("button.phase-chip:not(:disabled)"),
+    ).toHaveCount(0);
+    await expect(endTurnButton).toBeEnabled();
 
     const endTurnRect = await endTurnButton.evaluate((element) => {
       const box = element.getBoundingClientRect();

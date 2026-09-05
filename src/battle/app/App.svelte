@@ -779,6 +779,7 @@
   $: maybeAutoResolvePrompt(
     effectivePrompt,
     $duel.responsePending,
+    endTurnAutomation.status === "armed",
     $uiSettings,
     effectiveFullControl,
     $duel.snapshot,
@@ -805,6 +806,7 @@
   function maybeAutoResolvePrompt(
     prompt: PlayerPrompt | null,
     responsePending: boolean,
+    endTurnArmed: boolean,
     settings: UiSettingsState,
     fullControl: boolean,
     snapshot: PublicDuelState | null,
@@ -815,6 +817,10 @@
       return;
     }
     if (responsePending || autoResolvedPromptId === prompt.id) return;
+    /* End Turn automation may only dispatch engine-offered endPhase choices.
+       Any other prompt stays with the player until their manual response lets
+       the reducer inspect the next keyed choice. */
+    if (endTurnArmed) return;
     /* Full Control answers nothing, and claims the prompt on the way out:
        dropping Ctrl while the player is looking at a window must not hand
        that same window to an automation behind their back. */
