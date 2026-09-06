@@ -303,6 +303,21 @@ describe("deck-catalog-index", () => {
     ).toEqual(independentFilter(source, EMPTY_DECK_CATALOG_QUERY, AVAILABLE));
   });
 
+  it("preserves exact order when sort-prefix hashes collide", () => {
+    const source = ["anaaaa Z", "c0aaaa A", "bbaaaa M"].map((name, offset) => ({
+      ...PROTOTYPE_CATALOG[0]!,
+      code: 91_000_000 + offset,
+      name,
+    }));
+    expect(
+      filterDeckCatalogIndex(
+        buildDeckCatalogIndex(source),
+        EMPTY_DECK_CATALOG_QUERY,
+        AVAILABLE,
+      ),
+    ).toEqual(independentFilter(source, EMPTY_DECK_CATALOG_QUERY, AVAILABLE));
+  });
+
   it("matches reference on small fixture with cross-category AND", () => {
     const options = catalogTypeOptions(PROTOTYPE_CATALOG);
     const filters = {

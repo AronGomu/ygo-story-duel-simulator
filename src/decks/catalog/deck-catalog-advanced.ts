@@ -1,6 +1,5 @@
 import {
-  compareDeckCatalogCards,
-  deckCatalogOrderIsSorted,
+  deckCatalogSortOrder,
   type DeckCatalogIndex,
 } from "./deck-catalog-index-base.ts";
 import type { DeckBuilderCardView } from "./ocg-card-mapper.ts";
@@ -341,35 +340,7 @@ export function prepareAdvancedDeckCatalogIndex(
 ): PreparedAdvancedDeckCatalogIndex {
   const cached = ADVANCED_INDEX.get(index);
   if (cached !== undefined) return cached;
-  const { cards, lowerNames } = index;
-  const buckets = new Map<string, number[]>();
-  for (let offset = 0; offset < cards.length; offset++) {
-    const prefix = lowerNames[offset]!.slice(0, 6);
-    const bucket = buckets.get(prefix);
-    if (bucket === undefined) buckets.set(prefix, [offset]);
-    else bucket.push(offset);
-  }
-  const order = new Array<number>(cards.length);
-  const compareOffsets = (left: number, right: number) => {
-    const leftName = lowerNames[left]!;
-    const rightName = lowerNames[right]!;
-    return leftName < rightName
-      ? -1
-      : leftName > rightName
-        ? 1
-        : cards[left]!.code - cards[right]!.code;
-  };
-  let position = 0;
-  for (const prefix of [...buckets.keys()].sort()) {
-    const bucket = buckets.get(prefix)!;
-    bucket.sort(compareOffsets);
-    for (const offset of bucket) order[position++] = offset;
-  }
-  if (!deckCatalogOrderIsSorted(cards, order))
-    order.sort((left, right) =>
-      compareDeckCatalogCards(cards[left]!, cards[right]!),
-    );
-  const prepared = Object.freeze({ order: Object.freeze(order) });
+  const prepared = Object.freeze({ order: deckCatalogSortOrder(index) });
   ADVANCED_INDEX.set(index, prepared);
   return prepared;
 }
