@@ -1,8 +1,11 @@
 import type { DeckBuilderCardView } from "./ocg-card-mapper.ts";
+import { compareDeckCatalogCards } from "./deck-catalog-order.ts";
 import {
   cardMatchesCatalogType,
   type DeckCatalogFilters,
 } from "./deck-catalog-types.ts";
+
+export { compareDeckCatalogCards } from "./deck-catalog-order.ts";
 
 export interface DeckCatalogIndex {
   readonly cards: readonly DeckBuilderCardView[];
@@ -10,41 +13,36 @@ export interface DeckCatalogIndex {
 }
 
 const SORT_ORDERS = new WeakMap<DeckCatalogIndex, readonly number[]>();
-const COLLATOR = new Intl.Collator("en", { sensitivity: "base" });
-
-export function compareDeckCatalogCards(
-  left: DeckBuilderCardView,
-  right: DeckBuilderCardView,
-): number {
-  return COLLATOR.compare(left.name, right.name) || left.code - right.code;
-}
 
 export function deckCatalogOrderIsSorted(
   cards: readonly DeckBuilderCardView[],
   order: readonly number[],
-  lowerNames?: readonly string[],
 ): boolean {
-  const compare = COLLATOR.compare;
   for (let offset = 1; offset < order.length; offset++) {
-    const leftIndex = order[offset - 1]!;
-    const rightIndex = order[offset]!;
-    const left = cards[leftIndex]!;
-    const right = cards[rightIndex]!;
-    if (
-      (compare(
-        lowerNames?.[leftIndex] ?? left.name,
-        lowerNames?.[rightIndex] ?? right.name,
-      ) || left.code - right.code) > 0
-    )
-      return false;
+    const left = cards[order[offset - 1]!]!;
+    const right = cards[order[offset]!]!;
+    if (compareDeckCatalogCards(left, right) > 0) return false;
   }
   return true;
+}
+
+function exactSortOrder(index: DeckCatalogIndex): readonly number[] {
+  return Object.freeze(
+    Array.from({ length: index.cards.length }, (_, offset) => offset).sort(
+      (left, right) =>
+        compareDeckCatalogCards(index.cards[left]!, index.cards[right]!),
+    ),
+  );
 }
 
 export function deckCatalogSortOrder(
   index: DeckCatalogIndex,
 ): readonly number[] {
-  return SORT_ORDERS.get(index)!;
+  const cached = SORT_ORDERS.get(index);
+  if (cached !== undefined) return cached;
+  const order = exactSortOrder(index);
+  SORT_ORDERS.set(index, order);
+  return order;
 }
 
 export function buildDeckCatalogIndex(
@@ -52,38 +50,21 @@ export function buildDeckCatalogIndex(
 ): DeckCatalogIndex {
   const cards = new Array<DeckBuilderCardView>(source.length);
   const lowerNames = new Array<string>(source.length);
-  const sortBuckets = new Map<number, number[]>();
+  const order = new Array<number>(source.length);
+  let sourceSorted = true;
   for (let offset = 0; offset < source.length; offset++) {
     const card = source[offset]!;
-    const lowerName = card.name.toLowerCase();
-    let prefix = 0;
-    const prefixLength = Math.min(6, lowerName.length);
-    for (let index = 0; index < prefixLength; index++)
-      prefix = (Math.imul(prefix, 31) + lowerName.charCodeAt(index)) | 0;
-    const bucket = sortBuckets.get(prefix);
     cards[offset] = card;
-    lowerNames[offset] = lowerName;
-    if (bucket === undefined) sortBuckets.set(prefix, [offset]);
-    else bucket.push(offset);
+    lowerNames[offset] = card.name.toLowerCase();
+    order[offset] = offset;
+    if (
+      sourceSorted &&
+      offset > 0 &&
+      compareDeckCatalogCards(source[offset - 1]!, card) > 0
+    )
+      sourceSorted = false;
   }
-  const order = new Array<number>(cards.length);
-  const compareOffsets = (left: number, right: number) => {
-    const leftName = lowerNames[left]!;
-    const rightName = lowerNames[right]!;
-    return leftName < rightName
-      ? -1
-      : leftName > rightName
-        ? 1
-        : cards[left]!.code - cards[right]!.code;
-  };
-  const buckets = [...sortBuckets.values()];
-  for (const bucket of buckets) bucket.sort(compareOffsets);
-  buckets.sort((left, right) => compareOffsets(left[0]!, right[0]!));
-  let position = 0;
-  for (const bucket of buckets)
-    for (let offset = 0; offset < bucket.length; offset++)
-      order[position++] = bucket[offset]!;
-  if (!deckCatalogOrderIsSorted(cards, order, lowerNames))
+  if (!sourceSorted)
     order.sort((left, right) =>
       compareDeckCatalogCards(cards[left]!, cards[right]!),
     );
