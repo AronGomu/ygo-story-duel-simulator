@@ -14,18 +14,6 @@ export interface DeckCatalogIndex {
 
 const SORT_ORDERS = new WeakMap<DeckCatalogIndex, readonly number[]>();
 
-export function deckCatalogOrderIsSorted(
-  cards: readonly DeckBuilderCardView[],
-  order: readonly number[],
-): boolean {
-  for (let offset = 1; offset < order.length; offset++) {
-    const left = cards[order[offset - 1]!]!;
-    const right = cards[order[offset]!]!;
-    if (compareDeckCatalogCards(left, right) > 0) return false;
-  }
-  return true;
-}
-
 function exactSortOrder(index: DeckCatalogIndex): readonly number[] {
   return Object.freeze(
     Array.from({ length: index.cards.length }, (_, offset) => offset).sort(

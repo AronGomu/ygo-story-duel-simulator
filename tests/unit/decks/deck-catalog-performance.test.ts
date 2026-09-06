@@ -127,11 +127,8 @@ describe("catalog performance budgets", () => {
     expect(best).toBeLessThan(2.5);
   });
 
-  /* `dragon` is three of the twenty-four prototype names, so the search walks
-     15,000 cards and pushes 1,875 of them: the `out.push` path a real search
-     takes, not the early-`continue` a zero-match term would measure. The count
-     is asserted so a fixture rename cannot quietly turn this into a timing of
-     the empty branch. */
+  /* High-entropy names mirror production's broad sort workload: more than
+     5,000 distinct six-character prefixes across 15,000 cards. */
   it("builds a sorted high-entropy production-shaped index under budget", () => {
     expect(
       new Set(
