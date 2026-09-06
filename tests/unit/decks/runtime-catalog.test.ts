@@ -171,6 +171,17 @@ describe("loadRuntimeCatalog", () => {
       expect(card.imageUrl).toBe(`/app/runtime/images/${card.code}.jpg`);
   });
 
+  it("loads cards in exact English name and code order", async () => {
+    const cards = await loadRuntimeCatalog(recordingReader(), "/");
+    const collator = new Intl.Collator("en", { sensitivity: "base" });
+    expect(cards).toEqual(
+      [...cards].sort(
+        (left, right) =>
+          collator.compare(left.name, right.name) || left.code - right.code,
+      ),
+    );
+  });
+
   it("rejects with the name of the shard that failed", async () => {
     const reader = recordingReader("assets/current/catalog/cards/07.json");
     await expect(loadRuntimeCatalog(reader, "/")).rejects.toThrow(

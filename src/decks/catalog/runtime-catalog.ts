@@ -2,6 +2,7 @@ import type {
   AssetDeckCardRecord,
   DeckBuilderCardView,
 } from "./ocg-card-mapper.ts";
+import { sortDeckCatalogCards } from "./deck-catalog-order.ts";
 import { packagedCatalog, type PackagedCardText } from "./packaged-catalog.ts";
 import { verifyDigest } from "./snapshot-digest.ts";
 
@@ -205,14 +206,16 @@ export async function loadRuntimeCatalog(
     ),
   ]);
   const cards = cardShards.flat();
-  return packagedCatalog(
-    cards,
-    textShards.flat(),
-    new Map(
-      cards.map(({ code }) => [
-        code,
-        `${imageBaseUrl}runtime/images/${code}.jpg`,
-      ]),
+  return sortDeckCatalogCards(
+    packagedCatalog(
+      cards,
+      textShards.flat(),
+      new Map(
+        cards.map(({ code }) => [
+          code,
+          `${imageBaseUrl}runtime/images/${code}.jpg`,
+        ]),
+      ),
     ),
   );
 }

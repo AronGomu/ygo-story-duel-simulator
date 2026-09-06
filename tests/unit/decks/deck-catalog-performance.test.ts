@@ -15,11 +15,26 @@ import {
   catalogShardName,
 } from "../../../src/decks/catalog/runtime-catalog.ts";
 import type { CatalogShardReader } from "../../../src/decks/catalog/runtime-catalog.ts";
-import type { AssetDeckCardRecord } from "../../../src/decks/catalog/ocg-card-mapper.ts";
+import type {
+  AssetDeckCardRecord,
+  DeckBuilderCardView,
+} from "../../../src/decks/catalog/ocg-card-mapper.ts";
 import type { PackagedCardText } from "../../../src/decks/catalog/packaged-catalog.ts";
-import { syntheticCatalog } from "../../fixtures/synthetic-catalog.ts";
+import {
+  highEntropyCatalog,
+  syntheticCatalog,
+} from "../../fixtures/synthetic-catalog.ts";
 
-const CARDS_15K = syntheticCatalog(15_000);
+const SORT_COLLATOR = new Intl.Collator("en", { sensitivity: "base" });
+const sortFixture = (cards: readonly DeckBuilderCardView[]) =>
+  Object.freeze(
+    [...cards].sort(
+      (left, right) =>
+        SORT_COLLATOR.compare(left.name, right.name) || left.code - right.code,
+    ),
+  );
+const CARDS_15K = sortFixture(syntheticCatalog(15_000));
+const HIGH_ENTROPY_CARDS_15K = sortFixture(highEntropyCatalog(15_000));
 const AVAILABLE = () => true;
 
 /* Every budget below is best-of-N wall time rather than one cold run. Package
@@ -90,10 +105,8 @@ function makeInMemoryReader(count: number): CatalogShardReader {
 }
 
 describe("catalog performance budgets", () => {
-  /* The regression this rejects is an accidental quadratic, which is what a
-     de-duplicating pass over 15k codes turns into the moment it reaches for
-     `Array.prototype.includes` instead of a `Set`: measured at 34-43 ms, or
-     120x the linear build, and the old 400 ms ceiling waved it through. */
+  /* Runtime loading establishes exact Name A–Z order once. Fresh indexes then
+     verify that production invariant while building lower-name search data. */
   it("building fresh indexes stays under budget (best of 20 runs)", () => {
     const inputs = Array.from({ length: 20 }, () =>
       CARDS_15K.map((card) => ({ ...card })),
@@ -114,11 +127,28 @@ describe("catalog performance budgets", () => {
     expect(best).toBeLessThan(2.5);
   });
 
-  /* `dragon` is three of the twenty-four prototype names, so the search walks
-     15,000 cards and pushes 1,875 of them: the `out.push` path a real search
-     takes, not the early-`continue` a zero-match term would measure. The count
-     is asserted so a fixture rename cannot quietly turn this into a timing of
-     the empty branch. */
+  /* High-entropy names mirror production's broad sort workload: more than
+     5,000 distinct six-character prefixes across 15,000 cards. */
+  it("builds a sorted high-entropy production-shaped index under budget", () => {
+    expect(
+      new Set(
+        HIGH_ENTROPY_CARDS_15K.map(({ name }) =>
+          name.toLowerCase().slice(0, 6),
+        ),
+      ).size,
+    ).toBeGreaterThan(5_000);
+    const inputs = Array.from({ length: 20 }, () =>
+      HIGH_ENTROPY_CARDS_15K.map((card) => ({ ...card })),
+    );
+    let run = 0;
+    const best = bestOf(20, () => {
+      const index = buildDeckCatalogIndex(inputs[run++]!);
+      const prepared = prepareAdvancedDeckCatalogIndex(index);
+      if (prepared.order.length !== 15_000) throw new Error("empty workload");
+    });
+    expect(best).toBeLessThan(2.5);
+  });
+
   it("a name search stays under budget (best of 20 runs)", () => {
     const index = buildDeckCatalogIndex(CARDS_15K);
     prepareAdvancedDeckCatalogIndex(index);

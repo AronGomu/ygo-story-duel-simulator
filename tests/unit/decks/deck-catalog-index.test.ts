@@ -303,6 +303,40 @@ describe("deck-catalog-index", () => {
     ).toEqual(independentFilter(source, EMPTY_DECK_CATALOG_QUERY, AVAILABLE));
   });
 
+  it("derives exact order for a structurally valid external index", () => {
+    const cards = ["Zulu", "Äther", "a-b", "a_b"].map((name, offset) => ({
+      ...PROTOTYPE_CATALOG[0]!,
+      code: 92_000_000 + offset,
+      name,
+    }));
+    const structuralIndex = Object.freeze({
+      cards: Object.freeze(cards),
+      lowerNames: Object.freeze(cards.map(({ name }) => name.toLowerCase())),
+    });
+    expect(
+      filterDeckCatalogIndex(
+        structuralIndex,
+        EMPTY_DECK_CATALOG_QUERY,
+        AVAILABLE,
+      ),
+    ).toEqual(independentFilter(cards, EMPTY_DECK_CATALOG_QUERY, AVAILABLE));
+  });
+
+  it("preserves exact order when sort-prefix hashes collide", () => {
+    const source = ["anaaaa Z", "c0aaaa A", "bbaaaa M"].map((name, offset) => ({
+      ...PROTOTYPE_CATALOG[0]!,
+      code: 91_000_000 + offset,
+      name,
+    }));
+    expect(
+      filterDeckCatalogIndex(
+        buildDeckCatalogIndex(source),
+        EMPTY_DECK_CATALOG_QUERY,
+        AVAILABLE,
+      ),
+    ).toEqual(independentFilter(source, EMPTY_DECK_CATALOG_QUERY, AVAILABLE));
+  });
+
   it("matches reference on small fixture with cross-category AND", () => {
     const options = catalogTypeOptions(PROTOTYPE_CATALOG);
     const filters = {
