@@ -1,3 +1,4 @@
+import { ASSET_SOURCES } from "./scripts/lib/asset-roots.ts";
 import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import path from "node:path";
@@ -10,6 +11,7 @@ import {
 } from "./scripts/lib/active-image-manifest.ts";
 import { browserRuntimeAssetsPlugin } from "./scripts/lib/vite-runtime-assets.ts";
 import { syncOnlyVendoredCorePlugin } from "./scripts/lib/vite-sync-core.ts";
+import { sourceAssetsPlugin } from "./scripts/lib/vite-source-assets.ts";
 
 const projectRoot = path.dirname(fileURLToPath(import.meta.url));
 const appBuildDate = new Date().toISOString().slice(0, 10);
@@ -18,7 +20,7 @@ if (!Number.isSafeInteger(developmentPort) || developmentPort <= 0) {
   throw new Error("DEV_PORT must be a positive integer");
 }
 const runtimeManifestBytes = readFileSync(
-  path.join(projectRoot, "generated/runtime/current/manifest.json"),
+  path.join(projectRoot, `${ASSET_SOURCES.runtime.source}/manifest.json`),
 );
 const runtimeManifestSha256 = createHash("sha256")
   .update(runtimeManifestBytes)
@@ -62,6 +64,7 @@ export default defineConfig({
     syncOnlyVendoredCorePlugin(projectRoot),
     svelte(),
     browserRuntimeAssetsPlugin(projectRoot),
+    sourceAssetsPlugin(projectRoot),
   ],
   define: {
     __RUNTIME_MANIFEST_SHA256__: JSON.stringify(runtimeManifestSha256),

@@ -1,3 +1,5 @@
+import { ASSET_SOURCES } from "./asset-roots.ts";
+import { assertSafeParents } from "./asset-delivery/path-guards.ts";
 import { createReadStream } from "node:fs";
 import {
   cp,
@@ -24,8 +26,8 @@ export function browserRuntimeAssetsPlugin(projectRoot: string): Plugin {
     configResolved(resolved) {
       config = resolved;
     },
-    configureServer(server) {
-      installRuntimeMiddleware(server, projectRoot);
+    async configureServer(server) {
+      await installRuntimeMiddleware(server, projectRoot);
     },
     async closeBundle() {
       if (config?.command !== "build") return;
@@ -39,10 +41,21 @@ export function browserRuntimeAssetsPlugin(projectRoot: string): Plugin {
   };
 }
 
-function installRuntimeMiddleware(
+async function installRuntimeMiddleware(
   server: ViteDevServer,
   projectRoot: string,
-): void {
+): Promise<void> {
+  const manifest = parseRuntimeSnapshotManifest(
+    JSON.parse(
+      await readFile(
+        path.join(projectRoot, ASSET_SOURCES.runtime.source, "manifest.json"),
+        "utf8",
+      ),
+    ),
+  );
+  const snapshotFiles = new Set(
+    snapshotCopyPaths(manifest).map((file) => `runtime/assets/current/${file}`),
+  );
   server.middlewares.use((request, response, next) => {
     if (request.url === undefined) {
       next();
@@ -68,6 +81,14 @@ function installRuntimeMiddleware(
       next();
       return;
     }
+    if (
+      relativeRequest.startsWith("runtime/assets/current/") &&
+      !snapshotFiles.has(relativeRequest)
+    ) {
+      response.statusCode = 404;
+      response.end("Runtime asset not found");
+      return;
+    }
     const source = runtimeSourcePath(
       projectRoot,
       relativeRequest.slice(RUNTIME_PREFIX.length),
@@ -77,7 +98,10 @@ function installRuntimeMiddleware(
       response.end("Runtime asset not found");
       return;
     }
-    void assertRealPathContained(projectRoot, source)
+    void assertSafeParents(
+      projectRoot,
+      path.relative(projectRoot, source).replaceAll("\\", "/"),
+    )
       .then(() => stat(source))
       .then((metadata) => {
         if (!metadata.isFile()) {
@@ -88,7 +112,12 @@ function installRuntimeMiddleware(
         response.statusCode = 200;
         response.setHeader("Content-Type", contentType(source));
         response.setHeader("Cache-Control", "no-store");
-        createReadStream(source).pipe(response);
+        const stream = createReadStream(source);
+        stream.on("error", () => {
+          response.statusCode = 404;
+          response.end("Runtime asset not found");
+        });
+        stream.pipe(response);
       })
       .catch((error: unknown) => {
         console.error({
@@ -110,7 +139,7 @@ async function copyRuntimeAssets(
   const runtimeOutput = path.join(outputRoot, "runtime");
   await Promise.all([
     copyFileWithParents(
-      path.join(projectRoot, "generated/runtime/current/manifest.json"),
+      path.join(projectRoot, `${ASSET_SOURCES.runtime.source}/manifest.json`),
       path.join(runtimeOutput, "current/manifest.json"),
     ),
     copySnapshotAssets(projectRoot, runtimeOutput),
@@ -130,7 +159,7 @@ async function copyRuntimeAssets(
 }
 
 /* The card back is acquired by `scripts/download-card-back.ts` into ignored
-   `generated/`, so a tree that never ran it still builds and the duel field
+   canonical sources, so a tree that never ran it still builds and the duel field
    falls back to its drawn SVG back. It is copied after `copyActiveCardImages`
    because that step clears the image output root first. */
 async function copyCardBackImage(
@@ -139,7 +168,7 @@ async function copyCardBackImage(
 ): Promise<void> {
   try {
     await copyFileWithParents(
-      path.join(projectRoot, "generated/card-images/card-back.jpg"),
+      path.join(projectRoot, ASSET_SOURCES.cardBack.source),
       path.join(runtimeOutput, "images/card-back.jpg"),
     );
   } catch (error) {
@@ -154,18 +183,18 @@ async function copyActiveCardImages(
 ): Promise<void> {
   const imageSourceRoot = path.join(
     projectRoot,
-    "generated/card-images/archive/full",
+    ASSET_SOURCES.fullImages.source,
   );
   const imageOutputRoot = path.join(runtimeOutput, "images");
   const cropSourceRoot = path.join(
     projectRoot,
-    "generated/card-images/archive/cropped",
+    ASSET_SOURCES.croppedImages.source,
   );
   const cropOutputRoot = path.join(runtimeOutput, "images-cropped");
   const runtimeManifest = parseRuntimeSnapshotManifest(
     JSON.parse(
       await readFile(
-        path.join(projectRoot, "generated/runtime/current/manifest.json"),
+        path.join(projectRoot, `${ASSET_SOURCES.runtime.source}/manifest.json`),
         "utf8",
       ),
     ) as unknown,
@@ -218,7 +247,7 @@ async function copySetImages(
   projectRoot: string,
   runtimeOutput: string,
 ): Promise<void> {
-  const sourceRoot = path.join(projectRoot, "generated/set-images");
+  const sourceRoot = path.join(projectRoot, ASSET_SOURCES.setImages.source);
   const manifest = await readSetImageManifest(sourceRoot);
   if (manifest === null) return;
   const outputRoot = path.join(runtimeOutput, "sets");
@@ -258,12 +287,12 @@ async function copySnapshotAssets(
   projectRoot: string,
   runtimeOutput: string,
 ): Promise<void> {
-  const sourceRoot = path.join(projectRoot, "generated/assets/current");
+  const sourceRoot = path.join(projectRoot, ASSET_SOURCES.data.source);
   const destinationRoot = path.join(runtimeOutput, "assets/current");
   const runtimeManifest = parseRuntimeSnapshotManifest(
     JSON.parse(
       await readFile(
-        path.join(projectRoot, "generated/runtime/current/manifest.json"),
+        path.join(projectRoot, `${ASSET_SOURCES.runtime.source}/manifest.json`),
         "utf8",
       ),
     ) as unknown,
@@ -325,7 +354,10 @@ export function runtimeSourcePath(
     return null;
   }
   if (normalized === "current/manifest.json") {
-    return path.join(projectRoot, "generated/runtime/current/manifest.json");
+    return path.join(
+      projectRoot,
+      `${ASSET_SOURCES.runtime.source}/manifest.json`,
+    );
   }
   if (normalized === "engine/vendor-manifest.json") {
     return path.join(
@@ -334,12 +366,12 @@ export function runtimeSourcePath(
     );
   }
   if (normalized === "images/card-back.jpg") {
-    return path.join(projectRoot, "generated/card-images/card-back.jpg");
+    return path.join(projectRoot, ASSET_SOURCES.cardBack.source);
   }
   if (/^images\/\d+\.jpg$/.test(normalized)) {
     try {
       return resolveWithin(
-        path.join(projectRoot, "generated/card-images/archive/full"),
+        path.join(projectRoot, ASSET_SOURCES.fullImages.source),
         normalized.slice("images/".length),
       );
     } catch {
@@ -349,7 +381,7 @@ export function runtimeSourcePath(
   if (/^images-cropped\/\d+\.jpg$/.test(normalized)) {
     try {
       return resolveWithin(
-        path.join(projectRoot, "generated/card-images/archive/cropped"),
+        path.join(projectRoot, ASSET_SOURCES.croppedImages.source),
         normalized.slice("images-cropped/".length),
       );
     } catch {
@@ -359,7 +391,7 @@ export function runtimeSourcePath(
   if (/^sets\/[A-Za-z0-9_-]+\.jpg$/.test(normalized)) {
     try {
       return resolveWithin(
-        path.join(projectRoot, "generated/set-images"),
+        path.join(projectRoot, ASSET_SOURCES.setImages.source),
         normalized.slice("sets/".length),
       );
     } catch {
@@ -376,7 +408,7 @@ export function runtimeSourcePath(
   if (!normalized.startsWith(assetPrefix)) return null;
   try {
     return resolveWithin(
-      path.join(projectRoot, "generated/assets/current"),
+      path.join(projectRoot, ASSET_SOURCES.data.source),
       normalized.slice(assetPrefix.length),
     );
   } catch {

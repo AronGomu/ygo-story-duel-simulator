@@ -1,3 +1,5 @@
+import { ASSET_SOURCES } from "./lib/asset-roots.ts";
+import { acquireAssetDeliveryLock } from "./lib/asset-delivery/local-lock.ts";
 import { createHash } from "node:crypto";
 import { mkdir, rename, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
@@ -7,7 +9,7 @@ import { isJpeg, validJpegFileSize } from "./lib/images.ts";
 
 /* Acquires the Yu-Gi-Oh! card back the duel field renders behind every hidden
    card. The bytes carry the same unapproved redistribution posture as the card
-   art, so they land in ignored `generated/` rather than in the repository, and
+   art, so they land in ignored `assets/shared/` rather than in the repository, and
    a tree that never ran this keeps the drawn SVG back.
 
    Pinned 2026-09-02: https://images.ygoprodeck.com/images/cards/back_high.jpg
@@ -27,71 +29,78 @@ const MAX_CARD_BACK_BYTES = 8 * 1024 * 1024;
 
 const scriptDirectory = path.dirname(fileURLToPath(import.meta.url));
 const projectRoot = path.resolve(scriptDirectory, "..");
-const outputPath = path.join(
-  projectRoot,
-  "generated",
-  "card-images",
-  "card-back.jpg",
-);
+const outputPath = path.join(projectRoot, ASSET_SOURCES.cardBack.source);
 const relativeOutput = path
   .relative(projectRoot, outputPath)
   .replaceAll(path.sep, "/");
 
-const existingBytes = await validJpegFileSize(outputPath);
-if (existingBytes !== null) {
+const releaseLock = await acquireAssetDeliveryLock(projectRoot);
+try {
+  await main();
+} finally {
+  await releaseLock();
+}
+
+async function main(): Promise<void> {
+  const existingBytes = await validJpegFileSize(outputPath);
+  if (existingBytes !== null) {
+    console.log(
+      JSON.stringify(
+        { status: "skipped", output: relativeOutput, bytes: existingBytes },
+        null,
+        2,
+      ),
+    );
+    return;
+  }
+
+  const response = await fetch(CARD_BACK_URL, {
+    headers: { "user-agent": USER_AGENT },
+    signal: AbortSignal.timeout(15_000),
+  });
+  if (!response.ok) {
+    process.stderr.write(
+      `${CARD_BACK_URL} returned HTTP ${response.status} ${response.statusText}\n`,
+    );
+    process.exitCode = 1;
+    return;
+  }
+
+  const body = await readCappedResponseBody(
+    response,
+    MAX_CARD_BACK_BYTES,
+    "card-back.jpg",
+  );
+  if (body.status === "too-large") {
+    process.stderr.write(`${CARD_BACK_URL}: ${body.error}\n`);
+    process.exitCode = 1;
+    return;
+  }
+  if (!isJpeg(body.bytes)) {
+    process.stderr.write(
+      `${CARD_BACK_URL} returned ${response.headers.get("content-type") ?? "unknown"}, expected a JPEG\n`,
+    );
+    process.exitCode = 1;
+    return;
+  }
+
+  await mkdir(path.dirname(outputPath), { recursive: true });
+  const temporary = `${outputPath}.tmp-${process.pid}`;
+  await writeFile(temporary, body.bytes);
+  await rm(outputPath, { force: true });
+  await rename(temporary, outputPath);
+
   console.log(
     JSON.stringify(
-      { status: "skipped", output: relativeOutput, bytes: existingBytes },
+      {
+        status: "ok",
+        source: CARD_BACK_URL,
+        output: relativeOutput,
+        bytes: body.bytes.byteLength,
+        sha256: createHash("sha256").update(body.bytes).digest("hex"),
+      },
       null,
       2,
     ),
   );
-  process.exit(0);
 }
-
-const response = await fetch(CARD_BACK_URL, {
-  headers: { "user-agent": USER_AGENT },
-  signal: AbortSignal.timeout(15_000),
-});
-if (!response.ok) {
-  process.stderr.write(
-    `${CARD_BACK_URL} returned HTTP ${response.status} ${response.statusText}\n`,
-  );
-  process.exit(1);
-}
-
-const body = await readCappedResponseBody(
-  response,
-  MAX_CARD_BACK_BYTES,
-  "card-back.jpg",
-);
-if (body.status === "too-large") {
-  process.stderr.write(`${CARD_BACK_URL}: ${body.error}\n`);
-  process.exit(1);
-}
-if (!isJpeg(body.bytes)) {
-  process.stderr.write(
-    `${CARD_BACK_URL} returned ${response.headers.get("content-type") ?? "unknown"}, expected a JPEG\n`,
-  );
-  process.exit(1);
-}
-
-await mkdir(path.dirname(outputPath), { recursive: true });
-const temporary = `${outputPath}.tmp-${process.pid}`;
-await writeFile(temporary, body.bytes);
-await rm(outputPath, { force: true });
-await rename(temporary, outputPath);
-
-console.log(
-  JSON.stringify(
-    {
-      status: "ok",
-      source: CARD_BACK_URL,
-      output: relativeOutput,
-      bytes: body.bytes.byteLength,
-      sha256: createHash("sha256").update(body.bytes).digest("hex"),
-    },
-    null,
-    2,
-  ),
-);

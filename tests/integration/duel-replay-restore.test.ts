@@ -1,3 +1,4 @@
+import { ASSET_SOURCES } from "../../scripts/lib/asset-roots.ts";
 import path from "node:path";
 import { beforeAll, describe, expect, it } from "vitest";
 import type { DuelWorkerEvent } from "../../src/battle/duel/contracts/duel-worker-event.ts";
@@ -40,7 +41,7 @@ beforeAll(async () => {
     deckSources,
   );
   dependencies = await loadActiveDuelDependenciesNode(
-    path.resolve("generated/assets/current"),
+    path.resolve(ASSET_SOURCES.data.source),
     uniqueDeckCodes(preset.player, preset.opponent),
   );
 });

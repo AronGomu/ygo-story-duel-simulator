@@ -8,6 +8,9 @@
   },
   "scripts": {
     "assets:setup": "node scripts/asset-delivery-setup.ts",
+    "assets:profiles:sync": "node scripts/sync-asset-profiles.ts",
+    "assets:promote": "node scripts/promote-assets.ts",
+    "assets:migrate": "node scripts/migrate-assets.ts",
     "assets:mvp": "node scripts/download-mvp-assets.ts",
     "assets:engine": "node scripts/sync-engine.ts",
     "assets:engine:verify": "node scripts/verify-engine.ts",

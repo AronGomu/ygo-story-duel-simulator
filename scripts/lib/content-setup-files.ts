@@ -1,3 +1,4 @@
+import { ASSET_SOURCES } from "./asset-roots.ts";
 import { createHash } from "node:crypto";
 import path from "node:path";
 import {
@@ -52,7 +53,10 @@ async function inspectAvailability(
       ["cropped", croppedCardCodes],
     ] as const) {
       const bytes = await validJpegFileSize(
-        path.join(root, `generated/card-images/archive/${kind}/${code}.jpg`),
+        path.join(
+          root,
+          `${path.posix.dirname(ASSET_SOURCES.fullImages.source)}/${kind}/${code}.jpg`,
+        ),
       );
       if (bytes !== null && bytes <= 8 * 1024 * 1024) available.add(code);
     }
@@ -63,7 +67,10 @@ async function inspectAvailability(
     "public/story/shop-sets.v1.json",
     MAX_SOURCE_BYTES,
   );
-  const manifest = await json(root, "generated/set-images/manifest.json");
+  const manifest = await json(
+    root,
+    `${ASSET_SOURCES.setImages.source}/manifest.json`,
+  );
   if (
     record(shop) &&
     Array.isArray(shop.sets) &&
@@ -87,7 +94,7 @@ async function inspectAvailability(
       );
       const bytes = await readBounded(
         root,
-        `generated/set-images/${set.id}.jpg`,
+        `${ASSET_SOURCES.setImages.source}/${set.id}.jpg`,
         8 * 1024 * 1024,
       );
       if (
@@ -96,7 +103,7 @@ async function inspectAvailability(
         entry.bytes === bytes.length &&
         entry.sha256 === createHash("sha256").update(bytes).digest("hex") &&
         (await validJpegFileSize(
-          path.join(root, `generated/set-images/${set.id}.jpg`),
+          path.join(root, `${ASSET_SOURCES.setImages.source}/${set.id}.jpg`),
         )) !== null
       )
         setNames.add(set.name);
@@ -106,8 +113,8 @@ async function inspectAvailability(
     await Promise.all(
       [
         "src/story/content/prologue.ts",
-        "src/story/assets/city-map-placeholder.svg",
-        "src/story/assets/PROVENANCE.md",
+        `${ASSET_SOURCES.story.source}/city-map-placeholder.svg`,
+        `${ASSET_SOURCES.story.source}/PROVENANCE.md`,
       ].map(async (file) => {
         const bytes = await readBounded(root, file, MAX_SETUP_BYTES);
         return bytes !== null && bytes.length > 0;

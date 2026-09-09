@@ -1,3 +1,4 @@
+import { ASSET_SOURCES } from "../../scripts/lib/asset-roots.ts";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { buildRuntimeSnapshotManifest } from "../../src/battle/worker/assets/runtime-snapshot-node.ts";
@@ -33,7 +34,7 @@ export async function contentSetupFilesFixture(root: string) {
   const files: { path: string; bytes: number; sha256: string }[] = [];
   const putAsset = async (relative: string, value: unknown) => {
     const bytes = JSON.stringify(value);
-    await put(`generated/assets/current/${relative}`, bytes);
+    await put(`${ASSET_SOURCES.data.source}/${relative}`, bytes);
     const entry = {
       path: relative,
       bytes: Buffer.byteLength(bytes),
@@ -115,12 +116,12 @@ export async function contentSetupFilesFixture(root: string) {
     files,
   };
   const publishRuntimeManifest = async () => {
-    await putJson("generated/assets/current/manifest.json", assetManifest);
+    await putJson(`${ASSET_SOURCES.data.source}/manifest.json`, assetManifest);
     const runtime = await buildRuntimeSnapshotManifest(
-      path.join(root, "generated/assets/current"),
+      path.join(root, ASSET_SOURCES.data.source),
       path.join(root, "vendor/ocgcore-wasm/0.1.2"),
     );
-    await putJson("generated/runtime/current/manifest.json", runtime);
+    await putJson(`${ASSET_SOURCES.runtime.source}/manifest.json`, runtime);
     return runtime;
   };
   await publishRuntimeManifest();
@@ -129,7 +130,10 @@ export async function contentSetupFilesFixture(root: string) {
   jpeg.set([0xff, 0xd9], jpeg.length - 2);
   for (let code = 1; code <= 6; code++) {
     for (const kind of ["full", "cropped"])
-      await put(`generated/card-images/archive/${kind}/${code}.jpg`, jpeg);
+      await put(
+        `${path.posix.dirname(ASSET_SOURCES.fullImages.source)}/${kind}/${code}.jpg`,
+        jpeg,
+      );
   }
   await putJson("public/story/shop-sets.v1.json", {
     sets: input.selections.chapters.map(({ id }) => ({ id, name: id })),
@@ -142,13 +146,13 @@ export async function contentSetupFilesFixture(root: string) {
       sha256: contentDigest(jpeg),
     })),
   };
-  await putJson("generated/set-images/manifest.json", setManifest);
+  await putJson(`${ASSET_SOURCES.setImages.source}/manifest.json`, setManifest);
   for (const { id } of input.selections.chapters)
-    await put(`generated/set-images/${id}.jpg`, jpeg);
+    await put(`${ASSET_SOURCES.setImages.source}/${id}.jpg`, jpeg);
   for (const relative of [
     "src/story/content/prologue.ts",
-    "src/story/assets/city-map-placeholder.svg",
-    "src/story/assets/PROVENANCE.md",
+    `${ASSET_SOURCES.story.source}/city-map-placeholder.svg`,
+    `${ASSET_SOURCES.story.source}/PROVENANCE.md`,
   ])
     await put(relative, "Lawful synthetic fixture; not production media.");
   for (const relative of [

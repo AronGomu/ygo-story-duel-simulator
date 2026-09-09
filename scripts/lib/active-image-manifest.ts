@@ -1,3 +1,4 @@
+import { ASSET_SOURCES } from "./asset-roots.ts";
 import { createHash } from "node:crypto";
 import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
@@ -25,7 +26,7 @@ export function buildActiveImageManifest(
 ): ActiveImageManifest {
   const imageSourceRoot = path.join(
     projectRoot,
-    "generated/card-images/archive/full",
+    ASSET_SOURCES.fullImages.source,
   );
   const deckSources = DECK_CATALOG.map(({ fileName }) =>
     readFileSync(

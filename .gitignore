@@ -1,6 +1,13 @@
 node_modules/
 .cache/
 generated/
+# Downloaded/generated source bytes; delivery scans ignore Git ignore rules.
+assets/battle/engine/
+assets/shared/data/
+assets/shared/runtime/
+assets/shared/card-images/
+assets/shared/card-back.jpg
+assets/shared/set-images/
 dist*/
 coverage/
 playwright-report/

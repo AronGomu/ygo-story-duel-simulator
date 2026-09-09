@@ -1,3 +1,4 @@
+import { ASSET_SOURCES } from "./lib/asset-roots.ts";
 import { createHash } from "node:crypto";
 import { readFile, stat } from "node:fs/promises";
 import path from "node:path";
@@ -8,8 +9,8 @@ const scriptDirectory = path.dirname(fileURLToPath(import.meta.url));
 const projectRoot = path.resolve(scriptDirectory, "..");
 const root = resolveProjectSubpath(
   projectRoot,
-  "generated/engine/current",
-  "generated/engine",
+  ASSET_SOURCES.acquiredEngine.source,
+  path.posix.dirname(ASSET_SOURCES.acquiredEngine.source),
   "engine output",
 );
 const manifest = JSON.parse(

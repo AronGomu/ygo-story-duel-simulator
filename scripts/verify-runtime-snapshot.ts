@@ -1,3 +1,4 @@
+import { ASSET_SOURCES } from "./lib/asset-roots.ts";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { isDeepStrictEqual } from "node:util";
@@ -12,19 +13,13 @@ const projectRoot = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
   "..",
 );
-const assetRoot = path.join(projectRoot, "generated", "assets", "current");
+const assetRoot = path.join(projectRoot, ASSET_SOURCES.data.source);
 const vendorRoot = path.join(projectRoot, "vendor", "ocgcore-wasm", "0.1.2");
 const manifest = await buildRuntimeSnapshotManifest(assetRoot, vendorRoot);
 const publishedManifest = parseRuntimeSnapshotManifest(
   JSON.parse(
     await readFile(
-      path.join(
-        projectRoot,
-        "generated",
-        "runtime",
-        "current",
-        "manifest.json",
-      ),
+      path.join(projectRoot, ASSET_SOURCES.runtime.source, "manifest.json"),
       "utf8",
     ),
   ) as unknown,

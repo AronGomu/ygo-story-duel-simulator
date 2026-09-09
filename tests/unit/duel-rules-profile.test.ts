@@ -1,3 +1,4 @@
+import { ASSET_SOURCES } from "../../scripts/lib/asset-roots.ts";
 import path from "node:path";
 import { beforeAll, describe, expect, it } from "vitest";
 import { cardCode } from "../../src/battle/duel/contracts/ids.ts";
@@ -117,7 +118,7 @@ describe("bundled Chapter 1 pair matrix", () => {
       [...sources].map(([id, source]) => [id, parseYdk(source)] as const),
     );
     const dependencies = await loadActiveDuelDependenciesNode(
-      path.resolve("generated/assets/current"),
+      path.resolve(ASSET_SOURCES.data.source),
       new Set([...reviewedCardPool(sources)].map(cardCode)),
     );
     cards = dependencies.cards;

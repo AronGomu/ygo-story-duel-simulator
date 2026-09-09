@@ -1,3 +1,4 @@
+import { ASSET_SOURCES } from "../../scripts/lib/asset-roots.ts";
 import path from "node:path";
 import { readFile } from "node:fs/promises";
 import { afterEach, beforeAll, describe, expect, it } from "vitest";
@@ -54,7 +55,7 @@ beforeAll(async () => {
   );
   preset = createMvpPreset(source, source);
   dependencies = await loadActiveDuelDependenciesNode(
-    path.resolve("generated/assets/current"),
+    path.resolve(ASSET_SOURCES.data.source),
     uniqueDeckCodes(preset.player, preset.opponent),
   );
 });

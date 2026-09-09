@@ -1,3 +1,4 @@
+import { ASSET_SOURCES } from "../../scripts/lib/asset-roots.ts";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -81,7 +82,7 @@ beforeAll(async () => {
   for (const name of ["burning-abyss", "opponent", "player"])
     decks.set(name, await loadDeck(name));
   dependencies = await loadActiveDuelDependenciesNode(
-    path.resolve("generated/assets/current"),
+    path.resolve(ASSET_SOURCES.data.source),
     uniqueDeckCodes(...decks.values()),
   );
 });

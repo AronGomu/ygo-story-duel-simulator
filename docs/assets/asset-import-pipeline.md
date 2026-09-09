@@ -18,6 +18,8 @@ Create one atomic, versioned browser snapshot containing all data required by th
 
 The complete, resumable command is implemented in `scripts/download-mvp-assets.ts`. It orchestrates the pinned WebAssembly engine package, catalog/script/string importer, card-image downloader, and all integrity verifiers. Windows and Unix launchers are provided at the project root.
 
+Canonical source map: `scripts/lib/asset-roots.ts`. [Profiles and copy-only migration](asset-profiles.md) preserve browser URLs; vendor remains frozen and authoritative.
+
 ## Sources
 
 | Asset | Source |
@@ -50,7 +52,7 @@ download and integrity-check pinned ocgcore-wasm package
 → hash every generated artifact
 → write manifest.json
 → independently verify the staging snapshot
-→ recoverably replace generated/assets/current
+→ recoverably replace assets/shared/data/current
 ```
 
 ## Card normalization
@@ -92,8 +94,8 @@ https://images.ygoprodeck.com/images/cards_cropped/<ID>.jpg
 `npm run assets:images` downloads full-card JPEGs; `npm run assets:images:cropped` downloads text-free artwork crops into sibling resumable archives:
 
 ```text
-generated/card-images/archive/full/<ID>.jpg
-generated/card-images/archive/cropped/<ID>.jpg
+assets/shared/card-images/full/<ID>.jpg
+assets/shared/card-images/cropped/<ID>.jpg
 ```
 
 For browser-build work that only needs bundled preset decks, `npm run assets:images:cropped:active` acquires their cropped art without downloading the complete catalog.
@@ -173,35 +175,26 @@ node scripts/sync-assets.ts \
   --distribution-ref <commit-or-ref>
 ```
 
-## Generated layout
+## Source and operational layout
 
 ```text
-generated/
-├── mvp-assets-status.json
-├── engine/current/
-│   ├── engine-manifest.json
-│   ├── lib/ocgcore.sync.wasm
-│   ├── lib/ocgcore.sync.mjs
-│   └── dist/
-├── assets/current/
-│   ├── manifest.json
-│   ├── catalog/
-│   │   ├── cards/<00..3f>.json
-│   │   └── texts/en/<00..3f>.json
-│   ├── scripts/
-│   │   ├── globals.json
-│   │   ├── index.json
-│   │   └── cards/<00..ff>.json
-│   ├── strings/en.json
-│   └── images/<00..3f>.json
-└── card-images/archive/
-    ├── download-report.json
-    ├── cropped-download-report.json
-    ├── full/<CARD_ID>.jpg
-    └── cropped/<CARD_ID>.jpg
+assets/
+├── battle/engine/current/       # Legacy acquired package, not browser authority
+├── deck-editor/                # Optional domain-specific originals
+├── story/                      # Tracked map SVG/provenance; other originals allowed
+└── shared/
+    ├── data/current/           # manifest, catalog, scripts, strings, image metadata
+    ├── runtime/current/        # Runtime manifest
+    ├── card-images/{full,cropped}/
+    ├── card-back.jpg
+    ├── set-images/             # JPEGs + provenance manifest
+    └── fonts/                  # Tracked core font files
+generated/                      # Reports, receipts, locks, delivery outputs
+.cache/upstream/                # Explicit acquisition caches
+asset-profiles/                 # Tracked delivery rules + nightly selection
 ```
 
-`generated/` and `.cache/` are intentionally ignored by Git. CI or a release job should publish the verified data snapshot and legally approved/re-hosted image archive as versioned application artifacts.
+Downloaded source families remain ignored by Git. Fonts/story provenance remain tracked. Operational card-image download reports remain under `generated/card-images/archive/`; they are not source bytes or a prerequisite of pure inventory. Publication still requires explicit redistribution approval; no automatic publishing is introduced.
 
 ## Integrity guarantees
 

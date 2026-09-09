@@ -1,3 +1,4 @@
+import { ASSET_SOURCES } from "./lib/asset-roots.ts";
 import { mkdir, readFile, rename, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -5,7 +6,7 @@ import { readCappedResponseBody } from "./lib/capped-response-body.ts";
 import { isJpeg, validJpegFileSize } from "./lib/images.ts";
 import { CATALOG_SHARD_COUNT, type ImageRecord } from "./lib/model.ts";
 import { resolveProjectSubpath } from "./lib/paths.ts";
-import { acquireRunLock } from "./lib/run-lock.ts";
+import { acquireAssetDeliveryLock } from "./lib/asset-delivery/local-lock.ts";
 import {
   collectShopCodes,
   mergeShopImageRecords,
@@ -25,27 +26,26 @@ const options = parseOptions(process.argv.slice(2));
 const assetRoot = resolveProjectSubpath(
   projectRoot,
   options.assetDirectory,
-  "generated/assets",
+  path.posix.dirname(ASSET_SOURCES.data.source),
   "--assets",
 );
 const imageRoot = resolveProjectSubpath(
   projectRoot,
   options.outputDirectory,
-  "generated/card-images",
+  path.posix.dirname(path.posix.dirname(ASSET_SOURCES.fullImages.source)),
   "--output",
 );
 const selectedImageRoot = path.join(imageRoot, options.kind);
 const reportPath = path.join(
-  imageRoot,
+  projectRoot,
+  "generated/card-images/archive",
   options.kind === "full"
     ? "download-report.json"
     : options.active
       ? "cropped-active-download-report.json"
       : "cropped-download-report.json",
 );
-const releaseRunLock = await acquireRunLock(
-  path.join(projectRoot, "generated", ".locks", "image-download"),
-);
+const releaseRunLock = await acquireAssetDeliveryLock(projectRoot);
 
 try {
   await mkdir(selectedImageRoot, { recursive: true });
@@ -121,6 +121,7 @@ try {
       (result) => result.status === "missing" || result.status === "failed",
     ),
   };
+  await mkdir(path.dirname(reportPath), { recursive: true });
   await writeFile(reportPath, `${JSON.stringify(report, null, 2)}\n`, "utf8");
 
   console.log(
@@ -200,8 +201,10 @@ function parseOptions(args: string[]): DownloadOptions {
     throw new Error("--active is only supported with --kind cropped");
 
   return {
-    assetDirectory: values.get("--assets") ?? "generated/assets/current",
-    outputDirectory: values.get("--output") ?? "generated/card-images/archive",
+    assetDirectory: values.get("--assets") ?? ASSET_SOURCES.data.source,
+    outputDirectory:
+      values.get("--output") ??
+      path.posix.dirname(ASSET_SOURCES.fullImages.source),
     concurrency,
     requestsPerSecond,
     limit: values.has("--limit")

@@ -1,3 +1,4 @@
+import { ASSET_SOURCES } from "./asset-roots.ts";
 import { createHash } from "node:crypto";
 import { isDeepStrictEqual } from "node:util";
 import { fileURLToPath } from "node:url";
@@ -23,7 +24,7 @@ const MAXIMUM_SNAPSHOT_FILES = 2048;
 const MAXIMUM_SNAPSHOT_FILE_BYTES = 16 * 1024 * 1024;
 const MAXIMUM_SNAPSHOT_BYTES = 256 * 1024 * 1024;
 
-const ASSET_ROOT = "generated/assets/current";
+const ASSET_ROOT = ASSET_SOURCES.data.source;
 const VENDOR_ROOT = "vendor/ocgcore-wasm/0.1.2";
 const digest = (bytes: Uint8Array) =>
   createHash("sha256").update(bytes).digest("hex");
@@ -36,7 +37,7 @@ export async function inspectSetupRuntime(
 ): Promise<Set<number> | null> {
   const runtimeValue = await json(
     root,
-    "generated/runtime/current/manifest.json",
+    `${ASSET_SOURCES.runtime.source}/manifest.json`,
     MAXIMUM_RUNTIME_MANIFEST_BYTES,
   );
   if (runtimeValue === null) return null;

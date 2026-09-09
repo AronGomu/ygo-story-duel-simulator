@@ -1,3 +1,4 @@
+import { ASSET_SOURCES } from "./asset-roots.ts";
 import { readFileSync } from "node:fs";
 import path from "node:path";
 
@@ -22,7 +23,7 @@ export function buildActiveCardTextManifest(
         readFileSync(
           path.join(
             projectRoot,
-            "generated/assets/current/catalog/texts/en",
+            `${ASSET_SOURCES.data.source}/catalog/texts/en`,
             `${name}.json`,
           ),
           "utf8",

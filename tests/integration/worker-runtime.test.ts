@@ -1,3 +1,4 @@
+import { ASSET_SOURCES } from "../../scripts/lib/asset-roots.ts";
 import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
@@ -30,7 +31,7 @@ describe("typed duel Worker runtime", () => {
       deckSources,
     );
     const dependencies = await loadActiveDuelDependenciesNode(
-      path.resolve("generated/assets/current"),
+      path.resolve(ASSET_SOURCES.data.source),
       uniqueDeckCodes(preset.player, preset.opponent),
     );
     const linkCode = preset.player.main[0];
@@ -91,7 +92,7 @@ describe("typed duel Worker runtime", () => {
     const projectRoot = await mkdtemp(
       path.join(os.tmpdir(), "ygo-runtime-snapshot-"),
     );
-    const assetRoot = path.join(projectRoot, "generated", "assets", "current");
+    const assetRoot = path.join(projectRoot, ASSET_SOURCES.data.source);
     const vendorRoot = path.join(
       projectRoot,
       "vendor",

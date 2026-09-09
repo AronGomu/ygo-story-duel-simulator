@@ -102,6 +102,7 @@ export default tseslint.config(
       "coverage/**",
       "dist*/**",
       "generated/**",
+      "assets/**",
       "node_modules/**",
       "playwright-report/**",
       "test-results/**",

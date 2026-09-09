@@ -1,3 +1,4 @@
+import { ASSET_SOURCES } from "./asset-roots.ts";
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import type { AssetDeckCardRecord } from "../../src/decks/catalog/ocg-card-mapper.ts";
@@ -30,7 +31,7 @@ export function buildActiveCardDataManifest(
         readFileSync(
           path.join(
             projectRoot,
-            "generated/assets/current/catalog/cards",
+            `${ASSET_SOURCES.data.source}/catalog/cards`,
             `${name}.json`,
           ),
           "utf8",

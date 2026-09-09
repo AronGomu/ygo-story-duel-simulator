@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { ASSET_SOURCES } from "./lib/asset-roots.ts";
 import { spawn } from "node:child_process";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
@@ -68,13 +69,17 @@ async function main(): Promise<void> {
 
     const engineManifest = JSON.parse(
       await readFile(
-        path.join(generatedRoot, "engine", "current", "engine-manifest.json"),
+        path.join(
+          projectRoot,
+          ASSET_SOURCES.acquiredEngine.source,
+          "engine-manifest.json",
+        ),
         "utf8",
       ),
     ) as { package: string; version: string };
     const manifest = JSON.parse(
       await readFile(
-        path.join(generatedRoot, "assets", "current", "manifest.json"),
+        path.join(projectRoot, ASSET_SOURCES.data.source, "manifest.json"),
         "utf8",
       ),
     ) as { counts: Record<string, number> };
@@ -101,9 +106,9 @@ async function main(): Promise<void> {
         imageReport.requested - imageReport.missing - imageReport.failed,
       providerMissingImages: imageReport.missing,
       failedImages: imageReport.failed,
-      engineOutput: "generated/engine/current",
-      dataOutput: "generated/assets/current",
-      imageOutput: "generated/card-images/archive/full",
+      engineOutput: ASSET_SOURCES.acquiredEngine.source,
+      dataOutput: ASSET_SOURCES.data.source,
+      imageOutput: ASSET_SOURCES.fullImages.source,
     };
     await writeStatus("ready", summary);
     emit("run", "ok", summary);

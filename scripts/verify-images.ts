@@ -1,3 +1,4 @@
+import { ASSET_SOURCES } from "./lib/asset-roots.ts";
 import { readFile, readdir, stat } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -10,19 +11,25 @@ const scriptDirectory = path.dirname(fileURLToPath(import.meta.url));
 const projectRoot = path.resolve(scriptDirectory, "..");
 const assetRoot = resolveProjectSubpath(
   projectRoot,
-  "generated/assets/current",
-  "generated/assets",
+  ASSET_SOURCES.data.source,
+  path.posix.dirname(ASSET_SOURCES.data.source),
   "asset root",
 );
 const archiveRoot = resolveProjectSubpath(
   projectRoot,
-  "generated/card-images/archive",
-  "generated/card-images",
+  path.posix.dirname(ASSET_SOURCES.fullImages.source),
+  path.posix.dirname(path.posix.dirname(ASSET_SOURCES.fullImages.source)),
   "image archive",
 );
 const imageRoot = path.join(archiveRoot, "full");
 const report = JSON.parse(
-  await readFile(path.join(archiveRoot, "download-report.json"), "utf8"),
+  await readFile(
+    path.join(
+      projectRoot,
+      "generated/card-images/archive/download-report.json",
+    ),
+    "utf8",
+  ),
 ) as {
   requested: number;
   failed: number;

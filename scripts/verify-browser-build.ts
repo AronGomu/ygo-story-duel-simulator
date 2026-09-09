@@ -1,3 +1,4 @@
+import { ASSET_SOURCES } from "./lib/asset-roots.ts";
 import { createHash } from "node:crypto";
 import { readdir, readFile, stat } from "node:fs/promises";
 import path from "node:path";
@@ -40,7 +41,7 @@ const runtimeManifestBytes = await readFile(
   path.join(runtimeRoot, "current/manifest.json"),
 );
 const sourceRuntimeManifestBytes = await readFile(
-  path.join(projectRoot, "generated/runtime/current/manifest.json"),
+  path.join(projectRoot, `${ASSET_SOURCES.runtime.source}/manifest.json`),
 );
 if (!runtimeManifestBytes.equals(sourceRuntimeManifestBytes)) {
   throw new Error(
@@ -64,7 +65,7 @@ if (packagedAssetPaths.sort().join("\n") !== expectedAssetPaths.join("\n")) {
 
 const packagedAssetManifest = await assertSameFile(
   path.join(assetRoot, "manifest.json"),
-  path.join(projectRoot, "generated/assets/current/manifest.json"),
+  path.join(projectRoot, `${ASSET_SOURCES.data.source}/manifest.json`),
   "asset manifest",
 );
 const packagedVendorManifest = await assertSameFile(

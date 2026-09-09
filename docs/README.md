@@ -61,6 +61,8 @@ This directory contains current project documentation and historical context. Ro
 | [`assets/asset-delivery-setup.md`](assets/asset-delivery-setup.md) | Read-only R2 preflight, owner prerequisites, rights-only scope, explicit empty-index bootstrap |
 | [`assets/asset-root-inventory.md`](assets/asset-root-inventory.md) | Pre-migration asset-root literal inventory and input/cache/vendor classification |
 
+Implemented root/profile tooling: [`assets/asset-profiles.md`](assets/asset-profiles.md) — canonical map, copy-only migration, profile ownership/promotion, unchanged browser URLs, producer seam.
+
 ## Architecture navigation
 
 Architecture decisions are split into narrowly scoped files under [`architecture/`](architecture/). Start at [`architecture/architecture.md`](architecture/architecture.md); its decision map points to the minimum context needed for a task.

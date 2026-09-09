@@ -1,3 +1,4 @@
+import { ASSET_SOURCES } from "../scripts/lib/asset-roots.ts";
 import assert from "node:assert/strict";
 import path from "node:path";
 import test from "node:test";
@@ -9,11 +10,11 @@ test("resolveProjectSubpath allows paths inside the approved project directory",
   assert.equal(
     resolveProjectSubpath(
       projectRoot,
-      "generated/assets/current",
-      "generated/assets",
+      ASSET_SOURCES.data.source,
+      path.posix.dirname(ASSET_SOURCES.data.source),
       "output",
     ),
-    path.join(projectRoot, "generated", "assets", "current"),
+    path.join(projectRoot, ASSET_SOURCES.data.source),
   );
 });
 
@@ -22,8 +23,8 @@ test("resolveProjectSubpath rejects traversal and absolute paths", () => {
     () =>
       resolveProjectSubpath(
         projectRoot,
-        "generated/assets",
-        "generated/assets",
+        path.posix.dirname(ASSET_SOURCES.data.source),
+        path.posix.dirname(ASSET_SOURCES.data.source),
         "output",
       ),
     /must be a child/,
@@ -33,7 +34,7 @@ test("resolveProjectSubpath rejects traversal and absolute paths", () => {
       resolveProjectSubpath(
         projectRoot,
         "../outside",
-        "generated/assets",
+        path.posix.dirname(ASSET_SOURCES.data.source),
         "output",
       ),
     /must stay under/,
@@ -43,7 +44,7 @@ test("resolveProjectSubpath rejects traversal and absolute paths", () => {
       resolveProjectSubpath(
         projectRoot,
         path.resolve("outside"),
-        "generated/assets",
+        path.posix.dirname(ASSET_SOURCES.data.source),
         "output",
       ),
     /must be relative/,

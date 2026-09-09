@@ -1,3 +1,4 @@
+import { ASSET_SOURCES } from "../../scripts/lib/asset-roots.ts";
 // @vitest-environment jsdom
 
 import { readFile } from "node:fs/promises";
@@ -75,7 +76,7 @@ beforeAll(async () => {
   for (const name of [SCENARIO.player, SCENARIO.opponent])
     decks.set(name, await loadDeck(name));
   dependencies = await loadActiveDuelDependenciesNode(
-    path.resolve("generated/assets/current"),
+    path.resolve(ASSET_SOURCES.data.source),
     uniqueDeckCodes(...decks.values()),
   );
   danteCapture = captureDanteMaterialDecision({
