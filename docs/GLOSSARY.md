@@ -122,6 +122,8 @@ Worker, engine, and asset pipeline are "backend" here — nothing runs on a serv
 | word | short description | ref in code |
 | ---- | ----------------- | ----------- |
 | scripts | Node asset/verify CLI entrypoints | `scripts/sync-assets.ts`, `verify-assets.ts`, `download-images.ts` |
+| preflight | Read-only delivery config, publisher prerequisite, optional remote checks | `scripts/lib/asset-delivery/setup.ts` (`runAssetSetup`) |
+| approval | Rights-only exact-file or future-inclusive tree publication scope | `scripts/lib/asset-delivery/publication-approval.ts` (`PublicationApproval`, `checkPublicationScope`) |
 | sync | Pin/clone upstream card data repos | `scripts/lib/sources.ts` (`syncRepository`, `validatePinnedRevision`) |
 | catalog | Filterable deck-editor card browser | `src/deck-editor/components/CardCatalog.svelte`, `src/decks/catalog/runtime-catalog.ts` (`loadRuntimeCatalog`) |
 | strings | `strings.conf` system-string parser | `scripts/lib/strings.ts` (`parseStringsConf`) |

@@ -58,6 +58,8 @@ This directory contains current project documentation and historical context. Ro
 | [`duel-field-validation-references.html`](duel-field-validation-references.html)                                                       | Styled rule/visual/a11y validation catalog                                                |
 | [`MVP_TECHNICAL_IMPLEMENTATION_PLAN.md`](MVP_TECHNICAL_IMPLEMENTATION_PLAN.md)                                                         | Completed MVP/Phaser baseline audit plan                                                  |
 | [`assets/asset-import-pipeline.md`](assets/asset-import-pipeline.md)                                                                   | Implemented asset acquisition, generation, and verification pipeline                      |
+| [`assets/asset-delivery-setup.md`](assets/asset-delivery-setup.md) | Read-only R2 preflight, owner prerequisites, rights-only scope, explicit empty-index bootstrap |
+| [`assets/asset-root-inventory.md`](assets/asset-root-inventory.md) | Pre-migration asset-root literal inventory and input/cache/vendor classification |
 
 ## Architecture navigation
 
