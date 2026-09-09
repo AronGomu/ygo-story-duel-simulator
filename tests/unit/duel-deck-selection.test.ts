@@ -15,9 +15,12 @@ describe("parseDuelDeckSelection", () => {
   it("parses a preset selection", () => {
     const selection = parseDuelDeckSelection({
       kind: "preset",
-      deckId: "mvp-player",
+      deckId: "chapter-one-starter",
     });
-    expect(selection).toEqual({ kind: "preset", deckId: "mvp-player" });
+    expect(selection).toEqual({
+      kind: "preset",
+      deckId: "chapter-one-starter",
+    });
     expect(Object.isFrozen(selection)).toBe(true);
   });
 
@@ -130,7 +133,7 @@ describe("parseDuelDeckSelection", () => {
     expect(() =>
       parseDuelDeckSelection({
         kind: "preset",
-        deckId: "mvp-player",
+        deckId: "chapter-one-starter",
         seed: 42,
       }),
     ).toThrow(DuelCommandValidationError);
@@ -151,7 +154,10 @@ describe("parseDuelDeckSelection", () => {
       "constructor",
       '{"kind":"cards","main":[],"extra":[],"side":[],"constructor":1}',
     ],
-    ["prototype", '{"kind":"preset","deckId":"mvp-player","prototype":1}'],
+    [
+      "prototype",
+      '{"kind":"preset","deckId":"chapter-one-starter","prototype":1}',
+    ],
   ])("rejects the polluting key %s", (_label, json) => {
     /* `JSON.parse` is the only way to build an own `__proto__` key, and it is
        also how a forged message would arrive over the wire. */
@@ -164,7 +170,7 @@ describe("parseDuelDeckSelection", () => {
   it.each([
     ["null", null],
     ["an array", []],
-    ["a string", "mvp-player"],
+    ["a string", "chapter-one-starter"],
     ["a number", 7],
     ["undefined", undefined],
   ])("rejects %s as a selection", (_label, value) => {

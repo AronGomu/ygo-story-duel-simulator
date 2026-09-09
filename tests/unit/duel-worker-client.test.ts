@@ -127,8 +127,8 @@ describe("DuelWorkerClient", () => {
 
     const session = client.startDuel(
       duelId("mvp-preset-v1"),
-      { kind: "preset", deckId: "mvp-player" },
-      { kind: "preset", deckId: "mvp-opponent" },
+      { kind: "preset", deckId: "chapter-one-starter" },
+      { kind: "preset", deckId: "chapter-one-practice" },
     );
     expect(session).toMatchObject({
       workerGeneration: 1,
@@ -137,8 +137,8 @@ describe("DuelWorkerClient", () => {
     expect(
       client.startDuel(
         duelId("mvp-preset-v1"),
-        { kind: "preset", deckId: "mvp-player" },
-        { kind: "preset", deckId: "mvp-opponent" },
+        { kind: "preset", deckId: "chapter-one-starter" },
+        { kind: "preset", deckId: "chapter-one-practice" },
       ),
     ).toBeNull();
 
@@ -156,8 +156,8 @@ describe("DuelWorkerClient", () => {
       {
         type: "startDuel",
         duelId: "mvp-preset-v1",
-        player: { kind: "preset", deckId: "mvp-player" },
-        opponent: { kind: "preset", deckId: "mvp-opponent" },
+        player: { kind: "preset", deckId: "chapter-one-starter" },
+        opponent: { kind: "preset", deckId: "chapter-one-practice" },
       },
       {
         type: "respond",
@@ -177,8 +177,8 @@ describe("DuelWorkerClient", () => {
     worker.emit({ type: "ready", coreVersion: [11, 0] });
     client.startDuel(
       duelId("mvp-preset-v1"),
-      { kind: "preset", deckId: "mvp-player" },
-      { kind: "preset", deckId: "mvp-opponent" },
+      { kind: "preset", deckId: "chapter-one-starter" },
+      { kind: "preset", deckId: "chapter-one-practice" },
     );
     worker.emit(promptEvent);
     /* A live duel is restored by playing it, not by rebuilding it. */
@@ -219,8 +219,8 @@ describe("DuelWorkerClient", () => {
     worker.emit({ type: "ready", coreVersion: [11, 0] });
     client.startDuel(
       duelId("mvp-preset-v1"),
-      { kind: "preset", deckId: "mvp-player" },
-      { kind: "preset", deckId: "mvp-opponent" },
+      { kind: "preset", deckId: "chapter-one-starter" },
+      { kind: "preset", deckId: "chapter-one-practice" },
     );
     worker.emit(promptEvent);
     client.respond(promptEvent.prompt.id, [choiceId("yes")]);
@@ -253,9 +253,12 @@ describe("DuelWorkerClient", () => {
     });
     client.initialize();
     worker.emit({ type: "ready", coreVersion: [11, 0] });
-    expect(store.start(preset("mvp-player"), preset("mvp-opponent"))).toBe(
-      true,
-    );
+    expect(
+      store.start(
+        preset("chapter-one-starter"),
+        preset("chapter-one-practice"),
+      ),
+    ).toBe(true);
     worker.emit(promptEvent);
     if (key === null) throw new Error("Expected active interaction key");
 
@@ -293,8 +296,8 @@ describe("DuelWorkerClient", () => {
       worker.emit({ type: "ready", coreVersion: [11, 0] });
       client.startDuel(
         duelId("mvp-preset-v1"),
-        { kind: "preset", deckId: "mvp-player" },
-        { kind: "preset", deckId: "mvp-opponent" },
+        { kind: "preset", deckId: "chapter-one-starter" },
+        { kind: "preset", deckId: "chapter-one-practice" },
       );
       worker.emit(promptEvent);
 
@@ -325,8 +328,8 @@ describe("DuelWorkerClient", () => {
     worker.emit({ type: "ready", coreVersion: [11, 0] });
     client.startDuel(
       duelId("mvp-preset-v1"),
-      { kind: "preset", deckId: "mvp-player" },
-      { kind: "preset", deckId: "mvp-opponent" },
+      { kind: "preset", deckId: "chapter-one-starter" },
+      { kind: "preset", deckId: "chapter-one-practice" },
     );
     worker.emit({
       type: "result",
@@ -380,8 +383,8 @@ describe("DuelWorkerClient", () => {
       workers[0]?.emit({ type: "ready", coreVersion: [11, 0] });
       client.startDuel(
         duelId("mvp-preset-v1"),
-        { kind: "preset", deckId: "mvp-player" },
-        { kind: "preset", deckId: "mvp-opponent" },
+        { kind: "preset", deckId: "chapter-one-starter" },
+        { kind: "preset", deckId: "chapter-one-practice" },
       );
       workers[0]?.emit({
         type: "result",
@@ -417,9 +420,12 @@ describe("DuelWorkerClient", () => {
     });
     client.initialize();
     worker.emit({ type: "ready", coreVersion: [11, 0] });
-    expect(store.start(preset("mvp-player"), preset("mvp-opponent"))).toBe(
-      true,
-    );
+    expect(
+      store.start(
+        preset("chapter-one-starter"),
+        preset("chapter-one-practice"),
+      ),
+    ).toBe(true);
 
     worker.emit({
       type: "error",
@@ -565,8 +571,8 @@ describe("DuelWorkerClient", () => {
     expect(
       client.startDuel(
         duelId("mvp-preset-v1"),
-        { kind: "preset", deckId: "mvp-player" },
-        { kind: "preset", deckId: "mvp-opponent" },
+        { kind: "preset", deckId: "chapter-one-starter" },
+        { kind: "preset", deckId: "chapter-one-practice" },
       ),
     ).toBeNull();
     expect(received.at(-1)).toMatchObject({

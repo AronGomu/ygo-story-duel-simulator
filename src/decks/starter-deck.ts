@@ -1,4 +1,4 @@
-import starterYdk from "./starter-deck.ydk?raw";
+import starterYdk from "./chapter-one-starter.ydk?raw";
 import type { DeckRecord } from "./deck-contracts.ts";
 import type { DeckBuilderCardView } from "./catalog/ocg-card-mapper.ts";
 import type { PinnedDeckRuleset } from "./catalog/pinned-ruleset.ts";
@@ -13,13 +13,11 @@ import { importYdk } from "./ydk-adapter.ts";
    raw starter list in the entry chunk. Callers import this path directly,
    which ADR-022 allows for the shared deck-data library. */
 
-export const STARTER_DECK_NAME = "Starter Deck";
+export const STARTER_DECK_NAME = "Chapter 1 Starter";
 
-/* The list itself, so free play and a story save are granted one deck rather
-   than two that drift. It sits beside this module instead of among the duel's
-   presets because the seeding is what reads it: the preset `player.ydk` is the
-   duel's own opening hand, pinned by the recorded programmed-duel transcripts,
-   and a copy limit the deck editor enforces is not its concern. */
+/* New free-play libraries and story saves share this list. The matching battle
+   preset is checked for equality by the Chapter 1 prerequisite tests. Legacy
+   starter-deck.ydk remains the historical save-migration grant, not this seed. */
 export const STARTER_DECK_LIST: string = starterYdk;
 
 /**
@@ -30,9 +28,8 @@ export const STARTER_DECK_LIST: string = starterYdk;
  * deck and the collection behind it together, by `new-game` and nowhere else.
  *
  * Called on every such mount, so it is idempotent by construction and
- * best-effort by design: it short-circuits on a default that already exists,
- * adopts a starter deck the player already has rather than making a second
- * one, and answers any failure with a warning. Storage that cannot be seeded
+ * best-effort by design: it leaves existing libraries and defaults untouched,
+ * and answers any failure with a warning. Storage that cannot be seeded
  * must still open the editor, because the player's own decks are in it.
  *
  * `source` exists so a test can seed from a list of catalog codes it controls.
@@ -45,13 +42,7 @@ export async function ensureStarterDeck(
 ): Promise<void> {
   try {
     if ((await repository.getDefaultDeck()) !== null) return;
-    const existing = (await repository.list()).find(
-      ({ name }) => name === STARTER_DECK_NAME,
-    );
-    if (existing !== undefined) {
-      await repository.setDefaultDeck(existing.id);
-      return;
-    }
+    if ((await repository.list()).length > 0) return;
     const imported = importYdk(source);
     if (imported.type !== "ready")
       throw new Error(`Starter deck list is unreadable: ${imported.message}`);

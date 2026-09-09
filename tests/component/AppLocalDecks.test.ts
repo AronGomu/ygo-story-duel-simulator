@@ -240,7 +240,7 @@ describe("App deck picker with local decks", () => {
     expect(query("deck-picker-group-preset")).not.toBeNull();
     expect(
       document.querySelectorAll('[data-cy^="deck-picker-option-preset:"]'),
-    ).toHaveLength(6);
+    ).toHaveLength(2);
     expect(
       (query("deck-picker-start-button") as HTMLButtonElement).disabled,
     ).toBe(false);
@@ -268,7 +268,7 @@ describe("App deck picker with local decks", () => {
     );
     expect(
       document.querySelectorAll('[data-cy^="deck-picker-option-preset:"]'),
-    ).toHaveLength(6);
+    ).toHaveLength(2);
     expect(document.querySelector(LOCAL_PLAYER_OPTION)).toBeNull();
   });
 
@@ -313,9 +313,9 @@ describe("App deck picker with local decks", () => {
 
     expect(workerClientSpies.startDuel).toHaveBeenCalledOnce();
     expect(workerClientSpies.startDuel).toHaveBeenCalledWith(
-      "local-v1:local:vs:shaddoll",
+      "local-v1:local:vs:chapter-one-practice",
       { kind: "cards", main: VALID_MAIN, extra: [], side: [] },
-      { kind: "preset", deckId: "shaddoll" },
+      { kind: "preset", deckId: "chapter-one-practice" },
     );
   });
 
@@ -333,31 +333,40 @@ describe("App deck picker with local decks", () => {
     expect(persistedDeckKeys().playerKey).toBe("local:built-deck:1");
   });
 
-  /* An existing profile carries the opponent this build no longer offers, so
-     the stored key is rewritten rather than read forever. */
-  it("the persisted opponent key is forced to shaddoll", async () => {
-    localStorage.setItem(
-      "ygo.ui.v2",
-      JSON.stringify({
-        version: 2,
-        windows: { zoneList: null, confirm: null },
-        decks: {
-          playerKey: "preset:nekroz",
-          opponentKey: "preset:mvp-opponent",
-        },
-        settings: { showZoneOutlines: true, showZoneCounts: true },
-      }),
-    );
+  /* The duel menu fixes the opponent even when a profile remembers another
+     valid preset or a retired one. The player's chosen key stays untouched. */
+  it.each(["preset:chapter-one-starter", "preset:shaddoll"])(
+    "the persisted opponent key %s is forced to chapter-one-practice",
+    async (opponentKey) => {
+      localStorage.setItem(
+        "ygo.ui.v2",
+        JSON.stringify({
+          version: 2,
+          windows: { zoneList: null, confirm: null },
+          decks: {
+            playerKey: "preset:chapter-one-starter",
+            opponentKey,
+          },
+          settings: { showZoneOutlines: true, showZoneCounts: true },
+        }),
+      );
+      expect(persistedDeckKeys().opponentKey).toBe(opponentKey);
+      expect(persistedDeckKeys().opponentKey).not.toBe(
+        "preset:chapter-one-practice",
+      );
 
-    await renderReadyApp();
+      await renderReadyApp();
 
-    await vi.waitFor(() =>
-      expect(persistedDeckKeys().opponentKey).toBe("preset:shaddoll"),
-    );
-    expect(persistedDeckKeys().playerKey).toBe("preset:nekroz");
-    expect(playerSelect().value).toBe("preset:nekroz");
-    expect(query("deck-picker-fallback-notice")).toBeNull();
-  });
+      await vi.waitFor(() =>
+        expect(persistedDeckKeys().opponentKey).toBe(
+          "preset:chapter-one-practice",
+        ),
+      );
+      expect(persistedDeckKeys().playerKey).toBe("preset:chapter-one-starter");
+      expect(playerSelect().value).toBe("preset:chapter-one-starter");
+      expect(query("deck-picker-fallback-notice")).toBeNull();
+    },
+  );
 
   it("omits a local deck that does not satisfy the pinned ruleset", async () => {
     await seedDeck(VALID_MAIN.slice(0, 39));
@@ -376,7 +385,7 @@ describe("App deck picker with local decks", () => {
         windows: { zoneList: null, confirm: null },
         decks: {
           playerKey: "local:deleted-deck:4",
-          opponentKey: "preset:shaddoll",
+          opponentKey: "preset:chapter-one-practice",
         },
         settings: { showZoneOutlines: true, showZoneCounts: true },
       }),
@@ -387,9 +396,9 @@ describe("App deck picker with local decks", () => {
       expect(query("deck-picker-fallback-notice")).not.toBeNull(),
     );
 
-    expect(playerSelect().value).toBe("preset:mvp-player");
+    expect(playerSelect().value).toBe("preset:chapter-one-starter");
     expect(query("deck-picker-opponent-fixed")).not.toBeNull();
-    expect(persistedDeckKeys().opponentKey).toBe("preset:shaddoll");
+    expect(persistedDeckKeys().opponentKey).toBe("preset:chapter-one-practice");
     expect(
       document.querySelectorAll('[data-cy="deck-picker-fallback-notice"]'),
     ).toHaveLength(1);
@@ -402,7 +411,10 @@ describe("App deck picker with local decks", () => {
       JSON.stringify({
         version: 2,
         windows: { zoneList: null, confirm: null },
-        decks: { playerKey: "local:gone:1", opponentKey: "preset:shaddoll" },
+        decks: {
+          playerKey: "local:gone:1",
+          opponentKey: "preset:chapter-one-practice",
+        },
         settings: { showZoneOutlines: true, showZoneCounts: true },
       }),
     );
@@ -411,7 +423,7 @@ describe("App deck picker with local decks", () => {
       expect(query("deck-picker-fallback-notice")).not.toBeNull(),
     );
 
-    await user.selectOptions(playerSelect(), "preset:nekroz");
+    await user.selectOptions(playerSelect(), "preset:chapter-one-starter");
 
     expect(query("deck-picker-fallback-notice")).toBeNull();
   });
@@ -430,7 +442,7 @@ describe("App deck picker with local decks", () => {
         windows: { zoneList: null, confirm: null },
         decks: {
           playerKey: "local:built-deck:1",
-          opponentKey: "preset:shaddoll",
+          opponentKey: "preset:chapter-one-practice",
         },
         settings: { showZoneOutlines: true, showZoneCounts: true },
       }),
@@ -481,7 +493,7 @@ describe("App deck picker with local decks", () => {
     }
     expect(
       document.querySelectorAll('[data-cy^="deck-picker-option-preset:"]'),
-    ).toHaveLength(6);
+    ).toHaveLength(2);
   });
 
   /* Defensive: the picker only offers decks the Worker should accept, so a

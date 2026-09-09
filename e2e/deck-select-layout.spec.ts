@@ -148,18 +148,24 @@ test("hover docks preview", async ({ page }) => {
   );
   const rows = wrapper.locator("li.row");
   await expect(rows.first()).toBeVisible({ timeout: 120_000 });
-  const restingRowCount = await rows.count();
+  const rowIds = () =>
+    rows.evaluateAll((items) =>
+      items.map((item) => item.getAttribute("data-cy")),
+    );
+  const restingRows = await rowIds();
 
-  await page.locator('[data-cy="deck-tile-preset:burning-abyss"]').hover();
+  await page
+    .locator('[data-cy="deck-tile-preset:chapter-one-practice"]')
+    .hover();
   await expect(wrapper).toHaveClass(/previewing/);
-  await expect.poll(() => rows.count()).not.toBe(restingRowCount);
+  await expect.poll(rowIds).not.toEqual(restingRows);
   await expect(page.locator('[data-cy="deck-select-hover-float"]')).toHaveCount(
     0,
   );
 
   await page.locator('[data-cy="deck-select-titlebar"]').hover();
   await expect(wrapper).not.toHaveClass(/previewing/);
-  await expect.poll(() => rows.count()).toBe(restingRowCount);
+  await expect.poll(rowIds).toEqual(restingRows);
 });
 
 test("bundled deck refuses editor open with disabled reason and toast", async ({
@@ -168,7 +174,7 @@ test("bundled deck refuses editor open with disabled reason and toast", async ({
   await page.setViewportSize(WIDE_VIEWPORT);
   await openFreePlayDeckSelect(page);
 
-  const key = "preset:mvp-player";
+  const key = "preset:chapter-one-starter";
   await page.locator(`[data-cy="deck-tile-menu-${key}"]`).click();
   const open = page.locator(`[data-cy="deck-tile-menu-open-${key}"]`);
   const reason = page.locator(`[data-cy="deck-tile-menu-open-reason-${key}"]`);

@@ -24,7 +24,11 @@ describe("typed duel Worker runtime", () => {
   it("projects the Link profile when the selected pair plays a Link monster", async () => {
     const adapter = await loadVendoredCoreNode();
     const deckSources = await loadDeckSources();
-    const preset = createDuelPreset("mvp-player", "mvp-opponent", deckSources);
+    const preset = createDuelPreset(
+      "chapter-one-starter",
+      "chapter-one-practice",
+      deckSources,
+    );
     const dependencies = await loadActiveDuelDependenciesNode(
       path.resolve("generated/assets/current"),
       uniqueDeckCodes(preset.player, preset.opponent),
@@ -51,8 +55,8 @@ describe("typed duel Worker runtime", () => {
       const started = await runtime.handle({
         type: "startDuel",
         duelId: duelId(preset.id),
-        player: { kind: "preset", deckId: "mvp-player" },
-        opponent: { kind: "preset", deckId: "mvp-opponent" },
+        player: { kind: "preset", deckId: "chapter-one-starter" },
+        opponent: { kind: "preset", deckId: "chapter-one-practice" },
       });
       expect(
         started.flatMap((event) =>
@@ -168,8 +172,8 @@ describe("typed duel Worker runtime", () => {
       const unknown = await runtime.handle({
         type: "startDuel",
         duelId: duelId("unknown"),
-        player: { kind: "preset", deckId: "mvp-player" },
-        opponent: { kind: "preset", deckId: "mvp-opponent" },
+        player: { kind: "preset", deckId: "chapter-one-starter" },
+        opponent: { kind: "preset", deckId: "chapter-one-practice" },
       });
       expect(unknown).toEqual([
         expect.objectContaining({
@@ -180,9 +184,11 @@ describe("typed duel Worker runtime", () => {
 
       const started = await runtime.handle({
         type: "startDuel",
-        duelId: duelId("bundled-v1:mvp-player:vs:mvp-opponent"),
-        player: { kind: "preset", deckId: "mvp-player" },
-        opponent: { kind: "preset", deckId: "mvp-opponent" },
+        duelId: duelId(
+          "bundled-v1:chapter-one-starter:vs:chapter-one-practice",
+        ),
+        player: { kind: "preset", deckId: "chapter-one-starter" },
+        opponent: { kind: "preset", deckId: "chapter-one-practice" },
       });
       expect(started.some((event) => event.type === "state")).toBe(true);
       /* Every bundled pair is Link-free, so the worker's own profile decision
@@ -219,9 +225,11 @@ describe("typed duel Worker runtime", () => {
 
       const restarted = await runtime.handle({
         type: "startDuel",
-        duelId: duelId("bundled-v1:mvp-player:vs:mvp-opponent"),
-        player: { kind: "preset", deckId: "mvp-player" },
-        opponent: { kind: "preset", deckId: "mvp-opponent" },
+        duelId: duelId(
+          "bundled-v1:chapter-one-starter:vs:chapter-one-practice",
+        ),
+        player: { kind: "preset", deckId: "chapter-one-starter" },
+        opponent: { kind: "preset", deckId: "chapter-one-practice" },
       });
       const restartedPrompt = restarted.find(
         (event) => event.type === "prompt",
@@ -257,9 +265,11 @@ describe("typed duel Worker runtime", () => {
       /* Changing decks recomputes the profile from the new pair. */
       const otherPair = await runtime.handle({
         type: "startDuel",
-        duelId: duelId("bundled-v1:shaddoll:vs:nekroz"),
-        player: { kind: "preset", deckId: "shaddoll" },
-        opponent: { kind: "preset", deckId: "nekroz" },
+        duelId: duelId(
+          "bundled-v1:chapter-one-practice:vs:chapter-one-starter",
+        ),
+        player: { kind: "preset", deckId: "chapter-one-practice" },
+        opponent: { kind: "preset", deckId: "chapter-one-starter" },
       });
       expect(
         otherPair.flatMap((event) =>
@@ -275,9 +285,11 @@ describe("typed duel Worker runtime", () => {
         await replacementRuntime.handle({ type: "initialize" });
         const replacementStarted = await replacementRuntime.handle({
           type: "startDuel",
-          duelId: duelId("bundled-v1:mvp-player:vs:mvp-opponent"),
-          player: { kind: "preset", deckId: "mvp-player" },
-          opponent: { kind: "preset", deckId: "mvp-opponent" },
+          duelId: duelId(
+            "bundled-v1:chapter-one-starter:vs:chapter-one-practice",
+          ),
+          player: { kind: "preset", deckId: "chapter-one-starter" },
+          opponent: { kind: "preset", deckId: "chapter-one-practice" },
         });
         const replacementPrompt = replacementStarted.find(
           (event) => event.type === "prompt",

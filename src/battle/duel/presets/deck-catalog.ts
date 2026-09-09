@@ -1,10 +1,4 @@
-export type DeckId =
-  | "mvp-player"
-  | "mvp-opponent"
-  | "burning-abyss"
-  | "nekroz"
-  | "shaddoll"
-  | "spellbook";
+export type DeckId = "chapter-one-starter" | "chapter-one-practice";
 
 export interface DeckMetadata {
   readonly id: DeckId;
@@ -15,38 +9,19 @@ export interface DeckMetadata {
 
 export const DECK_CATALOG: readonly DeckMetadata[] = Object.freeze([
   Object.freeze({
-    id: "mvp-player",
-    name: "Starter (Player)",
-    fileName: "player.ydk",
+    id: "chapter-one-starter",
+    name: "Chapter 1 Starter",
+    fileName: "chapter-one-starter.ydk",
   }),
   Object.freeze({
-    id: "mvp-opponent",
-    name: "Starter (Opponent)",
-    fileName: "opponent.ydk",
-  }),
-  Object.freeze({
-    id: "burning-abyss",
-    name: "Burning Abyss",
-    fileName: "burning-abyss.ydk",
-  }),
-  Object.freeze({ id: "nekroz", name: "Nekroz", fileName: "nekroz.ydk" }),
-  Object.freeze({
-    id: "shaddoll",
-    name: "Shaddoll",
-    fileName: "shaddoll.ydk",
-  }),
-  Object.freeze({
-    id: "spellbook",
-    name: "Spellbook",
-    fileName: "spellbook.ydk",
+    id: "chapter-one-practice",
+    name: "Chapter 1 Practice",
+    fileName: "chapter-one-practice.ydk",
   }),
 ]);
 
-export const DEFAULT_PLAYER_DECK_ID: DeckId = "mvp-player";
-/* The seat the player never chooses: the duel menu fixes the opponent to this
-   deck, and an existing profile carrying the previous default is rewritten to
-   it on load rather than duelling a deck the menu no longer offers. */
-export const DEFAULT_OPPONENT_DECK_ID: DeckId = "shaddoll";
+export const DEFAULT_PLAYER_DECK_ID: DeckId = "chapter-one-starter";
+export const DEFAULT_OPPONENT_DECK_ID: DeckId = "chapter-one-practice";
 
 export function deckMetadata(id: DeckId): DeckMetadata {
   return DECK_CATALOG.find((metadata) => metadata.id === id)!;

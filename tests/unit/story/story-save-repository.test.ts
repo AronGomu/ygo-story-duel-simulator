@@ -5,7 +5,7 @@ import { deleteDB } from "idb";
 import { afterEach, describe, expect, it } from "vitest";
 import { storyDeckFixture } from "../../fixtures/story-decks.ts";
 import { PROLOGUE } from "../../../src/story/content/prologue.ts";
-import { buildStarterGrant } from "../../../src/story/decks/starter-grant.ts";
+import { buildLegacyStarterGrant } from "../../../src/story/decks/starter-grant.ts";
 import {
   createInitialStoryState,
   type StoryState,
@@ -293,7 +293,7 @@ describe("createStorySaveRepository", () => {
      story save nothing — reads the deck list, and a migrated save that arrived
      with an empty one could not duel and could not build its way out of it. */
   it("a v2 save migrates to v4 with a deck it can duel with", async () => {
-    const { deck, collection } = buildStarterGrant();
+    const { deck, collection } = buildLegacyStarterGrant();
     await seedRecord("manual:1", VERSION_2_RECORD);
     const read = await repository().read("manual:1");
     expect(read).toMatchObject({
@@ -355,7 +355,7 @@ describe("createStorySaveRepository", () => {
      while holding it. Topping up only ever adds what the granted deck itself
      needs, so it stays idempotent across reads. */
   it("tops a stored count up to the granted playset and never lowers one", async () => {
-    const { collection } = buildStarterGrant();
+    const { collection } = buildLegacyStarterGrant();
     const hoarded = 89631139;
     const sold = 97590747;
     expect(collection[hoarded]).toBe(2);
@@ -389,7 +389,7 @@ describe("createStorySaveRepository", () => {
      the record still fails validation rather than being laundered into a valid
      save by the merge. */
   it("leaves an unreadable stored count unreadable", async () => {
-    const { collection } = buildStarterGrant();
+    const { collection } = buildLegacyStarterGrant();
     const sold = 97590747;
     expect(collection[sold]).toBe(3);
     await seedRecord("manual:1", {
@@ -550,7 +550,7 @@ describe("createStorySaveRepository", () => {
      did carry survives. */
   it("reads a version 1 envelope by defaulting the economy", async () => {
     const legacy = version1State();
-    const { deck, collection } = buildStarterGrant();
+    const { deck, collection } = buildLegacyStarterGrant();
     await seedRecord("manual:1", {
       schemaVersion: 1,
       slot: "manual:1",

@@ -8,11 +8,13 @@ import {
 } from "../../src/battle/duel/presets/deck-catalog.ts";
 
 describe("deck catalog", () => {
-  it("DECK_CATALOG lists six decks with unique ids and file names", () => {
-    expect(DECK_CATALOG).toHaveLength(6);
-    expect(new Set(DECK_CATALOG.map(({ id }) => id))).toHaveLength(6);
+  it("DECK_CATALOG exposes only Chapter 1 starter and practice identities", () => {
+    expect(DECK_CATALOG.map(({ id }) => id)).toEqual([
+      "chapter-one-starter",
+      "chapter-one-practice",
+    ]);
     expect(new Set(DECK_CATALOG.map(({ fileName }) => fileName))).toHaveLength(
-      6,
+      2,
     );
   });
 
@@ -22,12 +24,23 @@ describe("deck catalog", () => {
     }
   });
 
+  it.each([
+    "mvp-player",
+    "mvp-opponent",
+    "burning-abyss",
+    "nekroz",
+    "shaddoll",
+    "spellbook",
+  ])("legacy preset ID cannot resolve: %s", (id) => {
+    expect(isDeckId(id)).toBe(false);
+  });
+
   it("isDeckId rejects an unknown id", () => {
     expect(isDeckId("not-a-deck")).toBe(false);
   });
 
   it("defaults name the bundled player deck and the fixed opponent", () => {
-    expect(DEFAULT_PLAYER_DECK_ID).toBe("mvp-player");
-    expect(DEFAULT_OPPONENT_DECK_ID).toBe("shaddoll");
+    expect(DEFAULT_PLAYER_DECK_ID).toBe("chapter-one-starter");
+    expect(DEFAULT_OPPONENT_DECK_ID).toBe("chapter-one-practice");
   });
 });

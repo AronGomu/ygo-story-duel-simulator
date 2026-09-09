@@ -135,8 +135,8 @@ describe("DuelWorkerRuntime command lifecycle", () => {
     const firstStart = runtime.handle({
       type: "startDuel",
       duelId: FAKE_PRESET.id,
-      player: { kind: "preset", deckId: "mvp-player" },
-      opponent: { kind: "preset", deckId: "mvp-opponent" },
+      player: { kind: "preset", deckId: "chapter-one-starter" },
+      opponent: { kind: "preset", deckId: "chapter-one-practice" },
     });
 
     await Promise.resolve();
@@ -167,8 +167,8 @@ describe("DuelWorkerRuntime command lifecycle", () => {
     const restarted = await runtime.handle({
       type: "startDuel",
       duelId: FAKE_PRESET.id,
-      player: { kind: "preset", deckId: "mvp-player" },
-      opponent: { kind: "preset", deckId: "mvp-opponent" },
+      player: { kind: "preset", deckId: "chapter-one-starter" },
+      opponent: { kind: "preset", deckId: "chapter-one-practice" },
     });
     expect(restarted.at(-1)).toEqual({
       type: "result",
@@ -199,8 +199,8 @@ describe("DuelWorkerRuntime command lifecycle", () => {
     const first = await runtime.handle({
       type: "startDuel",
       duelId: FAKE_PRESET.id,
-      player: { kind: "preset", deckId: "mvp-player" },
-      opponent: { kind: "preset", deckId: "mvp-opponent" },
+      player: { kind: "preset", deckId: "chapter-one-starter" },
+      opponent: { kind: "preset", deckId: "chapter-one-practice" },
     });
     expect(
       first
@@ -211,8 +211,8 @@ describe("DuelWorkerRuntime command lifecycle", () => {
     const second = await runtime.handle({
       type: "startDuel",
       duelId: FAKE_PRESET.id,
-      player: { kind: "preset", deckId: "mvp-player" },
-      opponent: { kind: "preset", deckId: "mvp-opponent" },
+      player: { kind: "preset", deckId: "chapter-one-starter" },
+      opponent: { kind: "preset", deckId: "chapter-one-practice" },
     });
     expect(
       second
@@ -298,8 +298,8 @@ describe("DuelWorkerRuntime command lifecycle", () => {
       runtime.handle({
         type: "startDuel",
         duelId: FAKE_PRESET.id,
-        player: { kind: "preset", deckId: "mvp-player" },
-        opponent: { kind: "preset", deckId: "mvp-opponent" },
+        player: { kind: "preset", deckId: "chapter-one-starter" },
+        opponent: { kind: "preset", deckId: "chapter-one-practice" },
       }),
     ).resolves.toEqual([]);
     expect(logger.warn).toHaveBeenCalledWith(
@@ -339,8 +339,8 @@ describe("DuelWorkerRuntime command lifecycle", () => {
     await runtime.handle({
       type: "startDuel",
       duelId: FAKE_PRESET.id,
-      player: { kind: "preset", deckId: "mvp-player" },
-      opponent: { kind: "preset", deckId: "mvp-opponent" },
+      player: { kind: "preset", deckId: "chapter-one-starter" },
+      opponent: { kind: "preset", deckId: "chapter-one-practice" },
     });
 
     const [diagnostics] = await runtime.handle({ type: "requestDiagnostics" });
@@ -393,8 +393,8 @@ describe("DuelWorkerRuntime command lifecycle", () => {
       runtime.handle({
         type: "startDuel",
         duelId: FAKE_PRESET.id,
-        player: { kind: "preset", deckId: "mvp-player" },
-        opponent: { kind: "preset", deckId: "mvp-opponent" },
+        player: { kind: "preset", deckId: "chapter-one-starter" },
+        opponent: { kind: "preset", deckId: "chapter-one-practice" },
       }),
     ).resolves.toEqual([]);
     expect(logger.warn).toHaveBeenCalledWith(
@@ -438,8 +438,8 @@ describe("DuelWorkerRuntime command lifecycle", () => {
     await runtime.handle({
       type: "startDuel",
       duelId: FAKE_PRESET.id,
-      player: { kind: "preset", deckId: "mvp-player" },
-      opponent: { kind: "preset", deckId: "mvp-opponent" },
+      player: { kind: "preset", deckId: "chapter-one-starter" },
+      opponent: { kind: "preset", deckId: "chapter-one-practice" },
     });
 
     expect(() => runtime.dispose()).toThrow(cleanupError);
@@ -467,8 +467,8 @@ describe("DuelWorkerRuntime command lifecycle", () => {
     const failed = await runtime.handle({
       type: "startDuel",
       duelId: FAKE_PRESET.id,
-      player: { kind: "preset", deckId: "mvp-player" },
-      opponent: { kind: "preset", deckId: "mvp-opponent" },
+      player: { kind: "preset", deckId: "chapter-one-starter" },
+      opponent: { kind: "preset", deckId: "chapter-one-practice" },
     });
     expect(failed).toEqual([
       expect.objectContaining({
@@ -481,8 +481,8 @@ describe("DuelWorkerRuntime command lifecycle", () => {
       runtime.handle({
         type: "startDuel",
         duelId: FAKE_PRESET.id,
-        player: { kind: "preset", deckId: "mvp-player" },
-        opponent: { kind: "preset", deckId: "mvp-opponent" },
+        player: { kind: "preset", deckId: "chapter-one-starter" },
+        opponent: { kind: "preset", deckId: "chapter-one-practice" },
       }),
     ).resolves.toEqual([]);
   });
@@ -569,8 +569,8 @@ describe("DuelWorkerRuntime command lifecycle", () => {
     await runtime.handle({
       type: "startDuel",
       duelId: FAKE_PRESET.id,
-      player: { kind: "preset", deckId: "mvp-player" },
-      opponent: { kind: "preset", deckId: "mvp-opponent" },
+      player: { kind: "preset", deckId: "chapter-one-starter" },
+      opponent: { kind: "preset", deckId: "chapter-one-practice" },
     });
 
     const [diagnostics] = await runtime.handle({ type: "requestDiagnostics" });
@@ -615,8 +615,8 @@ describe("DuelWorkerRuntime command lifecycle", () => {
       {
         type: "startDuel",
         duelId: FAKE_PRESET.id,
-        player: { kind: "preset", deckId: "mvp-player" },
-        opponent: { kind: "preset", deckId: "mvp-opponent" },
+        player: { kind: "preset", deckId: "chapter-one-starter" },
+        opponent: { kind: "preset", deckId: "chapter-one-practice" },
       },
       undefined,
       (error) => {
@@ -646,8 +646,8 @@ describe("DuelWorkerRuntime command lifecycle", () => {
     const publicEvents = await loggedRuntime.handle({
       type: "startDuel",
       duelId: FAKE_PRESET.id,
-      player: { kind: "preset", deckId: "mvp-player" },
-      opponent: { kind: "preset", deckId: "mvp-opponent" },
+      player: { kind: "preset", deckId: "chapter-one-starter" },
+      opponent: { kind: "preset", deckId: "chapter-one-practice" },
     });
     const publicTrace = await loggedRuntime.handle({
       type: "requestDiagnostics",
@@ -696,8 +696,8 @@ describe("DuelWorkerRuntime command lifecycle", () => {
       {
         type: "startDuel",
         duelId: FAKE_PRESET.id,
-        player: { kind: "preset", deckId: "mvp-player" },
-        opponent: { kind: "preset", deckId: "mvp-opponent" },
+        player: { kind: "preset", deckId: "chapter-one-starter" },
+        opponent: { kind: "preset", deckId: "chapter-one-practice" },
       },
       undefined,
       (error) => {
@@ -743,8 +743,8 @@ describe("DuelWorkerRuntime command lifecycle", () => {
     const publicEvents = await loggedRuntime.handle({
       type: "startDuel",
       duelId: FAKE_PRESET.id,
-      player: { kind: "preset", deckId: "mvp-player" },
-      opponent: { kind: "preset", deckId: "mvp-opponent" },
+      player: { kind: "preset", deckId: "chapter-one-starter" },
+      opponent: { kind: "preset", deckId: "chapter-one-practice" },
     });
     const publicTrace = await loggedRuntime.handle({
       type: "requestDiagnostics",
@@ -802,8 +802,8 @@ describe("DuelWorkerRuntime command lifecycle", () => {
       {
         type: "startDuel",
         duelId: FAKE_PRESET.id,
-        player: { kind: "preset", deckId: "mvp-player" },
-        opponent: { kind: "preset", deckId: "mvp-opponent" },
+        player: { kind: "preset", deckId: "chapter-one-starter" },
+        opponent: { kind: "preset", deckId: "chapter-one-practice" },
       },
       undefined,
       (error, context) => failures.push({ error, code: context.code }),
@@ -822,8 +822,8 @@ describe("DuelWorkerRuntime command lifecycle", () => {
     const restarted = await runtime.handle({
       type: "startDuel",
       duelId: FAKE_PRESET.id,
-      player: { kind: "preset", deckId: "mvp-player" },
-      opponent: { kind: "preset", deckId: "mvp-opponent" },
+      player: { kind: "preset", deckId: "chapter-one-starter" },
+      opponent: { kind: "preset", deckId: "chapter-one-practice" },
     });
     expect(restarted.at(-1)).toEqual({
       type: "result",
@@ -1046,8 +1046,8 @@ describe("duels started from an explicit card list", () => {
       await runtime.handle({
         type: "startDuel",
         duelId: duelId("custom-v1:forged"),
-        player: { kind: "preset", deckId: "mvp-player" },
-        opponent: { kind: "preset", deckId: "mvp-opponent" },
+        player: { kind: "preset", deckId: "chapter-one-starter" },
+        opponent: { kind: "preset", deckId: "chapter-one-practice" },
       }),
     ).toEqual([
       {
@@ -1066,8 +1066,8 @@ const OPPONENT_MAIN = Array.from({ length: 40 }, (_, index) => 22_000 + index);
 const START_FAKE_DUEL = {
   type: "startDuel",
   duelId: FAKE_PRESET.id,
-  player: { kind: "preset", deckId: "mvp-player" },
-  opponent: { kind: "preset", deckId: "mvp-opponent" },
+  player: { kind: "preset", deckId: "chapter-one-starter" },
+  opponent: { kind: "preset", deckId: "chapter-one-practice" },
 } as const satisfies DuelCommand;
 
 function yesNoStep(player: 0 | 1) {

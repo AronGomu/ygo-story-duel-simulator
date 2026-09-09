@@ -107,7 +107,7 @@
   </select>
 
   <p data-cy="deck-picker-opponent-fixed">
-    Opponent deck: Shaddoll (auto-assigned)
+    Opponent deck: Chapter 1 Practice (auto-assigned)
   </p>
 
   <button

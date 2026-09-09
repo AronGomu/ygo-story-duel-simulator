@@ -10,6 +10,7 @@
    catalog would decide is pinned by `tests/unit/decks/starter-deck.test.ts`
    instead, which validates the same list against the real card database. */
 
+import legacyStarterYdk from "../../decks/starter-deck.ydk?raw";
 import type { DeckBuilderCardView } from "../../decks/catalog/ocg-card-mapper.ts";
 import { PROTOTYPE_RULESET } from "../../decks/catalog/pinned-ruleset.ts";
 import type { DeckCardLists } from "../../decks/deck-contracts.ts";
@@ -38,18 +39,25 @@ export interface StarterGrant {
 }
 
 export function buildStarterGrant(): StarterGrant {
-  const imported = importYdk(STARTER_DECK_LIST);
+  return grantFromList(STARTER_DECK_LIST, STARTER_DECK_NAME);
+}
+
+/** Old-schema reads must not grant a different historical deck after an update. */
+export function buildLegacyStarterGrant(): StarterGrant {
+  return grantFromList(legacyStarterYdk, "Starter Deck");
+}
+
+function grantFromList(source: string, name: string): StarterGrant {
+  const imported = importYdk(source);
   /* Unreachable in a build that shipped — the list is compiled in, not player
      input — and refused rather than swallowed, because a save granted half a
      deck is worse than a new game that will not start. */
   if (imported.type !== "ready")
     throw new Error(`Starter deck list is unreadable: ${imported.message}`);
-  const draft = createBlankDeck(
-    STARTER_DECK_NAME,
-    EMPTY_CATALOG,
-    PROTOTYPE_RULESET,
-    { id: STARTER_DECK_ID, now: new Date(STARTER_DECK_STAMP) },
-  );
+  const draft = createBlankDeck(name, EMPTY_CATALOG, PROTOTYPE_RULESET, {
+    id: STARTER_DECK_ID,
+    now: new Date(STARTER_DECK_STAMP),
+  });
   const result = applyDeckCommand(
     draft,
     { type: "import", cards: imported.cards },
@@ -76,10 +84,8 @@ export function buildStarterGrant(): StarterGrant {
 
    Counts only, and no rarity: the collection is code to count, and what a card
    sells for is decided at sell time by `resolveCardRarity` from the shop's own
-   set data. So the grant cannot price what it gives away, and this list sells
-   for about 960 DP against the ladder — 500 of it the two Blue-Eyes, which
-   `inferRarity` reads as `secret-rare` — beside a 1000 DP starting wallet.
-   Capping that belongs to the economy and the save schema, not here. */
+   set data. The grant cannot price what it gives away; capping that belongs
+   to the economy and the save schema, not here. */
 function copiesByCode(cards: DeckCardLists): Record<number, number> {
   const counts: Record<number, number> = {};
   for (const code of [...cards.main, ...cards.extra, ...cards.side])

@@ -83,11 +83,14 @@
   const toasts = getContext<ToastPublisher | undefined>(TOAST_CONTEXT_KEY);
   const BUNDLED_OPEN_REFUSAL = "Bundled deck: cannot be modified";
 
-  /* Which AI owns which bundled deck, so a tile can say so. The roster is the
-     pairing rule — picking a persona brings its deck along — and this is the
-     same fact read from the deck's side. */
+  /* Only exclusive roster ownership belongs on a tile. Shared decks remain
+     bundled/read-only without falsely naming one of their personas as owner. */
   const aiOwnerByDeckKey = new Map(
-    FREE_PLAY_OPPONENTS.map(({ deckKey, name }) => [deckKey, name]),
+    FREE_PLAY_OPPONENTS.filter(
+      ({ deckKey }) =>
+        FREE_PLAY_OPPONENTS.filter((opponent) => opponent.deckKey === deckKey)
+          .length === 1,
+    ).map(({ deckKey, name }) => [deckKey, name]),
   );
 
   $: ready = battle !== null;

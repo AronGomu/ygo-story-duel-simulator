@@ -133,7 +133,7 @@ async function startDuelFromPicker(
     document.querySelector(
       '[data-cy="deck-picker-player-select"]',
     ) as HTMLSelectElement,
-    "preset:burning-abyss",
+    "preset:chapter-one-starter",
   );
   await user.click(
     document.querySelector(
@@ -314,15 +314,15 @@ describe("App", () => {
     const user = userEvent.setup();
     await renderReadyApp();
 
-    /* Only the player seat is chosen here: the opponent is fixed to Shaddoll
+    /* Only the player seat is chosen here: the opponent is fixed to Chapter 1 Practice
        by the host, which is what the dispatched pair below proves. */
     await startDuelFromPicker(user);
 
     expect(workerClientSpies.startDuel).toHaveBeenCalledOnce();
     expect(workerClientSpies.startDuel).toHaveBeenCalledWith(
-      "bundled-v1:burning-abyss:vs:shaddoll",
-      { kind: "preset", deckId: "burning-abyss" },
-      { kind: "preset", deckId: "shaddoll" },
+      "bundled-v1:chapter-one-starter:vs:chapter-one-practice",
+      { kind: "preset", deckId: "chapter-one-starter" },
+      { kind: "preset", deckId: "chapter-one-practice" },
     );
   });
 

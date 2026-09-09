@@ -13,8 +13,8 @@ import { freePlayDeckTile } from "../../../src/shell/screens/free-play-deck-tile
    is tested against real bundled decks rather than through the screen: the
    cover rule and default flag are the whole of the mapping. */
 
-const SHADDOLL = presetSelectableDecks(DECK_CATALOG).find(
-  (deck) => deck.key === "preset:shaddoll",
+const PRACTICE = presetSelectableDecks(DECK_CATALOG).find(
+  (deck) => deck.key === "preset:chapter-one-practice",
 )!;
 const UPDATED_AT = "2026-08-20T10:00:00.000Z";
 const LOCAL_DECK_ID = deckId("built-deck");
@@ -70,22 +70,23 @@ function context(
 
 describe("freePlayDeckTile", () => {
   it("describes a bundled deck an AI owns", () => {
-    const cover = SHADDOLL.lists.extra[0]!;
+    const cover = PRACTICE.lists.main[0]!;
     const tile = freePlayDeckTile(
-      SHADDOLL,
+      PRACTICE,
       context({
-        catalog: catalogOf(cover, SHADDOLL.lists.main[0]!),
-        aiOwnerByDeckKey: new Map([["preset:shaddoll", "Vault Warden"]]),
+        catalog: catalogOf(cover, PRACTICE.lists.main[0]!),
+        aiOwnerByDeckKey: new Map([
+          ["preset:chapter-one-practice", "Vault Warden"],
+        ]),
       }),
     );
 
-    expect(tile.key).toBe("preset:shaddoll");
-    expect(tile.name).toBe(SHADDOLL.label);
+    expect(tile.key).toBe("preset:chapter-one-practice");
+    expect(tile.name).toBe(PRACTICE.label);
     expect(tile.bundled).toBe(true);
     expect(tile.meta).toBe("Bundled");
     expect(tile.lockedBy).toBe("Vault Warden");
-    /* The Extra Deck's first card is the deck's face: it names the strategy in
-       a way the first Main Deck card rarely does. */
+    /* Chapter 1 practice has no Extra Deck; the first Main card is its cover. */
     expect(tile.coverImageUrl).toBe(`/images/${cover}.jpg`);
     /* Free play never lists a deck it cannot play, so every tile is legal and
        none of them is deletable from a bundled row. */

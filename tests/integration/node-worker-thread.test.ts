@@ -32,9 +32,9 @@ describe("real Node duel Worker thread", () => {
     const startCursor = harness.cursor;
     harness.post({
       type: "startDuel",
-      duelId: duelId("bundled-v1:mvp-player:vs:mvp-opponent"),
-      player: { kind: "preset", deckId: "mvp-player" },
-      opponent: { kind: "preset", deckId: "mvp-opponent" },
+      duelId: duelId("bundled-v1:chapter-one-starter:vs:chapter-one-practice"),
+      player: { kind: "preset", deckId: "chapter-one-starter" },
+      opponent: { kind: "preset", deckId: "chapter-one-practice" },
     });
     await expect(
       harness.waitForMessage(hasWorkerEventType("state"), {
@@ -68,9 +68,9 @@ describe("real Node duel Worker thread", () => {
     const restartCursor = harness.cursor;
     harness.post({
       type: "startDuel",
-      duelId: duelId("bundled-v1:mvp-player:vs:mvp-opponent"),
-      player: { kind: "preset", deckId: "mvp-player" },
-      opponent: { kind: "preset", deckId: "mvp-opponent" },
+      duelId: duelId("bundled-v1:chapter-one-starter:vs:chapter-one-practice"),
+      player: { kind: "preset", deckId: "chapter-one-starter" },
+      opponent: { kind: "preset", deckId: "chapter-one-practice" },
     });
     await harness.waitForMessage(hasWorkerEventType("prompt"), {
       afterSequence: restartCursor,
@@ -120,8 +120,8 @@ describe("real Node duel Worker thread", () => {
        empirical check that a frozen plain object of frozen arrays survives
        `postMessage` intact — a class instance or a getter would not. */
     const preset = createDuelPreset(
-      "mvp-player",
-      "mvp-opponent",
+      "chapter-one-starter",
+      "chapter-one-practice",
       await loadDeckSources(),
     );
     const player = parseDuelDeckSelection({
@@ -135,7 +135,7 @@ describe("real Node duel Worker thread", () => {
       type: "startDuel",
       duelId: duelId("custom-v1:node-worker-thread"),
       player,
-      opponent: { kind: "preset", deckId: "mvp-opponent" },
+      opponent: { kind: "preset", deckId: "chapter-one-practice" },
     });
     await expect(
       harness.waitForMessage(hasWorkerEventType("state"), {
@@ -210,9 +210,9 @@ describe("real Node duel Worker thread", () => {
     const startCursor = harness.cursor;
     harness.post({
       type: "startDuel",
-      duelId: duelId("bundled-v1:mvp-player:vs:mvp-opponent"),
-      player: { kind: "preset", deckId: "mvp-player" },
-      opponent: { kind: "preset", deckId: "mvp-opponent" },
+      duelId: duelId("bundled-v1:chapter-one-starter:vs:chapter-one-practice"),
+      player: { kind: "preset", deckId: "chapter-one-starter" },
+      opponent: { kind: "preset", deckId: "chapter-one-practice" },
     });
     await harness.waitForMessage(hasWorkerEventType("prompt"), {
       afterSequence: startCursor,

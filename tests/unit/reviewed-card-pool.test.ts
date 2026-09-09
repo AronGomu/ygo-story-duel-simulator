@@ -7,8 +7,8 @@ import { reviewedCardPool } from "../../src/battle/duel/presets/reviewed-card-po
 describe("reviewed card pool", () => {
   it("pool is the union of every supplied deck", () => {
     const sources = new Map<DeckId, string>([
-      ["mvp-player", "#main\n1\n2\n"],
-      ["mvp-opponent", "#main\n2\n3\n"],
+      ["chapter-one-starter", "#main\n1\n2\n"],
+      ["chapter-one-practice", "#main\n2\n3\n"],
     ]);
 
     expect(reviewedCardPool(sources)).toEqual(new Set([1, 2, 3]));
@@ -16,14 +16,14 @@ describe("reviewed card pool", () => {
 
   it("pool includes extra deck codes", () => {
     const sources = new Map<DeckId, string>([
-      ["mvp-player", "#main\n1\n#extra\n9\n!side\n"],
+      ["chapter-one-starter", "#main\n1\n#extra\n9\n!side\n"],
     ]);
 
     expect(reviewedCardPool(sources).has(9)).toBe(true);
   });
 
-  it("pool of the real bundled decks has 120 codes", async () => {
-    expect(reviewedCardPool(await loadDeckSources()).size).toBe(120);
+  it("pool of the real Chapter 1 decks has 16 codes", async () => {
+    expect(reviewedCardPool(await loadDeckSources()).size).toBe(16);
   });
 
   it("every bundled deck code is in the pool", async () => {

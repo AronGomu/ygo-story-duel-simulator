@@ -51,32 +51,23 @@ const VALID_MAIN = Array.from(
   (_, index) => mainCodes[index % mainCodes.length]!,
 );
 
-/* Three bundled decks rather than the six this build ships: the screen renders
-   whatever the battle entry hands it, and a short grid is what makes "these
-   tiles and no others" a readable assertion. All three ids are real, because
-   `parseBattleRequest` checks a preset id against the shipped catalog — and
-   Burning Abyss is here because it is the deck the Blaze Circuit persona owns,
-   which is what picking that AI has to bring along. */
-const PRESETS = DECK_CATALOG.filter(({ id }) =>
-  ["mvp-player", "burning-abyss", "shaddoll"].includes(id),
-);
-const PLAYER_PRESET_KEY = "preset:mvp-player";
-const OPPONENT_PRESET_KEY = "preset:shaddoll";
-const BLAZE_PRESET_KEY = "preset:burning-abyss";
+/* Both active Chapter 1 decks, with real IDs checked by parseBattleRequest. */
+const PRESETS = DECK_CATALOG;
+const PLAYER_PRESET_KEY = "preset:chapter-one-starter";
+const OPPONENT_PRESET_KEY = "preset:chapter-one-practice";
 const LOCAL_KEY = "local:built-deck:1";
 /* The same deck after one write: the key carries the revision, so every
    management operation on a deck moves the key the grid knows it by. */
 const RENAMED_KEY = "local:built-deck:2";
 
-/** The slice of the battle entry the screen loads, with the bundled list cut
-    down to the fixture trio. Everything else is the production function. */
+/** The slice of the battle entry the screen loads, with the active Chapter 1 pair. Everything else is the production function. */
 function battleModule(
   overrides: Partial<BattleDeckModule> = {},
 ): BattleDeckModule {
   return {
     DECK_CATALOG: PRESETS,
-    DEFAULT_PLAYER_DECK_ID: "mvp-player",
-    DEFAULT_OPPONENT_DECK_ID: "shaddoll",
+    DEFAULT_PLAYER_DECK_ID: "chapter-one-starter",
+    DEFAULT_OPPONENT_DECK_ID: "chapter-one-practice",
     presetSelectableDecks,
     listSelectableDecks,
     findSelectableDeck,
@@ -239,13 +230,28 @@ describe("FreePlayMatchSetup", () => {
     expect(query("deck-select-eyebrow")?.textContent).toBe("Free play");
     expect(query("deck-select-title")?.textContent).toBe("Choose your deck");
     /* Newest first, and a preset has no stamp at all, so the deck the player
-       built leads the bundled three. */
+       built leads the bundled pair. */
     expect(gridKeys()).toEqual([
       LOCAL_KEY,
       PLAYER_PRESET_KEY,
-      BLAZE_PRESET_KEY,
       OPPONENT_PRESET_KEY,
     ]);
+  });
+
+  it("does not label the shared practice deck as exclusively owned by any persona", async () => {
+    await renderLoadedSetup();
+
+    expect(query("duel-start-opponent-name")?.textContent).toBe("Practice Bot");
+    expect(seatKey("opponent")).toBe(OPPONENT_PRESET_KEY);
+    const tile = query(`deck-tile-${OPPONENT_PRESET_KEY}`)!;
+    expect(tile).not.toBeNull();
+    expect(tile.textContent).toContain("Bundled");
+    expect(tile.textContent).not.toContain("Locked:");
+    for (const name of ["Vault Warden", "Blaze Circuit", "Practice Bot"])
+      expect(tile.textContent).not.toContain(name);
+
+    await fireEvent.click(control(`deck-tile-press-${OPPONENT_PRESET_KEY}`));
+    expect(control("deck-select-delete").disabled).toBe(true);
   });
 
   it("maps a catalog miss to a normal frame without art", async () => {
@@ -335,7 +341,7 @@ describe("FreePlayMatchSetup", () => {
 
     await fireEvent.click(control("deck-select-duplicate"));
 
-    await vi.waitFor(() => expect(gridKeys()).toHaveLength(5));
+    await vi.waitFor(() => expect(gridKeys()).toHaveLength(4));
     const copy = gridKeys().find(
       (key) => key.startsWith("local:") && key !== LOCAL_KEY,
     )!;
@@ -450,11 +456,7 @@ describe("FreePlayMatchSetup", () => {
       module: { listSelectableDecks: () => new Promise(() => {}) },
     });
 
-    expect(gridKeys()).toEqual([
-      PLAYER_PRESET_KEY,
-      BLAZE_PRESET_KEY,
-      OPPONENT_PRESET_KEY,
-    ]);
+    expect(gridKeys()).toEqual([PLAYER_PRESET_KEY, OPPONENT_PRESET_KEY]);
     expect(startButton().disabled).toBe(false);
   });
 
@@ -482,11 +484,7 @@ describe("FreePlayMatchSetup", () => {
     await renderLoadedSetup();
 
     await vi.waitFor(() =>
-      expect(gridKeys()).toEqual([
-        PLAYER_PRESET_KEY,
-        BLAZE_PRESET_KEY,
-        OPPONENT_PRESET_KEY,
-      ]),
+      expect(gridKeys()).toEqual([PLAYER_PRESET_KEY, OPPONENT_PRESET_KEY]),
     );
   });
 
@@ -504,7 +502,7 @@ describe("FreePlayMatchSetup", () => {
     expect(parseBattleRequest(request)).toStrictEqual(request);
     expect((request as { player: { kind: string } }).player.kind).toBe("local");
     expect(request).toMatchObject({
-      opponent: { kind: "preset", deckId: "shaddoll" },
+      opponent: { kind: "preset", deckId: "chapter-one-practice" },
     });
   });
 
@@ -536,11 +534,7 @@ describe("FreePlayMatchSetup", () => {
 
     await renderLoadedSetup({ storage });
 
-    expect(gridKeys()).toEqual([
-      PLAYER_PRESET_KEY,
-      BLAZE_PRESET_KEY,
-      OPPONENT_PRESET_KEY,
-    ]);
+    expect(gridKeys()).toEqual([PLAYER_PRESET_KEY, OPPONENT_PRESET_KEY]);
     expect(seatKey("yours")).toBe(PLAYER_PRESET_KEY);
     expect(seatKey("opponent")).toBe(OPPONENT_PRESET_KEY);
     expect(startButton().disabled).toBe(false);
@@ -621,7 +615,11 @@ describe("FreePlayMatchSetup", () => {
   it("brings the picked persona's deck to the opponent seat", async () => {
     const setup = await renderLoadedSetup();
 
-    expect(query("duel-start-opponent-name")?.textContent).toBe("Vault Warden");
+    expect(query("duel-start-opponent-name")?.textContent).toBe("Practice Bot");
+    expect(seatKey("opponent")).toBe(OPPONENT_PRESET_KEY);
+    await fireEvent.click(control("duel-start-opponent-deck"));
+    await fireEvent.click(control(`deck-tile-press-${PLAYER_PRESET_KEY}`));
+    expect(seatKey("opponent")).toBe(PLAYER_PRESET_KEY);
 
     await fireEvent.click(control("duel-start-opponent-portrait"));
     await fireEvent.click(control("duel-start-opponent-option-blaze-circuit"));
@@ -629,10 +627,15 @@ describe("FreePlayMatchSetup", () => {
     expect(query("duel-start-opponent-name")?.textContent).toBe(
       "Blaze Circuit",
     );
-    expect(seatKey("opponent")).toBe(BLAZE_PRESET_KEY);
+    expect(seatKey("opponent")).toBe(OPPONENT_PRESET_KEY);
     expect(setup.storage.getItem("ygo.ui.v3")).toContain(
       '"freePlayOpponentId":"blaze-circuit"',
     );
+    await fireEvent.click(startButton());
+    expect(setup.onstart).toHaveBeenCalledExactlyOnceWith({
+      player: { kind: "preset", deckId: "chapter-one-starter" },
+      opponent: { kind: "preset", deckId: "chapter-one-practice" },
+    });
   });
 
   /* Pressing the opponent's card hands the grid to their seat, so the next
@@ -642,11 +645,11 @@ describe("FreePlayMatchSetup", () => {
     await renderLoadedSetup();
 
     await fireEvent.click(control("duel-start-opponent-deck"));
-    await fireEvent.click(control(`deck-tile-press-${BLAZE_PRESET_KEY}`));
+    await fireEvent.click(control(`deck-tile-press-${PLAYER_PRESET_KEY}`));
 
-    expect(seatKey("opponent")).toBe(BLAZE_PRESET_KEY);
+    expect(seatKey("opponent")).toBe(PLAYER_PRESET_KEY);
     expect(seatKey("yours")).toBe(PLAYER_PRESET_KEY);
-    expect(query("duel-start-opponent-name")?.textContent).toBe("Vault Warden");
+    expect(query("duel-start-opponent-name")?.textContent).toBe("Practice Bot");
   });
 
   it("renders no favourite controls for bundled or local decks", async () => {

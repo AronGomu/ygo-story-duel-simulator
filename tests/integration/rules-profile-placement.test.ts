@@ -1,11 +1,11 @@
 import path from "node:path";
+import { readFile } from "node:fs/promises";
 import { afterEach, beforeAll, describe, expect, it } from "vitest";
 import { uniqueDeckCodes } from "../../src/battle/duel/presets/deck-parser.ts";
-import { loadDeckSources } from "../../src/battle/duel/presets/deck-sources-node.ts";
 import {
-  createDuelPreset,
-  type DuelPreset,
-} from "../../src/battle/duel/presets/duel-preset.ts";
+  createMvpPreset,
+  type MvpPreset,
+} from "../../src/battle/duel/presets/mvp-preset.ts";
 import type { EngineMasterRule } from "../../src/battle/duel/presets/duel-rules-profile.ts";
 import { selectedDeckPairRulesProfile } from "../../src/battle/duel/presets/duel-rules-profile.ts";
 import type { ActiveDuelDependencies } from "../../src/battle/worker/assets/active-duel-dependencies.ts";
@@ -39,13 +39,20 @@ Duel.RegisterEffect(mr_extra_deck_placement, 0)`,
 
 let adapter: OcgCoreAdapter;
 let dependencies: ActiveDuelDependencies;
-let preset: DuelPreset;
+let preset: MvpPreset;
 const sessions: DuelSession[] = [];
 
 beforeAll(async () => {
   adapter = await loadVendoredCoreNode();
-  const deckSources = await loadDeckSources();
-  preset = createDuelPreset("shaddoll", "shaddoll", deckSources);
+  // Extra-deck placement requires this historical Fusion fixture, not an active preset.
+  const source = await readFile(
+    new URL(
+      "../../src/battle/duel/presets/decks/shaddoll.ydk",
+      import.meta.url,
+    ),
+    "utf8",
+  );
+  preset = createMvpPreset(source, source);
   dependencies = await loadActiveDuelDependenciesNode(
     path.resolve("generated/assets/current"),
     uniqueDeckCodes(preset.player, preset.opponent),

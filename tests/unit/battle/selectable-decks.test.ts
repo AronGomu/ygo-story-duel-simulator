@@ -196,9 +196,9 @@ describe("presetSelectableDecks", () => {
      showing if the count is the one the Worker will draw from. */
   it("reads each deck's lists from its own `.ydk` source", () => {
     const player = presetSelectableDecks(DECK_CATALOG).find(
-      (deck) => deck.key === "preset:mvp-player",
+      (deck) => deck.key === "preset:chapter-one-starter",
     );
-    const parsed = parseYdk(DECK_SOURCES.get("mvp-player")!);
+    const parsed = parseYdk(DECK_SOURCES.get("chapter-one-starter")!);
 
     expect(player?.lists.main).toEqual(parsed.main);
     expect(player?.lists.extra).toEqual(parsed.extra);
@@ -213,11 +213,11 @@ describe("findSelectableDeck", () => {
     expect(findSelectableDeck(decks, "local:ready-deck:1")?.source).toBe(
       "local",
     );
-    expect(findSelectableDeck(decks, "preset:mvp-player")?.source).toBe(
-      "preset",
-    );
+    expect(
+      findSelectableDeck(decks, "preset:chapter-one-starter")?.source,
+    ).toBe("preset");
     expect(findSelectableDeck(decks, "local:ready-deck:2")).toBeNull();
-    expect(findSelectableDeck([], "preset:mvp-player")).toBeNull();
+    expect(findSelectableDeck([], "preset:chapter-one-starter")).toBeNull();
   });
 });
 

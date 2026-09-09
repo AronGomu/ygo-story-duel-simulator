@@ -95,7 +95,7 @@ describe("persisted UI state", () => {
     expect(
       readPersistedUiState({ getItem: () => JSON.stringify(persisted) }).decks,
     ).toEqual({
-      playerKey: "preset:mvp-player",
+      playerKey: "preset:chapter-one-starter",
       opponentKey: "local:built-deck:3",
     });
   });

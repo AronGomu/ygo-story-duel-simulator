@@ -90,7 +90,9 @@ describe("ensureStarterDeck", () => {
     const repo = await repository("starter-idempotent");
     await ensureStarterDeck(repo, catalog, PROTOTYPE_RULESET, FIXTURE_YDK);
     const first = await repo.getDefaultDeck();
+    const before = await repo.list();
     await ensureStarterDeck(repo, catalog, PROTOTYPE_RULESET, FIXTURE_YDK);
+    expect(await repo.list()).toEqual(before);
     expect(await repo.list()).toHaveLength(1);
     expect(await repo.getDefaultDeck()).toBe(first);
     repo.close();
@@ -103,28 +105,32 @@ describe("ensureStarterDeck", () => {
     });
     await repo.create(chosen, emptyDeckHistory());
     await repo.setDefaultDeck(chosen.id);
+    const before = await repo.list();
     await ensureStarterDeck(repo, catalog, PROTOTYPE_RULESET, FIXTURE_YDK);
     expect((await repo.list()).map(({ name }) => name)).toEqual([
       "Player's own",
     ]);
     expect(await repo.getDefaultDeck()).toBe(chosen.id);
+    expect(await repo.list()).toEqual(before);
     repo.close();
   });
 
-  it("an existing Starter Deck is adopted instead of duplicated", async () => {
-    const repo = await repository("starter-adopted");
-    const existing = createBlankDeck(
-      STARTER_DECK_NAME,
-      catalog,
-      PROTOTYPE_RULESET,
-      { id: "already-here" },
-    );
-    await repo.create(existing, emptyDeckHistory());
-    await ensureStarterDeck(repo, catalog, PROTOTYPE_RULESET, FIXTURE_YDK);
-    expect(await repo.list()).toHaveLength(1);
-    expect(await repo.getDefaultDeck()).toBe(existing.id);
-    repo.close();
-  });
+  it.each(["Custom only", "Starter Deck", STARTER_DECK_NAME])(
+    "existing %s library without a default is never changed by seeding",
+    async (name) => {
+      const repo = await repository(`starter-existing-${name}`);
+      const existing = createBlankDeck(name, catalog, PROTOTYPE_RULESET, {
+        id: "already-here",
+      });
+      await repo.create(existing, emptyDeckHistory());
+      const before = await repo.list();
+      await ensureStarterDeck(repo, catalog, PROTOTYPE_RULESET);
+      await ensureStarterDeck(repo, catalog, PROTOTYPE_RULESET);
+      expect(await repo.list()).toEqual(before);
+      expect(await repo.getDefaultDeck()).toBeNull();
+      repo.close();
+    },
+  );
 
   /* The editor opens whether or not it was seeded, so a broken storage layer
      is reported and swallowed rather than thrown at the mount that called. */
@@ -176,6 +182,32 @@ describe("the bundled starter list", () => {
       ),
     ]);
     snapshot = catalogByCode(packagedCatalog(cards.flat(), texts.flat()));
+  });
+
+  it("seeds the actual Chapter 1 starter once into an empty library without revision drift", async () => {
+    const repo = await repository("chapter-one-real-starter");
+    try {
+      await ensureStarterDeck(repo, snapshot, PROTOTYPE_RULESET);
+      const before = await repo.list();
+      expect(before).toHaveLength(1);
+      expect(before[0]).toMatchObject({
+        name: "Chapter 1 Starter",
+        revision: 1,
+        extra: [],
+        side: [],
+      });
+      expect(before[0]!.main).toHaveLength(40);
+      expect(before[0]!.main.filter((code) => code === 46986414)).toHaveLength(
+        2,
+      );
+      const chosen = await repo.getDefaultDeck();
+      expect(chosen).toBe(before[0]!.id);
+      await ensureStarterDeck(repo, snapshot, PROTOTYPE_RULESET);
+      expect(await repo.list()).toEqual(before);
+      expect(await repo.getDefaultDeck()).toBe(chosen);
+    } finally {
+      repo.close();
+    }
   });
 
   it("names only cards the shipped card database carries", () => {

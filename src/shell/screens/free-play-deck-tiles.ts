@@ -4,12 +4,12 @@ import type { DeckBuilderCardView } from "../../decks/catalog/ocg-card-mapper.ts
 import { deckCoverImageUrl } from "../../decks/deck-cover.ts";
 
 /** What free play knows about its decks beyond the decks themselves: cover
-    art, default deck, and which AI owns each bundled deck. */
+    art, default deck, and any exclusive AI owner of a bundled deck. */
 export interface FreePlayDeckTileContext {
   readonly catalog: ReadonlyMap<number, DeckBuilderCardView>;
   /** The repository's default deck id, or `null` when none is set. */
   readonly defaultDeckId: string | null;
-  /** Deck key → the AI persona that owns it, from `FREE_PLAY_OPPONENTS`. */
+  /** Deck key → its sole AI owner; shared/unassigned roster decks are omitted. */
   readonly aiOwnerByDeckKey: ReadonlyMap<string, string>;
 }
 

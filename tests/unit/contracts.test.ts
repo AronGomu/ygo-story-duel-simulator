@@ -24,7 +24,7 @@ const examples: readonly (DuelCommand | DuelWorkerEvent)[] = [
   {
     type: "startDuel",
     duelId: duelId("mvp-preset-v1"),
-    player: { kind: "preset", deckId: "mvp-player" },
+    player: { kind: "preset", deckId: "chapter-one-starter" },
     opponent: { kind: "cards", main: [46986414], extra: [], side: [] },
   },
   {
@@ -369,14 +369,14 @@ describe("Worker contracts", () => {
       parseDuelCommand({
         type: "startDuel",
         duelId: "mvp-preset-v1",
-        player: { kind: "preset", deckId: "nekroz" },
-        opponent: { kind: "preset", deckId: "shaddoll" },
+        player: { kind: "preset", deckId: "chapter-one-starter" },
+        opponent: { kind: "preset", deckId: "chapter-one-practice" },
       }),
     ).toEqual({
       type: "startDuel",
       duelId: "mvp-preset-v1",
-      player: { kind: "preset", deckId: "nekroz" },
-      opponent: { kind: "preset", deckId: "shaddoll" },
+      player: { kind: "preset", deckId: "chapter-one-starter" },
+      opponent: { kind: "preset", deckId: "chapter-one-practice" },
     });
   });
 
@@ -385,8 +385,8 @@ describe("Worker contracts", () => {
       parseDuelCommand({
         type: "startDuel",
         duelId: "mvp-preset-v1",
-        player: { kind: "preset", deckId: "nekroz" },
-        opponent: { kind: "preset", deckId: "shaddoll" },
+        player: { kind: "preset", deckId: "chapter-one-starter" },
+        opponent: { kind: "preset", deckId: "chapter-one-practice" },
         seed: 42,
       }),
     ).toThrow(DuelCommandValidationError);
@@ -398,7 +398,7 @@ describe("Worker contracts", () => {
         type: "startDuel",
         duelId: "mvp-preset-v1",
         player: { kind: "preset", deckId: "evil" },
-        opponent: { kind: "preset", deckId: "shaddoll" },
+        opponent: { kind: "preset", deckId: "chapter-one-practice" },
       }),
     ).toThrow("Duel deck selection deckId is not a bundled deck");
   });

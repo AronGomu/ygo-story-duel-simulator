@@ -213,7 +213,7 @@ async function startDuelFromPicker(
     document.querySelector(
       '[data-cy="deck-picker-player-select"]',
     ) as HTMLSelectElement,
-    "preset:burning-abyss",
+    "preset:chapter-one-starter",
   );
   await user.click(
     document.querySelector(

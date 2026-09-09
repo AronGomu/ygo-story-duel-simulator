@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "cloudflare": {
+    "plan": "free",
+    "project": null,
+    "staticOnly": true
+  },
+  "github": {
+    "environment": "production",
+    "protectionEvidence": null
+  },
+  "devices": {
+    "android": null,
+    "iphone": null,
+    "ipad": null
+  }
+}

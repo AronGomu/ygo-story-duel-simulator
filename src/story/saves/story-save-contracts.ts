@@ -5,7 +5,7 @@
    rather than a cast that fails silently three screens later. */
 
 import { PROLOGUE } from "../content/prologue.ts";
-import { buildStarterGrant } from "../decks/starter-grant.ts";
+import { buildLegacyStarterGrant } from "../decks/starter-grant.ts";
 import {
   createInitialStoryState,
   STORY_SCREENS,
@@ -185,9 +185,9 @@ function economyDefaults(): Record<string, unknown> {
     save out of the whole game: the pre-battle gate refuses a save with no
     decks, `encounterDeck` resolves none, and the deck editor deliberately
     grants a story save nothing (ADR-050) — so the player would have to build
-    forty legal cards out of a collection they do not own. `new-game` is the
-    story's other grant, and it is the same one, so a returning save and a fresh
-    one open on the same deck.
+    forty legal cards out of a collection they do not own. This historical
+    grant stays pinned to the legacy list; changing the new-game starter must
+    never change what an old-schema read grants.
 
     Per code, the higher of the stored and granted counts — never the sum: the
     record on disk stays at its own version, so every read migrates it again,
@@ -209,7 +209,7 @@ function withStarterDecks(
      not migrated. */
   if (state.decks !== undefined || state.defaultDeckId !== undefined)
     return state;
-  const { deck, collection } = buildStarterGrant();
+  const { deck, collection } = buildLegacyStarterGrant();
   const owned = state.collection;
   return {
     ...state,

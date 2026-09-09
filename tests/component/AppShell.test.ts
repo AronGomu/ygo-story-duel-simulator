@@ -48,8 +48,8 @@ const never = () => new Promise<never>(() => {});
 const duelDeckModule = async () =>
   ({
     DECK_CATALOG,
-    DEFAULT_PLAYER_DECK_ID: "mvp-player",
-    DEFAULT_OPPONENT_DECK_ID: "shaddoll",
+    DEFAULT_PLAYER_DECK_ID: "chapter-one-starter",
+    DEFAULT_OPPONENT_DECK_ID: "chapter-one-practice",
     presetSelectableDecks,
     listSelectableDecks,
     findSelectableDeck,
@@ -260,8 +260,8 @@ describe("AppShell", () => {
       return found;
     }, REAL_IMPORT);
     expect([...seats].map((chip) => chip.textContent)).toEqual([
-      "Starter (Player)",
-      "Shaddoll",
+      "Chapter 1 Starter",
+      "Chapter 1 Practice",
     ]);
 
     await fireEvent.click(

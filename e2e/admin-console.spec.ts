@@ -86,11 +86,11 @@ test("seeding fills the deck library and a confirmed reset empties it", async ({
   expect(deckDatabaseNames).not.toContain(DECK_DATABASE_NAME);
 
   /* Which is why "No local decks" is no longer reachable from here: opening the
-     library seeds `Starter Deck` into the database the reset just removed. The
+     library seeds `Chapter 1 Starter` into the database the reset just removed. The
      deck the seed jump wrote is gone all the same, and nothing else survives
      beside it. */
   await page.locator('[data-cy="admin-route-free-play-decks"]').click();
-  await expect(page.getByText("Starter Deck")).toBeVisible();
+  await expect(page.getByText("Chapter 1 Starter")).toBeVisible();
   await expect(page.getByText("Admin test deck")).toHaveCount(0);
   await expect(
     page.locator('[data-cy="deck-select-grid"] > [data-cy^="deck-tile-"]'),

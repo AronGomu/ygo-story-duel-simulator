@@ -71,7 +71,7 @@ export const ADMIN_ROUTES: readonly AppRoute[] = Object.freeze(
 export const ADMIN_TEST_DECK_ID: DeckId = deckId("admin-test-deck");
 export const ADMIN_TEST_DECK_NAME = "Admin test deck";
 
-const ADMIN_TEST_DECK_SOURCE = "mvp-player";
+const ADMIN_TEST_DECK_SOURCE = "chapter-one-starter";
 const MAIN_DECK_SIZE = 40;
 
 /** A delete that another connection blocks is queued, not performed, so the

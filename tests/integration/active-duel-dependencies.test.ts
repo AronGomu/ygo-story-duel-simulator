@@ -6,9 +6,7 @@ import {
   uniqueDeckCodes,
   validateDeck,
 } from "../../src/battle/duel/presets/deck-parser.ts";
-import { loadDeckSources } from "../../src/battle/duel/presets/deck-sources-node.ts";
 import { loadMvpPreset } from "../../src/battle/duel/presets/mvp-preset-node.ts";
-import { reviewedCardPool } from "../../src/battle/duel/presets/reviewed-card-pool.ts";
 
 describe("real MVP dependency snapshot", () => {
   it("resolves every preset card, text, image, global, and available card script", async () => {
@@ -19,7 +17,8 @@ describe("real MVP dependency snapshot", () => {
       codes,
     );
     const catalogCodes = new Set(dependencies.cards.keys());
-    const reviewedPool = reviewedCardPool(await loadDeckSources());
+    // These are explicit historical MVP fixtures, no longer the active reviewed pool.
+    const reviewedPool = codes;
     validateDeck(
       preset.player,
       catalogCodes,

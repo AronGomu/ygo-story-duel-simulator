@@ -1,0 +1,656 @@
+{
+  "schemaVersion": 1,
+  "status": "superseded-six-era-authoring-evidence-not-release-approval",
+  "currentScope": "Chapter 1 only. Prior six-era mapping and null-date candidates remain historical evidence, not release inputs. The owner retains boundaryCandidates/0 and /1 as the bounded scope assumption; no later boundary verification is required.",
+  "sourceSha256": "b3ac778e5f1b9927554ef8e66185a596c0c35d71ab642b448c952c6c9050496d",
+  "recordedOn": "2026-09-09",
+  "observationProvenance": {
+    "suppliedBy": "parent-provided-scout-handoff",
+    "httpStatusScope": "five official locale lists reported HTTP 200 by scout; no new HTTP fetch in materialization pass",
+    "matchScope": "scout reports exact source-card-name and printing-code matches for 27 cards in four null-date products",
+    "unobservedLocaleMeaning": "No row observed in supplied lookup; not proof of unreleased status.",
+    "responseHashScope": "Only priorEnglishListObservation retains earlier response hash; no new response hashes supplied or invented."
+  },
+  "localeLists": [
+    {
+      "locale": "en",
+      "sourceUrl": "https://www.db.yugioh-card.com/yugiohdb/card_list.action?request_locale=en",
+      "reportedHttpStatus": 200
+    },
+    {
+      "locale": "de",
+      "sourceUrl": "https://www.db.yugioh-card.com/yugiohdb/card_list.action?request_locale=de",
+      "reportedHttpStatus": 200
+    },
+    {
+      "locale": "fr",
+      "sourceUrl": "https://www.db.yugioh-card.com/yugiohdb/card_list.action?request_locale=fr",
+      "reportedHttpStatus": 200
+    },
+    {
+      "locale": "it",
+      "sourceUrl": "https://www.db.yugioh-card.com/yugiohdb/card_list.action?request_locale=it",
+      "reportedHttpStatus": 200
+    },
+    {
+      "locale": "es",
+      "sourceUrl": "https://www.db.yugioh-card.com/yugiohdb/card_list.action?request_locale=es",
+      "reportedHttpStatus": 200
+    }
+  ],
+  "productFamilies": {
+    "tlm-main": {
+      "label": "THE LOST MILLENNIUM",
+      "locales": [
+        {
+          "locale": "en",
+          "productId": "11104002",
+          "listedDate": "2005-06-01",
+          "productUrl": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?ope=1&sess=1&pid=11104002&rp=99999"
+        },
+        {
+          "locale": "de",
+          "productId": "21104002",
+          "listedDate": "2005-06-01",
+          "productUrl": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?ope=1&sess=1&pid=21104002&rp=99999"
+        },
+        {
+          "locale": "fr",
+          "productId": "31104002",
+          "listedDate": "2005-06-01",
+          "productUrl": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?ope=1&sess=1&pid=31104002&rp=99999"
+        },
+        {
+          "locale": "it",
+          "productId": "41104002",
+          "listedDate": "2005-06-01",
+          "productUrl": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?ope=1&sess=1&pid=41104002&rp=99999"
+        },
+        {
+          "locale": "es",
+          "productId": "51103002",
+          "listedDate": "2005-06-01",
+          "productUrl": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?ope=1&sess=1&pid=51103002&rp=99999"
+        }
+      ],
+      "unobservedLocales": []
+    },
+    "tlm-sneak-peek": {
+      "label": "THE LOST MILLENNIUM Sneak Peek",
+      "locales": [
+        {
+          "locale": "en",
+          "productId": "1121204002",
+          "listedDate": "2005-05-28",
+          "productUrl": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?ope=1&sess=1&pid=1121204002&rp=99999"
+        }
+      ],
+      "unobservedLocales": ["de", "fr", "it", "es"]
+    },
+    "starter-2008": {
+      "label": "5D's STARTER DECK 2008",
+      "locales": [
+        {
+          "locale": "en",
+          "productId": "13306000",
+          "listedDate": "2008-08-05",
+          "productUrl": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?ope=1&sess=1&pid=13306000&rp=99999"
+        },
+        {
+          "locale": "de",
+          "productId": "23306000",
+          "listedDate": "2008-08-05",
+          "productUrl": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?ope=1&sess=1&pid=23306000&rp=99999"
+        },
+        {
+          "locale": "fr",
+          "productId": "33306000",
+          "listedDate": "2008-08-05",
+          "productUrl": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?ope=1&sess=1&pid=33306000&rp=99999"
+        },
+        {
+          "locale": "it",
+          "productId": "43306000",
+          "listedDate": "2008-08-05",
+          "productUrl": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?ope=1&sess=1&pid=43306000&rp=99999"
+        },
+        {
+          "locale": "es",
+          "productId": "53306000",
+          "listedDate": "2008-08-05",
+          "productUrl": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?ope=1&sess=1&pid=53306000&rp=99999"
+        }
+      ],
+      "unobservedLocales": []
+    },
+    "ys11": {
+      "label": "STARTER DECK DAWN OF THE XYZ",
+      "locales": [
+        {
+          "locale": "en",
+          "productId": "13309000",
+          "listedDate": "2011-07-12",
+          "productUrl": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?ope=1&sess=1&pid=13309000&rp=99999"
+        },
+        {
+          "locale": "de",
+          "productId": "23309000",
+          "listedDate": "2011-07-08",
+          "productUrl": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?ope=1&sess=1&pid=23309000&rp=99999"
+        },
+        {
+          "locale": "fr",
+          "productId": "33309000",
+          "listedDate": "2011-07-07",
+          "productUrl": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?ope=1&sess=1&pid=33309000&rp=99999"
+        },
+        {
+          "locale": "it",
+          "productId": "43309000",
+          "listedDate": "2011-07-08",
+          "productUrl": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?ope=1&sess=1&pid=43309000&rp=99999"
+        },
+        {
+          "locale": "es",
+          "productId": "53309000",
+          "listedDate": "2011-07-08",
+          "productUrl": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?ope=1&sess=1&pid=53309000&rp=99999"
+        }
+      ],
+      "unobservedLocales": []
+    },
+    "ys14": {
+      "label": "SUPER STARTER SPACE-TIME SHOWDOWN",
+      "locales": [
+        {
+          "locale": "en",
+          "productId": "13312000",
+          "listedDate": "2014-07-11",
+          "productUrl": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?ope=1&sess=1&pid=13312000&rp=99999"
+        },
+        {
+          "locale": "de",
+          "productId": "23312000",
+          "listedDate": "2014-07-10",
+          "productUrl": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?ope=1&sess=1&pid=23312000&rp=99999"
+        },
+        {
+          "locale": "fr",
+          "productId": "33312000",
+          "listedDate": "2014-07-10",
+          "productUrl": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?ope=1&sess=1&pid=33312000&rp=99999"
+        },
+        {
+          "locale": "it",
+          "productId": "43312000",
+          "listedDate": "2014-07-10",
+          "productUrl": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?ope=1&sess=1&pid=43312000&rp=99999"
+        },
+        {
+          "locale": "es",
+          "productId": "53312000",
+          "listedDate": "2014-07-10",
+          "productUrl": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?ope=1&sess=1&pid=53312000&rp=99999"
+        }
+      ],
+      "unobservedLocales": []
+    },
+    "ys17": {
+      "label": "STARTER DECK - LINK STRIKE -",
+      "locales": [
+        {
+          "locale": "en",
+          "productId": "13315000",
+          "listedDate": "2017-07-21",
+          "productUrl": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?ope=1&sess=1&pid=13315000&rp=99999"
+        },
+        {
+          "locale": "de",
+          "productId": "23315000",
+          "listedDate": "2017-07-20",
+          "productUrl": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?ope=1&sess=1&pid=23315000&rp=99999"
+        },
+        {
+          "locale": "fr",
+          "productId": "33315000",
+          "listedDate": "2017-07-20",
+          "productUrl": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?ope=1&sess=1&pid=33315000&rp=99999"
+        },
+        {
+          "locale": "it",
+          "productId": "43315000",
+          "listedDate": "2017-07-20",
+          "productUrl": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?ope=1&sess=1&pid=43315000&rp=99999"
+        },
+        {
+          "locale": "es",
+          "productId": "53315000",
+          "listedDate": "2017-07-20",
+          "productUrl": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?ope=1&sess=1&pid=53315000&rp=99999"
+        }
+      ],
+      "unobservedLocales": []
+    },
+    "efc1": {
+      "label": "Yu-Gi-Oh! × eFootball™ Series Collab",
+      "locales": [
+        {
+          "locale": "en",
+          "productId": "2000001518000",
+          "listedDate": "2025-09-27",
+          "productUrl": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?ope=1&sess=1&pid=2000001518000&rp=99999"
+        }
+      ],
+      "unobservedLocales": ["de", "fr", "it", "es"]
+    },
+    "nkc1": {
+      "label": "NIKE COLLABORATION CARD",
+      "locales": [
+        {
+          "locale": "en",
+          "productId": "2000001469000",
+          "listedDate": "2025-09-12",
+          "productUrl": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?ope=1&sess=1&pid=2000001469000&rp=99999"
+        }
+      ],
+      "unobservedLocales": ["de", "fr", "it", "es"]
+    },
+    "26lp": {
+      "label": "LIMITED PACK WORLD CHAMPIONSHIP 2026",
+      "locales": [
+        {
+          "locale": "en",
+          "productId": "2000001689000",
+          "listedDate": "2026-08-29",
+          "productUrl": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?ope=1&sess=1&pid=2000001689000&rp=99999"
+        }
+      ],
+      "unobservedLocales": ["de", "fr", "it", "es"]
+    },
+    "tf05": {
+      "label": "Yu-Gi-Oh! 5D's TAG FORCE 5 Bundles",
+      "locales": [
+        {
+          "locale": "en",
+          "productId": "1141409001",
+          "listedDate": "2010-10-26",
+          "productUrl": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?ope=1&sess=1&pid=1141409001&rp=99999"
+        },
+        {
+          "locale": "de",
+          "productId": "2141408001",
+          "listedDate": "2010-11-25",
+          "productUrl": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?ope=1&sess=1&pid=2141408001&rp=99999"
+        },
+        {
+          "locale": "fr",
+          "productId": "3141408002",
+          "listedDate": "2010-11-25",
+          "productUrl": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?ope=1&sess=1&pid=3141408002&rp=99999"
+        },
+        {
+          "locale": "it",
+          "productId": "4141408001",
+          "listedDate": "2010-11-25",
+          "productUrl": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?ope=1&sess=1&pid=4141408001&rp=99999"
+        },
+        {
+          "locale": "es",
+          "productId": "5141408001",
+          "listedDate": "2010-11-25",
+          "productUrl": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?ope=1&sess=1&pid=5141408001&rp=99999"
+        }
+      ],
+      "unobservedLocales": []
+    }
+  },
+  "separateProductObservations": [
+    {
+      "family": "ys14-power-up-pack",
+      "locale": "it",
+      "listedDate": "2014-07-24",
+      "sourceUrl": "https://www.db.yugioh-card.com/yugiohdb/card_list.action?request_locale=it",
+      "productId": null,
+      "note": "Separate Italian Power-Up Pack observation from scout; product ID not supplied. Not substituted into YS14 starter-deck locale vector."
+    }
+  ],
+  "dateConvention": {
+    "status": "candidate-authoring-convention-not-verified",
+    "baseDates": "Use source tcgReleaseDate unchanged as secondary provider metadata; do not normalize source dates to regional minima.",
+    "boundaryDates": "Use earliest observed listed date for selected era-defining family across supplied locale observations only; not exhaustive earliest-worldwide TCG dates.",
+    "nullDates": "Only four matched null-date candidates used for partial authoring. Raw source remains unchanged; current setup verifier does not consume these candidates.",
+    "intervals": "Inclusive startsOn, exclusive next startsOn; final era inclusive through 2026-09-07. Same-date sets stay together.",
+    "sort": "Effective date ascending, then exact source name ascending in Unicode code-point order; no locale collation."
+  },
+  "boundaryCandidates": [
+    {
+      "chapterId": "chapter-01",
+      "candidateDate": "2001-01-01",
+      "status": "candidate-not-verified-era-boundary",
+      "basis": "earliest-source-date-floor",
+      "sourceReference": "content/authoring/card-set-source.json#/sets/0",
+      "assumption": "A1. Retain earliest source sample promo dated 2001-01-01; no blanket pre-2002 exclusion. Secondary provider date, not independently proven original TCG release."
+    },
+    {
+      "chapterId": "chapter-02",
+      "candidateDate": "2005-05-28",
+      "status": "candidate-not-verified-era-boundary",
+      "basis": "minimum-observed-listed-date-for-selected-era-defining-family",
+      "productFamily": "tlm-sneak-peek",
+      "assumption": "A2. Classify The Lost Millennium Sneak Peek as GX-era family from 2005-05-28; assumption, not official era decree. Main product observed 2005-06-01 in all five locales; other Sneak Peek locale rows unobserved, not unreleased."
+    },
+    {
+      "chapterId": "chapter-03",
+      "candidateDate": "2008-08-05",
+      "status": "candidate-not-verified-era-boundary",
+      "basis": "minimum-observed-listed-date-for-selected-era-defining-family",
+      "productFamily": "starter-2008",
+      "assumption": "A2. Selected product family defines candidate era threshold; no official era decree or exhaustive earliest-worldwide release proof."
+    },
+    {
+      "chapterId": "chapter-04",
+      "candidateDate": "2011-07-07",
+      "status": "candidate-not-verified-era-boundary",
+      "basis": "minimum-observed-listed-date-for-selected-era-defining-family",
+      "productFamily": "ys11",
+      "assumption": "A2. Selected product family defines candidate era threshold; no official era decree or exhaustive earliest-worldwide release proof."
+    },
+    {
+      "chapterId": "chapter-05",
+      "candidateDate": "2014-07-10",
+      "status": "candidate-not-verified-era-boundary",
+      "basis": "minimum-observed-listed-date-for-selected-era-defining-family",
+      "productFamily": "ys14",
+      "assumption": "A2. Selected product family defines candidate era threshold; no official era decree or exhaustive earliest-worldwide release proof."
+    },
+    {
+      "chapterId": "chapter-06",
+      "candidateDate": "2017-07-20",
+      "status": "candidate-not-verified-era-boundary",
+      "basis": "minimum-observed-listed-date-for-selected-era-defining-family",
+      "productFamily": "ys17",
+      "assumption": "A2. Selected product family defines candidate era threshold; no official era decree or exhaustive earliest-worldwide release proof."
+    }
+  ],
+  "nullDateCandidates": [
+    {
+      "sourceSetName": "EFootball collaboration cards",
+      "productFamily": "efc1",
+      "candidateDate": "2025-09-27",
+      "dateBasis": "minimum-observed-listed-date-in-supplied-locale-vector; not exhaustive earliest-worldwide date",
+      "matchStatus": "scout-matched-source-card-names-and-exact-printing-codes",
+      "matchedCardIdOrigin": "source snapshot IDs; not official database card IDs",
+      "matchedCards": [
+        {
+          "sourceCardId": 85138716,
+          "sourceCardName": "Rescue Rabbit",
+          "printingCodes": ["EFC1-EN001"]
+        }
+      ],
+      "usedForPartialAuthoring": true,
+      "consumedBySetupVerifier": false
+    },
+    {
+      "sourceSetName": "Nike collaboration cards",
+      "productFamily": "nkc1",
+      "candidateDate": "2025-09-12",
+      "dateBasis": "minimum-observed-listed-date-in-supplied-locale-vector; not exhaustive earliest-worldwide date",
+      "matchStatus": "scout-matched-source-card-names-and-exact-printing-codes",
+      "matchedCardIdOrigin": "source snapshot IDs; not official database card IDs",
+      "matchedCards": [
+        {
+          "sourceCardId": 74677422,
+          "sourceCardName": "Red-Eyes Black Dragon",
+          "printingCodes": ["NKC1-EN002"]
+        },
+        {
+          "sourceCardId": 37301660,
+          "sourceCardName": "WINDS OF VICTORY",
+          "printingCodes": ["NKC1-EN001"]
+        }
+      ],
+      "usedForPartialAuthoring": true,
+      "consumedBySetupVerifier": false
+    },
+    {
+      "sourceSetName": "Limited Pack World Championship 2026",
+      "productFamily": "26lp",
+      "candidateDate": "2026-08-29",
+      "dateBasis": "minimum-observed-listed-date-in-supplied-locale-vector; not exhaustive earliest-worldwide date",
+      "matchStatus": "scout-matched-source-card-names-and-exact-printing-codes",
+      "matchedCardIdOrigin": "source snapshot IDs; not official database card IDs",
+      "matchedCards": [
+        {
+          "sourceCardId": 80181649,
+          "sourceCardName": "\"A Case for K9\"",
+          "printingCodes": ["26LP-EN011"]
+        },
+        {
+          "sourceCardId": 39138610,
+          "sourceCardName": "Allied Code Talker @Ignister",
+          "printingCodes": ["26LP-EN019"]
+        },
+        {
+          "sourceCardId": 19899073,
+          "sourceCardName": "Ame no Murakumo no Mitsurugi",
+          "printingCodes": ["26LP-EN021"]
+        },
+        {
+          "sourceCardId": 33760966,
+          "sourceCardName": "Dracotail Arthalion",
+          "printingCodes": ["26LP-EN003"]
+        },
+        {
+          "sourceCardId": 1498449,
+          "sourceCardName": "Dracotail Faimena",
+          "printingCodes": ["26LP-EN002"]
+        },
+        {
+          "sourceCardId": 16474916,
+          "sourceCardName": "Exosister Elis",
+          "printingCodes": ["26LP-EN016"]
+        },
+        {
+          "sourceCardId": 35886170,
+          "sourceCardName": "Gogogo Goblindbergh",
+          "printingCodes": ["26LP-EN020"]
+        },
+        {
+          "sourceCardId": 27420823,
+          "sourceCardName": "K9-17 \"Ripper\"",
+          "printingCodes": ["26LP-EN010"]
+        },
+        {
+          "sourceCardId": 6153210,
+          "sourceCardName": "Ketu Dracotail",
+          "printingCodes": ["26LP-EN004"]
+        },
+        {
+          "sourceCardId": 2344618,
+          "sourceCardName": "Lunalight Masquerade",
+          "printingCodes": ["26LP-EN013"]
+        },
+        {
+          "sourceCardId": 35763582,
+          "sourceCardName": "Lunalight Silver Hound",
+          "printingCodes": ["26LP-EN012"]
+        },
+        {
+          "sourceCardId": 96676583,
+          "sourceCardName": "Maliss <P> Chessy Cat",
+          "printingCodes": ["26LP-EN018"]
+        },
+        {
+          "sourceCardId": 83764719,
+          "sourceCardName": "Monster Reborn",
+          "printingCodes": ["26LP-EN001"]
+        },
+        {
+          "sourceCardId": 85315450,
+          "sourceCardName": "Radiant Typhoon Fonix, the Great Flame",
+          "printingCodes": ["26LP-EN014"]
+        },
+        {
+          "sourceCardId": 53813120,
+          "sourceCardName": "Radiant Typhoon Mandate",
+          "printingCodes": ["26LP-EN015"]
+        },
+        {
+          "sourceCardId": 7511613,
+          "sourceCardName": "Ryzeal Duo Drive",
+          "printingCodes": ["26LP-EN017"]
+        },
+        {
+          "sourceCardId": 91073013,
+          "sourceCardName": "Vanquish Soul Caesar Valius",
+          "printingCodes": ["26LP-EN008"]
+        },
+        {
+          "sourceCardId": 9091064,
+          "sourceCardName": "Vanquish Soul Jiaolong",
+          "printingCodes": ["26LP-EN009"]
+        },
+        {
+          "sourceCardId": 93360904,
+          "sourceCardName": "Yummyusment★Acroquey",
+          "printingCodes": ["26LP-EN007"]
+        },
+        {
+          "sourceCardId": 66975205,
+          "sourceCardName": "Yummyusment☆Mignon",
+          "printingCodes": ["26LP-EN006"]
+        },
+        {
+          "sourceCardId": 30581601,
+          "sourceCardName": "Yummy★Snatchy",
+          "printingCodes": ["26LP-EN005"]
+        }
+      ],
+      "usedForPartialAuthoring": true,
+      "consumedBySetupVerifier": false
+    },
+    {
+      "sourceSetName": "Yu-Gi-Oh! 5D's Tag Force 5 Promotional Cards",
+      "productFamily": "tf05",
+      "candidateDate": "2010-10-26",
+      "dateBasis": "minimum-observed-listed-date-in-supplied-locale-vector; not exhaustive earliest-worldwide date",
+      "matchStatus": "scout-matched-source-card-names-and-exact-printing-codes",
+      "matchedCardIdOrigin": "source snapshot IDs; not official database card IDs",
+      "matchedCards": [
+        {
+          "sourceCardId": 45037489,
+          "sourceCardName": "Chevalier de Fleur",
+          "printingCodes": ["TF05-EN002"]
+        },
+        {
+          "sourceCardId": 19642774,
+          "sourceCardName": "Fleur Synchron",
+          "printingCodes": ["TF05-EN001"]
+        },
+        {
+          "sourceCardId": 72022087,
+          "sourceCardName": "Liberty at Last!",
+          "printingCodes": ["TF05-EN003"]
+        }
+      ],
+      "usedForPartialAuthoring": true,
+      "consumedBySetupVerifier": false
+    }
+  ],
+  "unresolvedCrocs": {
+    "sourceSetName": "Crocs collaboration card",
+    "sourceCardId": 77699839,
+    "printingCode": "CRC1-EN001",
+    "officialRowStatus": "not-observed-by-scout",
+    "authoringStatus": "unassigned-pending-date-evidence",
+    "note": "No official row supplied; absence does not establish unreleased or non-TCG status."
+  },
+  "rawSourceOverridesApplied": false,
+  "verifierOverridesApplied": false,
+  "unresolved": [
+    "Candidate era classification and historical completeness remain unverified; GX Sneak Peek choice is an assumption, not an official era decree.",
+    "Secondary source dates retained unchanged; no broad regional or earliest-worldwide normalization claim.",
+    "Four candidate null dates used for partial authoring are not consumed by setup verifier. Raw five-null-date coverage remains blocking.",
+    "Crocs date unresolved; five empty sets and 509 orphan cards unchanged. No invented evidence-backed exclusions."
+  ],
+  "priorEnglishListObservation": {
+    "schemaVersion": 1,
+    "sourceUrl": "https://www.db.yugioh-card.com/yugiohdb/card_list.action?request_locale=en",
+    "responseSha256": "73e439d5ae327293c464f1b0d30815ae116eea33df492164575c63a2ac6bb8c7",
+    "evidenceKind": "official-English-product-list-metadata-not-proven-era-boundaries",
+    "products": [
+      {
+        "officialProduct": "LIMITED PACK WORLD CHAMPIONSHIP 2026",
+        "listedDate": "2026-08-29",
+        "productUrl": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?ope=1&sess=1&pid=2000001689000&rp=99999",
+        "applicationStatus": "unapplied-candidate-requires-product-match-and-consistent-regional-date-convention"
+      },
+      {
+        "officialProduct": "Yu-Gi-Oh! × eFootball™ Series Collab",
+        "listedDate": "2025-09-27",
+        "productUrl": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?ope=1&sess=1&pid=2000001518000&rp=99999",
+        "applicationStatus": "unapplied-candidate-requires-product-match-and-consistent-regional-date-convention"
+      },
+      {
+        "officialProduct": "NIKE COLLABORATION CARD",
+        "listedDate": "2025-09-12",
+        "productUrl": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?ope=1&sess=1&pid=2000001469000&rp=99999",
+        "applicationStatus": "unapplied-candidate-requires-product-match-and-consistent-regional-date-convention"
+      },
+      {
+        "officialProduct": "STARTER DECK - LINK STRIKE -",
+        "listedDate": "2017-07-21",
+        "productUrl": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?ope=1&sess=1&pid=13315000&rp=99999",
+        "applicationStatus": "unapplied-candidate-requires-product-match-and-consistent-regional-date-convention"
+      },
+      {
+        "officialProduct": "SUPER STARTER SPACE-TIME SHOWDOWN",
+        "listedDate": "2014-07-11",
+        "productUrl": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?ope=1&sess=1&pid=13312000&rp=99999",
+        "applicationStatus": "unapplied-candidate-requires-product-match-and-consistent-regional-date-convention"
+      },
+      {
+        "officialProduct": "SUPER STARTER SPACE-TIME SHOWDOWN Power-Up Pack",
+        "listedDate": "2014-07-11",
+        "productUrl": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?ope=1&sess=1&pid=13312001&rp=99999",
+        "applicationStatus": "unapplied-candidate-requires-product-match-and-consistent-regional-date-convention"
+      },
+      {
+        "officialProduct": "STARTER DECK DAWN OF THE XYZ",
+        "listedDate": "2011-07-12",
+        "productUrl": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?ope=1&sess=1&pid=13309000&rp=99999",
+        "applicationStatus": "unapplied-candidate-requires-product-match-and-consistent-regional-date-convention"
+      },
+      {
+        "officialProduct": "Yu-Gi-Oh! 5D's TAG FORCE 5 Bundles",
+        "listedDate": "2010-10-26",
+        "productUrl": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?ope=1&sess=1&pid=1141409001&rp=99999",
+        "applicationStatus": "unapplied-candidate-requires-product-match-and-consistent-regional-date-convention"
+      },
+      {
+        "officialProduct": "5D's STARTER DECK 2008",
+        "listedDate": "2008-08-05",
+        "productUrl": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?ope=1&sess=1&pid=13306000&rp=99999",
+        "applicationStatus": "unapplied-candidate-requires-product-match-and-consistent-regional-date-convention"
+      },
+      {
+        "officialProduct": "THE LOST MILLENNIUM",
+        "listedDate": "2005-06-01",
+        "productUrl": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?ope=1&sess=1&pid=11104002&rp=99999",
+        "applicationStatus": "unapplied-candidate-requires-product-match-and-consistent-regional-date-convention"
+      },
+      {
+        "officialProduct": "THE LOST MILLENNIUM Sneak Peek",
+        "listedDate": "2005-05-28",
+        "productUrl": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?ope=1&sess=1&pid=1121204002&rp=99999",
+        "applicationStatus": "unapplied-candidate-requires-product-match-and-consistent-regional-date-convention"
+      }
+    ],
+    "unresolved": [
+      "Earliest GX-era product and consistent regional date convention",
+      "Exact source set/product/card matches for missing-date candidates",
+      "Crocs collaboration card has no title match in retrieved list; absence is not proof of unreleased status"
+    ],
+    "overridesApplied": false
+  }
+}

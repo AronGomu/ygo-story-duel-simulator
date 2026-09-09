@@ -18,7 +18,11 @@ async function createRuntime(): Promise<{
 }> {
   const adapter = await loadVendoredCoreNode();
   const deckSources = await loadDeckSources();
-  const preset = createDuelPreset("mvp-player", "mvp-opponent", deckSources);
+  const preset = createDuelPreset(
+    "chapter-one-starter",
+    "chapter-one-practice",
+    deckSources,
+  );
   const dependencies = await loadActiveDuelDependenciesNode(
     ASSET_ROOT,
     uniqueDeckCodes(preset.player, preset.opponent),
@@ -50,7 +54,7 @@ describe("duels started from an explicit card list", () => {
           extra: [...playerExtra],
           side: [],
         },
-        opponent: { kind: "preset", deckId: "mvp-opponent" },
+        opponent: { kind: "preset", deckId: "chapter-one-practice" },
       });
 
       expect(started.some(({ type }) => type === "error")).toBe(false);
@@ -105,7 +109,7 @@ describe("duels started from an explicit card list", () => {
           extra: [],
           side: [],
         },
-        opponent: { kind: "preset", deckId: "mvp-opponent" },
+        opponent: { kind: "preset", deckId: "chapter-one-practice" },
       });
       expect(refused).toEqual([
         {
@@ -120,9 +124,11 @@ describe("duels started from an explicit card list", () => {
          accepted rather than rejected as `duel_already_active`. */
       const accepted = await runtime.handle({
         type: "startDuel",
-        duelId: duelId("bundled-v1:mvp-player:vs:mvp-opponent"),
-        player: { kind: "preset", deckId: "mvp-player" },
-        opponent: { kind: "preset", deckId: "mvp-opponent" },
+        duelId: duelId(
+          "bundled-v1:chapter-one-starter:vs:chapter-one-practice",
+        ),
+        player: { kind: "preset", deckId: "chapter-one-starter" },
+        opponent: { kind: "preset", deckId: "chapter-one-practice" },
       });
       expect(accepted.some(({ type }) => type === "error")).toBe(false);
     } finally {

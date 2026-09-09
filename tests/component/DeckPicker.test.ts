@@ -45,7 +45,7 @@ const LOCAL_DECK: SelectableDeck = {
 function renderPicker(overrides: Record<string, unknown> = {}) {
   return render(DeckPicker, {
     decks: PRESET_DECKS,
-    playerKey: "preset:nekroz",
+    playerKey: "preset:chapter-one-starter",
     ...overrides,
   });
 }
@@ -64,7 +64,7 @@ describe("DeckPicker", () => {
 
     expect(
       document.querySelectorAll('[data-cy^="deck-picker-option-"]'),
-    ).toHaveLength(7);
+    ).toHaveLength(3);
     expect(query("deck-picker-group-preset")?.getAttribute("label")).toBe(
       "Bundled decks",
     );
@@ -79,17 +79,25 @@ describe("DeckPicker", () => {
   it("pre-selects the deck the host chose", () => {
     renderPicker();
 
-    expect(playerSelect().value).toBe("preset:nekroz");
+    expect(playerSelect().value).toBe("preset:chapter-one-starter");
   });
 
   it("the filter narrows the deck options", async () => {
     const user = userEvent.setup();
-    renderPicker({ decks: [...PRESET_DECKS, LOCAL_DECK] });
+    renderPicker({
+      decks: [...PRESET_DECKS, LOCAL_DECK],
+      playerKey: "preset:chapter-one-practice",
+    });
 
-    await user.type(query("deck-picker-filter") as HTMLInputElement, "shad");
+    await user.type(
+      query("deck-picker-filter") as HTMLInputElement,
+      "Practice",
+    );
 
-    expect(query("deck-picker-option-preset:shaddoll")).not.toBeNull();
-    expect(query("deck-picker-option-preset:burning-abyss")).toBeNull();
+    expect(
+      query("deck-picker-option-preset:chapter-one-practice"),
+    ).not.toBeNull();
+    expect(query("deck-picker-option-preset:chapter-one-starter")).toBeNull();
     expect(query("deck-picker-option-local:built-deck:2")).toBeNull();
     expect(query("deck-picker-no-matches")).toBeNull();
   });
@@ -99,12 +107,25 @@ describe("DeckPicker", () => {
      button that duels with a deck nobody can see. */
   it("keeps the chosen deck listed even when the filter excludes it", async () => {
     const user = userEvent.setup();
-    renderPicker();
+    renderPicker({ decks: [...PRESET_DECKS, LOCAL_DECK] });
+    expect(playerSelect().value).toBe("preset:chapter-one-starter");
 
-    await user.type(query("deck-picker-filter") as HTMLInputElement, "shad");
+    await user.type(
+      query("deck-picker-filter") as HTMLInputElement,
+      "Practice",
+    );
 
-    expect(query("deck-picker-option-preset:nekroz")).not.toBeNull();
-    expect(playerSelect().value).toBe("preset:nekroz");
+    expect(
+      query("deck-picker-option-preset:chapter-one-starter"),
+    ).not.toBeNull();
+    expect(playerSelect().value).toBe("preset:chapter-one-starter");
+    const matching = query(
+      "deck-picker-option-preset:chapter-one-practice",
+    ) as HTMLOptionElement;
+    expect(matching).not.toBeNull();
+    expect(matching.selected).toBe(false);
+    expect(playerSelect().options).toHaveLength(2);
+    expect(query("deck-picker-option-local:built-deck:2")).toBeNull();
   });
 
   it("reports that nothing matched while still showing the choice", async () => {
@@ -117,7 +138,7 @@ describe("DeckPicker", () => {
     expect(
       document.querySelectorAll('[data-cy^="deck-picker-option-"]'),
     ).toHaveLength(1);
-    expect(playerSelect().value).toBe("preset:nekroz");
+    expect(playerSelect().value).toBe("preset:chapter-one-starter");
   });
 
   it("choosing an option reports its key", async () => {
@@ -125,17 +146,17 @@ describe("DeckPicker", () => {
     const onselect = vi.fn();
     renderPicker({ onselect });
 
-    await user.selectOptions(playerSelect(), "preset:shaddoll");
+    await user.selectOptions(playerSelect(), "preset:chapter-one-practice");
 
     expect(onselect).toHaveBeenCalledOnce();
-    expect(onselect).toHaveBeenCalledWith("preset:shaddoll");
+    expect(onselect).toHaveBeenCalledWith("preset:chapter-one-practice");
   });
 
-  it("the opponent seat is a fixed shaddoll line", () => {
+  it("the opponent seat is a fixed chapter-one-practice line", () => {
     renderPicker();
 
     expect(query("deck-picker-opponent-fixed")?.textContent?.trim()).toBe(
-      "Opponent deck: Shaddoll (auto-assigned)",
+      "Opponent deck: Chapter 1 Practice (auto-assigned)",
     );
     expect(document.querySelectorAll("select")).toHaveLength(1);
     expect(

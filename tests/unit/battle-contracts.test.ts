@@ -18,14 +18,14 @@ const LOCAL_DECK = {
 };
 
 const PRESET_REQUEST = {
-  player: { kind: "preset", deckId: "burning-abyss" },
-  opponent: { kind: "preset", deckId: "shaddoll" },
+  player: { kind: "preset", deckId: "chapter-one-starter" },
+  opponent: { kind: "preset", deckId: "chapter-one-practice" },
 };
 
 function localRequest(deck: unknown): unknown {
   return {
     player: { kind: "local", deck },
-    opponent: { kind: "preset", deckId: "shaddoll" },
+    opponent: { kind: "preset", deckId: "chapter-one-practice" },
   };
 }
 
@@ -72,7 +72,7 @@ describe("parseBattleRequest", () => {
     expect(() =>
       parseBattleRequest({
         ...PRESET_REQUEST,
-        player: { kind: "preset", deckId: "shaddoll", seed: 42 },
+        player: { kind: "preset", deckId: "chapter-one-practice", seed: 42 },
       }),
     ).toThrow(BattleRequestError);
     expect(() =>
@@ -217,14 +217,14 @@ describe("toDuelDeckSelection", () => {
           ...overrides,
         },
       },
-      opponent: { kind: "preset", deckId: "shaddoll" },
+      opponent: { kind: "preset", deckId: "chapter-one-practice" },
     }).player;
   }
 
   it("passes a preset through unchanged", () => {
     expect(
-      toDuelDeckSelection({ kind: "preset", deckId: "burning-abyss" }),
-    ).toEqual({ kind: "preset", deckId: "burning-abyss" });
+      toDuelDeckSelection({ kind: "preset", deckId: "chapter-one-starter" }),
+    ).toEqual({ kind: "preset", deckId: "chapter-one-starter" });
   });
 
   it("turns a deck the player built into an explicit card list", () => {

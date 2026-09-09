@@ -133,8 +133,8 @@ const mockedWorkerClientCtor =
   MockedDuelWorkerClient as unknown as MockedWorkerClientCtor;
 
 const HOSTED_REQUEST = parseBattleRequest({
-  player: { kind: "preset", deckId: "burning-abyss" },
-  opponent: { kind: "preset", deckId: "shaddoll" },
+  player: { kind: "preset", deckId: "chapter-one-starter" },
+  opponent: { kind: "preset", deckId: "chapter-one-practice" },
 });
 
 const RESTORED_PROMPT: PlayerPrompt = {
@@ -237,7 +237,7 @@ async function startDuelFromPicker(
 ): Promise<void> {
   await user.selectOptions(
     element("deck-picker-player-select") as HTMLSelectElement,
-    "preset:burning-abyss",
+    "preset:chapter-one-starter",
   );
   await user.click(element("deck-picker-start-button"));
 }
@@ -296,9 +296,9 @@ describe("BattleFacade", () => {
 
     expect(workerClientSpies.startDuel).toHaveBeenCalledTimes(1);
     expect(workerClientSpies.startDuel).toHaveBeenCalledWith(
-      "bundled-v1:burning-abyss:vs:shaddoll",
-      { kind: "preset", deckId: "burning-abyss" },
-      { kind: "preset", deckId: "shaddoll" },
+      "bundled-v1:chapter-one-starter:vs:chapter-one-practice",
+      { kind: "preset", deckId: "chapter-one-starter" },
+      { kind: "preset", deckId: "chapter-one-practice" },
     );
     expect(document.querySelector('[data-cy="deck-picker"]')).toBeNull();
   });

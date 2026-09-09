@@ -34,18 +34,17 @@ describe("the free-play opponent roster", () => {
     expect(freePlayOpponent("gone")).toBe(
       freePlayOpponent(DEFAULT_FREE_PLAY_OPPONENT_ID),
     );
-    expect(freePlayOpponent("gone").id).toBe("vault-warden");
-    expect(freePlayOpponent("")).toBe(freePlayOpponent("vault-warden"));
+    expect(freePlayOpponent("gone").id).toBe("practice-bot");
+    expect(freePlayOpponent("")).toBe(freePlayOpponent("practice-bot"));
   });
 
-  /* Remembering nothing must duel the deck the duel menu has always fixed the
-     opponent seat to, so an existing profile sees no change on first load. */
+  /* A fresh profile defaults to the Chapter 1 practice opponent. */
   it("gives the default persona the duel's default opponent deck", () => {
     expect(freePlayOpponent(DEFAULT_FREE_PLAY_OPPONENT_ID).deckKey).toBe(
       `preset:${DEFAULT_OPPONENT_DECK_ID}`,
     );
     expect(freePlayOpponent(DEFAULT_FREE_PLAY_OPPONENT_ID).deckKey).toBe(
-      "preset:shaddoll",
+      "preset:chapter-one-practice",
     );
   });
 

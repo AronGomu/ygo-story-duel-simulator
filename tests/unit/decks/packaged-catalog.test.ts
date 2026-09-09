@@ -79,15 +79,14 @@ describe("the packaged deck catalog", () => {
     ).toEqual([]);
   });
 
-  it("splits into a main-deck pool large enough to build with and an extra-deck pool", () => {
+  it("packages the Chapter 1 Main-only pool with enough copies to build a deck", () => {
     const main = catalog.filter((card) => card.canonicalZone === "main");
     const extra = catalog.filter((card) => card.canonicalZone === "extra");
 
     expect(main.length + extra.length).toBe(catalog.length);
-    /* 40 Main is the minimum a deck may hold and 15 the most an Extra may;
-       under three copies per card both pools clear their floor comfortably. */
+    expect(main).toHaveLength(16);
     expect(main.length * 3).toBeGreaterThanOrEqual(40);
-    expect(extra.length).toBeGreaterThanOrEqual(15);
+    expect(extra).toHaveLength(0);
   });
 
   it("covers every family the editor filters by", () => {

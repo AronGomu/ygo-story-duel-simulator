@@ -107,7 +107,7 @@ describe("selectedDeckPairRulesProfile", () => {
   });
 });
 
-describe("bundled six-deck pair matrix", () => {
+describe("bundled Chapter 1 pair matrix", () => {
   let decks: ReadonlyMap<DeckId, ParsedDeck>;
   let cards: ReadonlyMap<number, { readonly type: number }>;
 
@@ -128,7 +128,7 @@ describe("bundled six-deck pair matrix", () => {
       DECK_CATALOG.map((opponent) => [player.id, opponent.id] as const),
     );
 
-    expect(pairs).toHaveLength(36);
+    expect(pairs).toHaveLength(4);
     for (const [playerId, opponentId] of pairs) {
       const player = decks.get(playerId);
       const opponent = decks.get(opponentId);

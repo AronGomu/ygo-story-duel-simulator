@@ -1,8 +1,6 @@
+import { readFile } from "node:fs/promises";
 import { describe, expect, it } from "vitest";
-import {
-  DECK_CATALOG,
-  type DeckId,
-} from "../../src/battle/duel/presets/deck-catalog.ts";
+import { DECK_CATALOG } from "../../src/battle/duel/presets/deck-catalog.ts";
 import {
   MVP_DECK_CONSTRAINTS,
   parseYdk,
@@ -11,18 +9,13 @@ import {
 import { DECK_SOURCES } from "../../src/battle/duel/presets/deck-sources-browser.ts";
 import { loadDeckSources } from "../../src/battle/duel/presets/deck-sources-node.ts";
 
-const ARCHETYPE_DECK_IDS: readonly DeckId[] = [
-  "burning-abyss",
-  "nekroz",
-  "shaddoll",
-  "spellbook",
-];
+const ARCHETYPE_DECK_IDS = ["burning-abyss", "nekroz", "shaddoll", "spellbook"];
 
 describe("bundled deck sources", () => {
   it("loadDeckSources returns one source per catalog entry", async () => {
     const sources = await loadDeckSources();
 
-    expect(sources.size).toBe(6);
+    expect(sources.size).toBe(2);
     for (const { id } of DECK_CATALOG) {
       expect(sources.has(id)).toBe(true);
       expect(sources.get(id)).not.toBe("");
@@ -32,7 +25,7 @@ describe("bundled deck sources", () => {
   it("browser and Node source adapters contain identical text per id", async () => {
     const nodeSources = await loadDeckSources();
 
-    expect(DECK_SOURCES.size).toBe(6);
+    expect(DECK_SOURCES.size).toBe(2);
     for (const { id } of DECK_CATALOG) {
       expect(DECK_SOURCES.get(id)).toBe(nodeSources.get(id));
     }
@@ -86,7 +79,7 @@ describe("bundled deck sources", () => {
     );
   });
 
-  it("all four archetype decks have a full Extra Deck", async () => {
+  it("all four legacy archetype fixtures keep a full Extra Deck", async () => {
     for (const id of ARCHETYPE_DECK_IDS) {
       expect((await parsedDeck(id)).extra).toHaveLength(15);
     }
@@ -105,8 +98,12 @@ describe("bundled deck sources", () => {
   });
 });
 
-async function parsedDeck(id: DeckId) {
-  const source = (await loadDeckSources()).get(id);
-  if (source === undefined) throw new Error(`Missing test deck: ${id}`);
-  return parseYdk(source);
+// Historical archetype fixtures stay explicit, never resolved by active adapters.
+async function parsedDeck(id: string) {
+  return parseYdk(
+    await readFile(
+      new URL(`../../src/battle/duel/presets/decks/${id}.ydk`, import.meta.url),
+      "utf8",
+    ),
+  );
 }

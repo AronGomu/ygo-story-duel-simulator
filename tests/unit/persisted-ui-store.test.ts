@@ -50,8 +50,8 @@ describe("persisted UI store", () => {
     const store = createPersistedUiStore(null);
 
     expect(get(store).decks).toEqual({
-      playerKey: "preset:mvp-player",
-      opponentKey: "preset:shaddoll",
+      playerKey: "preset:chapter-one-starter",
+      opponentKey: "preset:chapter-one-practice",
     });
     expect(get(store).windows).toEqual({ zoneList: null, confirm: null });
   });
@@ -149,8 +149,8 @@ describe("persisted UI store", () => {
       version: 2,
       windows: { zoneList: { x: 7, y: 8 }, confirm: null },
       decks: {
-        playerKey: "preset:mvp-player",
-        opponentKey: "preset:shaddoll",
+        playerKey: "preset:chapter-one-starter",
+        opponentKey: "preset:chapter-one-practice",
       },
       settings: {
         showZoneOutlines: true,

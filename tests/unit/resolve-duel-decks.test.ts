@@ -40,9 +40,9 @@ function deck(
 }
 
 const PRESET: DuelPreset = Object.freeze({
-  id: duelId("bundled-v1:mvp-player:vs:mvp-opponent"),
-  playerDeckId: "mvp-player",
-  opponentDeckId: "mvp-opponent",
+  id: duelId("bundled-v1:chapter-one-starter:vs:chapter-one-practice"),
+  playerDeckId: "chapter-one-starter",
+  opponentDeckId: "chapter-one-practice",
   player: deck(PLAYER_MAIN),
   opponent: deck(OPPONENT_MAIN),
 });
@@ -102,9 +102,13 @@ function resources(overrides: ResourceOverrides = {}): DuelRuntimeResources {
           playerDeckId,
           opponentDeckId,
           player:
-            playerDeckId === "mvp-player" ? PRESET.player : PRESET.opponent,
+            playerDeckId === "chapter-one-starter"
+              ? PRESET.player
+              : PRESET.opponent,
           opponent:
-            opponentDeckId === "mvp-player" ? PRESET.player : PRESET.opponent,
+            opponentDeckId === "chapter-one-starter"
+              ? PRESET.player
+              : PRESET.opponent,
         })),
     snapshotId: FAKE_SNAPSHOT_ID,
   };
@@ -112,11 +116,11 @@ function resources(overrides: ResourceOverrides = {}): DuelRuntimeResources {
 
 const PRESET_PLAYER = parseDuelDeckSelection({
   kind: "preset",
-  deckId: "mvp-player",
+  deckId: "chapter-one-starter",
 });
 const PRESET_OPPONENT = parseDuelDeckSelection({
   kind: "preset",
-  deckId: "mvp-opponent",
+  deckId: "chapter-one-practice",
 });
 const CUSTOM = parseDuelDeckSelection({
   kind: "cards",

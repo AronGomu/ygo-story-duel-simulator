@@ -21,9 +21,11 @@ import {
   toOpponentVisibleState,
 } from "../../src/battle/worker/opponent/OpponentPolicy.ts";
 
-const DUEL_ID = duelId("bundled-v1:mvp-player:vs:mvp-opponent");
-const PLAYER = { kind: "preset", deckId: "mvp-player" } as const;
-const OPPONENT = { kind: "preset", deckId: "mvp-opponent" } as const;
+const DUEL_ID = duelId(
+  "bundled-v1:chapter-one-starter:vs:chapter-one-practice",
+);
+const PLAYER = { kind: "preset", deckId: "chapter-one-starter" } as const;
+const OPPONENT = { kind: "preset", deckId: "chapter-one-practice" } as const;
 
 let adapter: OcgCoreAdapter;
 let dependencies: ActiveDuelDependencies;
@@ -32,7 +34,11 @@ let preset: DuelPreset;
 beforeAll(async () => {
   adapter = await loadVendoredCoreNode();
   const deckSources = await loadDeckSources();
-  preset = createDuelPreset("mvp-player", "mvp-opponent", deckSources);
+  preset = createDuelPreset(
+    "chapter-one-starter",
+    "chapter-one-practice",
+    deckSources,
+  );
   dependencies = await loadActiveDuelDependenciesNode(
     path.resolve("generated/assets/current"),
     uniqueDeckCodes(preset.player, preset.opponent),

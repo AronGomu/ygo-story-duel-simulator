@@ -25,7 +25,7 @@ export interface StoryStarterSave {
 
 export function storyStarterSave(): StoryStarterSave {
   const imported = importYdk(
-    readFileSync("src/decks/starter-deck.ydk", "utf8"),
+    readFileSync("src/decks/chapter-one-starter.ydk", "utf8"),
   );
   if (imported.type !== "ready")
     throw new Error(`Starter deck list is unreadable: ${imported.message}`);
@@ -38,7 +38,7 @@ export function storyStarterSave(): StoryStarterSave {
       schemaVersion: 1,
       id: deckId("story-starter-deck"),
       revision: 1,
-      name: "Starter Deck",
+      name: "Chapter 1 Starter",
       createdAt: "2026-08-20T00:00:00.000Z",
       updatedAt: "2026-08-20T00:00:00.000Z",
       main: [...main],

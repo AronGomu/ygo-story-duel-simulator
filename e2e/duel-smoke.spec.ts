@@ -349,7 +349,7 @@ test("the root route shows the main menu without booting the duel", async ({
      answered: the bundled decks are compiled into this build, so Start is live
      on the first paint rather than after a fetch. */
   await expect(
-    page.locator('[data-cy="deck-tile-preset:mvp-player"]'),
+    page.locator('[data-cy="deck-tile-preset:chapter-one-starter"]'),
   ).toHaveCount(1);
 
   await startPresetDuel(page);
@@ -374,7 +374,7 @@ test("free-play deck tiles keep names and info inside card bounds", async ({
 }) => {
   await page.goto("./#/free-play");
 
-  const tile = page.locator('[data-cy="deck-tile-preset:mvp-player"]');
+  const tile = page.locator('[data-cy="deck-tile-preset:chapter-one-starter"]');
   await expect(tile).toBeVisible({ timeout: 120_000 });
   const art = tile.locator("img.art");
   await expect(art).toHaveCount(1, { timeout: 120_000 });
@@ -393,7 +393,7 @@ test("free-play deck tiles keep names and info inside card bounds", async ({
   expect(tileBox).not.toBeNull();
   for (const part of ["name", "tags"]) {
     const box = await tile
-      .locator(`[data-cy="deck-tile-${part}-preset:mvp-player"]`)
+      .locator(`[data-cy="deck-tile-${part}-preset:chapter-one-starter"]`)
       .boundingBox();
     expect(box).not.toBeNull();
     expect(box!.y).toBeGreaterThanOrEqual(tileBox!.y);
@@ -675,17 +675,17 @@ test("the match setup persists a chosen pair and Change decks returns without au
     '[data-cy="duel-start-opponent-deck-name"]',
   );
   await expect(
-    page.locator('[data-cy="deck-tile-press-preset:burning-abyss"]'),
+    page.locator('[data-cy="deck-tile-press-preset:chapter-one-practice"]'),
   ).toBeEnabled({ timeout: 120_000 });
   await page
-    .locator('[data-cy="deck-tile-press-preset:burning-abyss"]')
+    .locator('[data-cy="deck-tile-press-preset:chapter-one-practice"]')
     .click();
-  /* T17: the opponent seat is a choice now, and T20 makes the choice the cards
-     themselves — pressing their seat card hands the grid to their seat. Picking
-     a deck that is neither seat's default is what proves the request carries it
-     rather than the Shaddoll the duel's own picker used to assign. */
+  /* Swap the default pair: both seats must dispatch the chosen deck rather
+     than silently restoring their default. */
   await page.locator('[data-cy="duel-start-opponent-deck"]').click();
-  await page.locator('[data-cy="deck-tile-press-preset:nekroz"]').click();
+  await page
+    .locator('[data-cy="deck-tile-press-preset:chapter-one-starter"]')
+    .click();
 
   await page.locator('[data-cy="deck-select-start"]').click();
   await expect(page.locator('[data-cy="duel-field"]')).toBeVisible({
@@ -698,9 +698,9 @@ test("the match setup persists a chosen pair and Change decks returns without au
   ).toEqual([
     {
       type: "startDuel",
-      duelId: "bundled-v1:burning-abyss:vs:nekroz",
-      player: { kind: "preset", deckId: "burning-abyss" },
-      opponent: { kind: "preset", deckId: "nekroz" },
+      duelId: "bundled-v1:chapter-one-practice:vs:chapter-one-starter",
+      player: { kind: "preset", deckId: "chapter-one-practice" },
+      opponent: { kind: "preset", deckId: "chapter-one-starter" },
     },
   ]);
   expect(
@@ -712,15 +712,18 @@ test("the match setup persists a chosen pair and Change decks returns without au
           } | null
         )?.freePlayPairing,
     ),
-  ).toEqual({ player: "preset:burning-abyss", opponent: "preset:nekroz" });
+  ).toEqual({
+    player: "preset:chapter-one-practice",
+    opponent: "preset:chapter-one-starter",
+  });
   expect(
     await page.evaluate(() => localStorage.getItem("ygo.ui.v1")),
   ).toBeNull();
 
   await page.reload();
   await expect(setup).toBeVisible({ timeout: 120_000 });
-  await expect(yourSeat).toHaveText("Burning Abyss");
-  await expect(opponentSeat).toHaveText("Nekroz");
+  await expect(yourSeat).toHaveText("Chapter 1 Practice");
+  await expect(opponentSeat).toHaveText("Chapter 1 Starter");
 
   await startPresetDuel(page);
   await expect(page.locator('[data-cy="duel-field"]')).toBeVisible({
@@ -817,7 +820,9 @@ test("a local deck built from the packaged catalog is offered and duels", async 
     (command) => command.type === "startDuel",
   );
   expect(startCommands).toHaveLength(1);
-  expect(startCommands[0]?.duelId).toBe("local-v1:local:vs:shaddoll");
+  expect(startCommands[0]?.duelId).toBe(
+    "local-v1:local:vs:chapter-one-practice",
+  );
   /* The editor stores a deck in its own display order, so the dispatched list
      is compared as the multiset it is rather than the order it was typed. */
   const dispatched = startCommands[0]?.player as {
@@ -832,7 +837,7 @@ test("a local deck built from the packaged catalog is offered and duels", async 
   expect(dispatched.side).toEqual([]);
   expect(startCommands[0]?.opponent).toEqual({
     kind: "preset",
-    deckId: "shaddoll",
+    deckId: "chapter-one-practice",
   });
 });
 
@@ -861,7 +866,7 @@ test("a local deck the pinned ruleset refuses is never offered", async ({
     timeout: 120_000,
   });
   await expect(
-    page.locator('[data-cy="deck-tile-preset:mvp-player"]'),
+    page.locator('[data-cy="deck-tile-preset:chapter-one-starter"]'),
   ).toHaveCount(1, { timeout: 120_000 });
   /* The starter deck the editor seeded is a legal local tile, so local decks
      may well be in the grid; what must never appear is the deck the ruleset
@@ -946,7 +951,7 @@ test("zone visuals persist through reload and Reset settings restores defaults",
        when the starter deck seeds, so only the fixed opponent is pinned. */
     decks: {
       playerKey: expect.any(String),
-      opponentKey: "preset:shaddoll",
+      opponentKey: "preset:chapter-one-practice",
     },
     settings: {
       showZoneOutlines: false,
@@ -1010,7 +1015,7 @@ test("zone visuals persist through reload and Reset settings restores defaults",
        when the starter deck seeds, so only the fixed opponent is pinned. */
     decks: {
       playerKey: expect.any(String),
-      opponentKey: "preset:shaddoll",
+      opponentKey: "preset:chapter-one-practice",
     },
     settings: {
       showZoneOutlines: true,
@@ -2012,7 +2017,7 @@ test("floating field windows stay inside the field, persist and never lose a dec
        when the starter deck seeds, so only the fixed opponent is pinned. */
     decks: {
       playerKey: expect.any(String),
-      opponentKey: "preset:shaddoll",
+      opponentKey: "preset:chapter-one-practice",
     },
     settings: {
       showZoneOutlines: true,
