@@ -78,6 +78,13 @@ npm run dev
 
 `npm run assets:mvp` is resumable. Existing Git caches and valid JPEGs are reused, so rerun the same command after a temporary network failure. The development server prints its local URL and serves the same trusted runtime files used by production packaging.
 
+## Public asset delivery setup
+
+- A1. Developer downloads need **no publisher credentials**. Current acquisition remains `assets:mvp`; the single anonymous `assets:download` command is planned, not implemented by the setup slice.
+- A2. `npm run assets:setup -- --help` explains read-only preflight. After owner supplies public config, `npm run assets:setup -- --check` validates syntax and reports pending publisher prerequisites without requiring credentials. Optional `--remote --origin <exact-origin>` performs read-only public/S3 probes; repeat `--origin` for actual dev/prod origins. Never provisions or publishes.
+- A3. [Owner setup](docs/assets/asset-delivery-setup.md) frontloads R2/account/domain/CORS/budget/rights/device prerequisites and explicit empty-index bootstrap. Public originals and unreleased bytes require explicit eligibility approval; public availability does not establish rights.
+- A4. Dev metadata truth means matching archive membership and bytes, **not** exhaustive upstream availability or gameplay readiness. Existing `content:setup:verify` remains separate. [Root inventory](docs/assets/asset-root-inventory.md) records the pre-migration mapping; no assets moved in this slice.
+
 ## Quick asset launchers
 
 ### Windows

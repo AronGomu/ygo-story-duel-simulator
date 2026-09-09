@@ -143,6 +143,26 @@ export default tseslint.config(
       },
     },
   },
+  {
+    files: ["src/**/*.ts", "src/**/*.svelte"],
+    rules: {
+      "no-restricted-syntax": [
+        "error",
+        {
+          selector:
+            ":matches(ImportDeclaration, ExportNamedDeclaration, ExportAllDeclaration)[source.value=/^(?:@aws-sdk\\/|.*scripts\\/lib\\/asset-delivery\\/)/]",
+          message:
+            "Node-only asset delivery stays in scripts; never import it into app domains.",
+        },
+        {
+          selector:
+            "ImportExpression[source.value=/^(?:@aws-sdk\\/|.*scripts\\/lib\\/asset-delivery\\/)/]",
+          message:
+            "Node-only asset delivery stays in scripts; never import it into app domains.",
+        },
+      ],
+    },
+  },
   boundaries(
     ["src/main.ts", "src/shell/**"],
     [
