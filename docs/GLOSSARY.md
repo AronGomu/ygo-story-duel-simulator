@@ -130,7 +130,11 @@ Worker, engine, and asset pipeline are "backend" here — nothing runs on a serv
 | tar | Minimal tar reader for downloads | `scripts/lib/tar.ts` (`readTarFiles`) |
 | lock | Source pin file + run lock | `assets-source-lock.json`, `scripts/lib/run-lock.ts` |
 | limits | Hard caps on untrusted asset sizes | `scripts/lib/limits.ts` (`MAX_CATALOG_RECORDS`, `MAX_DATABASE_BYTES`) |
-| generated | Build output of the asset pipeline | `generated/{assets,runtime,card-images,engine}/current` |
+| generated | Operational reports, receipts, locks, delivery outputs | `generated/`, `scripts/lib/asset-delivery/migrate.ts` |
+| roots | Canonical asset ownership paths and browser mapping | `scripts/lib/asset-roots.ts` (`ASSET_SOURCES`) |
+| profiles | Explicit asset delivery ownership independent of file location | `asset-profiles/`, `scripts/lib/asset-delivery/scan-assets.ts` |
+| promotion | Hash-guarded rule edits without moving asset bytes | `scripts/lib/asset-delivery/promote.ts` (`promoteAssets`) |
+| migration | Hash-verified copy-only legacy source relocation; plan-bound temp ownership gates interrupted runs | `scripts/lib/asset-delivery/migrate.ts` (`applyMigration`), `scripts/lib/asset-delivery/migration-state.ts` |
 | plugins | Vite plugins serving runtime assets/core | `scripts/lib/vite-runtime-assets.ts`, `vite-sync-core.ts` |
 | vite | Build/dev config incl. worker bundling | `vite.config.ts`, `vitest.config.ts` |
 | unit | Vitest unit suite | `tests/unit/` |
