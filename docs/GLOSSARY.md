@@ -47,7 +47,7 @@ Shared vocabulary between user and agents. Say the word, mean the code.
 | default | Sole persistent deck mark; preselects player deck | `src/deck-select/deck-select-contracts.ts` (`DeckTileModel.isDefault`), `src/deck-select/DeckTile.svelte` |
 | decklist | Main, Extra, and Side rows beside deck tiles | `src/deck-select/DecklistPanel.svelte`, `src/deck-select/deck-select-contracts.ts` (`DecklistView`) |
 | hotspot | Map location control with anchored context popover | `src/story/screens/IllustratedMapScreen.svelte`, `src/story/model/story-state.ts` (`LocationId`) |
-| starter deck | Seeded "Starter Deck" built from bundled `player.ydk`, default on first run | `src/decks/starter-deck.ts` (`ensureStarterDeck`), ADR-038 |
+| starter deck | Chapter 1 seed; existing libraries untouched, legacy migration preserved | `src/decks/starter-deck.ts` (`ensureStarterDeck`), `src/story/decks/starter-grant.ts` |
 | autosave log | Global capped-100 list, one entry per accepted deck command including reorder/sort (timestamp + deck name) | `autosaves` store, `src/decks/deck-database.ts` v2, ADR-038, ADR-044 |
 | load dialog | Editor dialog: saved decks tab + autosave log tab, restore = undoable edit | `src/deck-editor/components/LoadDeckDialog.svelte` |
 | deck tile | Square art-filled deck card shared across grids, seats, phone lists | `src/deck-select/DeckTile.svelte` (`.deck-tile`, `aspect-ratio: 1 / 1`), `DeckTileModel` in `src/deck-select/deck-select-contracts.ts` |
@@ -144,6 +144,7 @@ Worker, engine, and asset pipeline are "backend" here — nothing runs on a serv
 | adr | Accepted architecture decision records | `docs/ADR/` |
 | guide | Generated HTML developer guide | `docs/developer-guide/` |
 | checks | Aggregate quality gate npm scripts | `package.json` (`check`, `check:headless`, `check:browser`) |
+| preflight | Local content prerequisites; separate code and public readiness | `scripts/lib/content-setup.ts` (`verifyContentSetup`), `content/README.md` |
 | decklist row | Card entry in deck preview with frame colour, copy count, name, and optional art | `src/deck-select/DecklistPanel.svelte` |
 | frame colour | Five-pixel left border on decklist row indicating card type | `src/deck-select/DecklistPanel.svelte` |
 | twin-column seat pane | Duel-start right pane: player column left, opponent right, each avatar + name-only seat chip + scrolling decklist | `docs/ADR/064_ADR_deck_select_twin_column_seat_pane.md` |
