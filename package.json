@@ -7,6 +7,7 @@
     "node": ">=24.0.0"
   },
   "scripts": {
+    "assets:setup": "node scripts/asset-delivery-setup.ts",
     "assets:mvp": "node scripts/download-mvp-assets.ts",
     "assets:engine": "node scripts/sync-engine.ts",
     "assets:engine:verify": "node scripts/verify-engine.ts",
@@ -48,6 +49,8 @@
     "content:setup:verify": "node scripts/verify-content-setup.ts"
   },
   "devDependencies": {
+    "@aws-sdk/client-s3": "3.1128.0",
+    "@aws-sdk/lib-storage": "3.1128.0",
     "@eslint/js": "^10.0.1",
     "@playwright/test": "^1.61.1",
     "@sveltejs/vite-plugin-svelte": "^7.2.0",
