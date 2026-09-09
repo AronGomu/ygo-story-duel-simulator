@@ -1,3 +1,5 @@
+import { ASSET_SOURCES } from "../../scripts/lib/asset-roots.ts";
+import path from "node:path";
 import { createHash } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import { describe, expect, it } from "vitest";
@@ -42,7 +44,7 @@ describe("Chapter 1 active image pins", () => {
       const observed = await Promise.all(
         codes.map(async (code) => {
           const bytes = await readFile(
-            `generated/card-images/archive/${kind}/${code}.jpg`,
+            `${path.posix.dirname(ASSET_SOURCES.fullImages.source)}/${kind}/${code}.jpg`,
           );
           expect(isJpeg(bytes), `${kind}/${code}`).toBe(true);
           expect(bytes.length).toBeLessThanOrEqual(8 * 1024 * 1024);

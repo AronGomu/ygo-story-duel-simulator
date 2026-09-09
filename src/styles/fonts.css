@@ -1,5 +1,5 @@
 /* Basilica Slate brand faces (PRODUCT.md → Brand Commitments), self-hosted
-   from `public/fonts/` because the product is offline: no network fetch may
+   from core-profile `assets/shared/fonts/` at unchanged `/fonts/` URLs because the product is offline: no network fetch may
    stand between the player and the type. Latin subsets only; both Source
    Serif 4 files are variable (wght 400–700), Forum ships its single 400.
    Source: Google Fonts, SIL Open Font License. */

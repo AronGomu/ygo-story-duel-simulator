@@ -1,3 +1,4 @@
+import { ASSET_SOURCES } from "../../scripts/lib/asset-roots.ts";
 import { mkdir, mkdtemp, readFile, rm, symlink } from "node:fs/promises";
 import path from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
@@ -29,7 +30,7 @@ describe("content setup filesystem inspector", () => {
   it("valid local snapshot and selected assets reach code readiness without synthetic availability injection", async () => {
     const fixture = await localFixture();
     const dependencies = await loadActiveDuelDependenciesNode(
-      path.join(fixture.root, "generated/assets/current"),
+      path.join(fixture.root, ASSET_SOURCES.data.source),
       new Set([1, 2, 3, 4, 5, 6].map(cardCode)),
     );
     expect(dependencies.counts).toEqual({
@@ -62,11 +63,14 @@ describe("content setup filesystem inspector", () => {
     const fixture = await localFixture();
     for (const kind of ["full", "cropped"])
       await rm(
-        path.join(fixture.root, `generated/card-images/archive/${kind}/2.jpg`),
+        path.join(
+          fixture.root,
+          `${path.posix.dirname(ASSET_SOURCES.fullImages.source)}/${kind}/2.jpg`,
+        ),
       );
     expect((await inspectContentSetup(fixture.root, {})).codeReady).toBe(true);
     await rm(
-      path.join(fixture.root, "generated/card-images/archive/full/1.jpg"),
+      path.join(fixture.root, `${ASSET_SOURCES.fullImages.source}/1.jpg`),
     );
     expect((await inspectContentSetup(fixture.root, {})).codeReady).toBe(false);
   });
@@ -167,7 +171,7 @@ describe("content setup filesystem inspector", () => {
     "strings/en.json",
   ])("rejects missing runtime payload: %s", async (relative) => {
     const fixture = await localFixture();
-    await rm(path.join(fixture.root, "generated/assets/current", relative));
+    await rm(path.join(fixture.root, ASSET_SOURCES.data.source, relative));
     expect((await inspectContentSetup(fixture.root, {})).codeReady).toBe(false);
   });
   it.each([
@@ -250,10 +254,10 @@ describe("content setup filesystem inspector", () => {
     },
   );
   it.each([
-    "generated/runtime/current/manifest.json",
-    "generated/assets/current/manifest.json",
+    `${ASSET_SOURCES.runtime.source}/manifest.json`,
+    `${ASSET_SOURCES.data.source}/manifest.json`,
     "vendor/ocgcore-wasm/0.1.2/vendor-manifest.json",
-    "generated/set-images/manifest.json",
+    `${ASSET_SOURCES.setImages.source}/manifest.json`,
   ])("rejects oversized manifest: %s", async (relative) => {
     const fixture = await localFixture();
     const original = await readFile(path.join(fixture.root, relative));
@@ -277,20 +281,26 @@ describe("content setup filesystem inspector", () => {
     const fixture = await localFixture();
     const runtime = JSON.parse(
       await readFile(
-        path.join(fixture.root, "generated/runtime/current/manifest.json"),
+        path.join(
+          fixture.root,
+          `${ASSET_SOURCES.runtime.source}/manifest.json`,
+        ),
         "utf8",
       ),
     );
     runtime.assets.files[0].path = unsafe;
-    await fixture.putJson("generated/runtime/current/manifest.json", runtime);
+    await fixture.putJson(
+      `${ASSET_SOURCES.runtime.source}/manifest.json`,
+      runtime,
+    );
     expect((await inspectContentSetup(fixture.root, {})).codeReady).toBe(false);
   });
   it.each([
-    "generated/assets/current/catalog/cards/01.json",
-    "generated/card-images/archive/full/1.jpg",
-    "generated/card-images/archive/cropped/1.jpg",
-    "generated/set-images/chapter-01.jpg",
-    "src/story/assets/city-map-placeholder.svg",
+    `${ASSET_SOURCES.data.source}/catalog/cards/01.json`,
+    `${ASSET_SOURCES.fullImages.source}/1.jpg`,
+    `${ASSET_SOURCES.croppedImages.source}/1.jpg`,
+    `${ASSET_SOURCES.setImages.source}/chapter-01.jpg`,
+    `${ASSET_SOURCES.story.source}/city-map-placeholder.svg`,
   ])("reports missing local asset: %s", async (relative) => {
     const fixture = await localFixture();
     await rm(path.join(fixture.root, relative));
@@ -301,10 +311,10 @@ describe("content setup filesystem inspector", () => {
     ).toBe(true);
   });
   it.each([
-    "generated/assets/current/catalog/cards/01.json",
-    "generated/card-images/archive/full/1.jpg",
-    "generated/card-images/archive/cropped/1.jpg",
-    "generated/set-images/chapter-01.jpg",
+    `${ASSET_SOURCES.data.source}/catalog/cards/01.json`,
+    `${ASSET_SOURCES.fullImages.source}/1.jpg`,
+    `${ASSET_SOURCES.croppedImages.source}/1.jpg`,
+    `${ASSET_SOURCES.setImages.source}/chapter-01.jpg`,
   ])("rejects corrupt local asset: %s", async (relative) => {
     const fixture = await localFixture();
     const bytes = await readFile(path.join(fixture.root, relative));
@@ -316,7 +326,7 @@ describe("content setup filesystem inspector", () => {
     const fixture = await localFixture();
     fixture.setManifest.files[0]!.sha256 = "0".repeat(64);
     await fixture.putJson(
-      "generated/set-images/manifest.json",
+      `${ASSET_SOURCES.setImages.source}/manifest.json`,
       fixture.setManifest,
     );
     expect((await inspectContentSetup(fixture.root, {})).codeReady).toBe(false);
@@ -373,12 +383,18 @@ describe("content setup filesystem inspector", () => {
     };
     const runtime = JSON.parse(
       await readFile(
-        path.join(fixture.root, "generated/runtime/current/manifest.json"),
+        path.join(
+          fixture.root,
+          `${ASSET_SOURCES.runtime.source}/manifest.json`,
+        ),
         "utf8",
       ),
     );
     runtime.assets.files[0].path = `../${sentinel}`;
-    await fixture.putJson("generated/runtime/current/manifest.json", runtime);
+    await fixture.putJson(
+      `${ASSET_SOURCES.runtime.source}/manifest.json`,
+      runtime,
+    );
     expect(await runContentSetup(fixture.root, [], environment)).toBe(2);
     const report = await readFile(
       path.join(fixture.root, "generated/content/setup-report.json"),

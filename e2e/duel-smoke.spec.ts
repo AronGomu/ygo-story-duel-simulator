@@ -1,3 +1,4 @@
+import { ASSET_SOURCES } from "../scripts/lib/asset-roots.ts";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import {
   expect,
@@ -542,7 +543,7 @@ test("production bundle initializes the real Worker and sends one opaque choice 
     expect(event.state.players[1].handCount).toBeGreaterThan(0);
   }
   const runtimeManifest = JSON.parse(
-    await readFile("generated/runtime/current/manifest.json", "utf8"),
+    await readFile(`${ASSET_SOURCES.runtime.source}/manifest.json`, "utf8"),
   ) as { readonly snapshotId: string };
   expect(stateEvents.at(-1)?.state.snapshotId).toBe(runtimeManifest.snapshotId);
 

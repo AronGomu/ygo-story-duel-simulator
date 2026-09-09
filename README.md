@@ -106,6 +106,9 @@ Both launchers accept the same options as `npm run assets:mvp` and can be launch
 | Command                        | Description                                                                                      |
 | ------------------------------ | ------------------------------------------------------------------------------------------------ |
 | `npm ci`                       | Install the exact development dependencies from `package-lock.json`.                             |
+| `npm run assets:profiles:sync -- --check` | Check canonical roots, references, profile ownership without mutation. |
+| `npm run assets:promote -- --help` | Preview/apply explicit delivery rules; no asset moves. |
+| `npm run assets:migrate -- --plan` | Preview hash-guarded copy-only legacy migration; originals retained. |
 | `npm run assets:mvp`           | Download, generate, and verify all currently supported external MVP assets.                      |
 | `npm run assets:engine`        | Download, integrity-check, extract, and publish the pinned engine package.                       |
 | `npm run assets:engine:verify` | Verify the extracted engine package and WASM header.                                             |
@@ -136,6 +139,8 @@ To display the unified downloader help:
 ```bash
 npm run assets:mvp -- --help
 ```
+
+Root/profile migration details: [`docs/assets/asset-profiles.md`](docs/assets/asset-profiles.md). Legacy acquisition is explicit; scan/promotion never refresh upstream inputs.
 
 ## Unified asset command options
 
@@ -193,7 +198,7 @@ node scripts/sync-assets.ts [options]
 | -------------------------- | -------------------------: | -------------------------------------------------------- |
 | `--offline`                |                   disabled | Use existing source repositories without fetching.       |
 | `--cache-dir <directory>`  |          `.cache/upstream` | Set the Git source cache directory inside the project.   |
-| `--output <directory>`     | `generated/assets/current` | Set the generated snapshot output directory.             |
+| `--output <directory>`     | `assets/shared/data/current` | Set the generated snapshot output directory.             |
 | `--babel-ref <ref>`        |                   `master` | Pin a BabelCDB branch, tag, or commit.                   |
 | `--scripts-ref <ref>`      |                   `master` | Pin a CardScripts branch, tag, or commit.                |
 | `--distribution-ref <ref>` |                   `master` | Pin a Project Ignis Distribution branch, tag, or commit. |
@@ -222,8 +227,8 @@ node scripts/download-images.ts [options]
 
 | Option                          |                         Default | Description                                                         |
 | ------------------------------- | ------------------------------: | ------------------------------------------------------------------- |
-| `--assets <directory>`          |      `generated/assets/current` | Set the source image-manifest snapshot.                             |
-| `--output <directory>`          | `generated/card-images/archive` | Set the local image archive directory.                              |
+| `--assets <directory>`          |      `assets/shared/data/current` | Set the source image-manifest snapshot.                             |
+| `--output <directory>`          | `assets/shared/card-images` | Set the local image archive directory.                              |
 | `--concurrency <count>`         |                            `18` | Set simultaneous download workers.                                  |
 | `--requests-per-second <count>` |                            `18` | Set request rate; cannot exceed `20`.                               |
 | `--limit <count>`               |                     all records | Process only the first number of image records, useful for testing. |
@@ -238,22 +243,22 @@ node scripts/download-images.ts --force
 node scripts/verify-images.ts
 ```
 
-## Generated output
+## Asset sources and operational output
 
 ```text
-generated/
-├── mvp-assets-status.json
-├── runtime-snapshot.json
-├── runtime/current/manifest.json
-├── engine/current/
-├── assets/current/
-│   ├── catalog/
-│   ├── scripts/
-│   ├── strings/
-│   └── images/
-└── card-images/archive/
-    ├── download-report.json
-    └── full/<CARD_ID>.jpg
+assets/
+├── battle/engine/current/       # Explicit legacy acquisition; vendor stays authoritative
+├── deck-editor/
+├── story/
+└── shared/
+    ├── data/current/           # Catalog, scripts, strings, image metadata
+    ├── runtime/current/
+    ├── card-images/{full,cropped}/
+    ├── card-back.jpg
+    ├── set-images/
+    └── fonts/
+asset-profiles/                 # Tracked ownership rules + nightly selection
+generated/                     # Status, download reports, delivery receipts/outputs
 ```
 
 A successful unified run writes `status: "ready"` to `generated/mvp-assets-status.json`. Do not consume a snapshot marked `in-progress` or `failed`.

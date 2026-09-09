@@ -1,3 +1,4 @@
+import { ASSET_SOURCES } from "../../scripts/lib/asset-roots.ts";
 import path from "node:path";
 import { afterEach, beforeAll, describe, expect, it } from "vitest";
 import type { ActiveDuelDependencies } from "../../src/battle/worker/assets/active-duel-dependencies.ts";
@@ -26,7 +27,7 @@ beforeAll(async () => {
   adapter = await loadVendoredCoreNode();
   preset = await loadMvpPreset();
   dependencies = await loadActiveDuelDependenciesNode(
-    path.resolve("generated/assets/current"),
+    path.resolve(ASSET_SOURCES.data.source),
     uniqueDeckCodes(preset.player, preset.opponent),
   );
 });

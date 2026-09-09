@@ -1,3 +1,4 @@
+import { ASSET_SOURCES } from "./lib/asset-roots.ts";
 import { readFile, readdir, rm, stat, writeFile } from "node:fs/promises";
 import { spawnSync } from "node:child_process";
 import path from "node:path";
@@ -26,7 +27,7 @@ import {
   type ImageRecord,
 } from "./lib/model.ts";
 import { resolveProjectSubpath } from "./lib/paths.ts";
-import { acquireRunLock } from "./lib/run-lock.ts";
+import { acquireAssetDeliveryLock } from "./lib/asset-delivery/local-lock.ts";
 import { parseStringsConf } from "./lib/strings.ts";
 import { syncRepository } from "./lib/sources.ts";
 import { catalogShard, scriptShard } from "./lib/transform.ts";
@@ -49,13 +50,11 @@ const cacheRoot = resolveProjectSubpath(
 const destination = resolveProjectSubpath(
   projectRoot,
   options.outputDirectory,
-  "generated/assets",
+  path.posix.dirname(ASSET_SOURCES.data.source),
   "--output",
 );
 const staging = `${destination}.staging-${process.pid}`;
-const releaseRunLock = await acquireRunLock(
-  path.join(projectRoot, "generated", ".locks", "asset-sync"),
-);
+const releaseRunLock = await acquireAssetDeliveryLock(projectRoot);
 
 try {
   const repositories = {
@@ -281,7 +280,7 @@ function parseOptions(args: string[], lock: AssetSourceLock): Options {
   return {
     offline,
     cacheDirectory: values.get("--cache-dir") ?? ".cache/upstream",
-    outputDirectory: values.get("--output") ?? "generated/assets/current",
+    outputDirectory: values.get("--output") ?? ASSET_SOURCES.data.source,
     babelRef,
     scriptsRef,
     distributionRef,

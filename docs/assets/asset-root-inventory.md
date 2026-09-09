@@ -2,6 +2,10 @@
 
 Baseline: `7a2538f04a3c234be0f0fa1132dc04d6fcb071ec`. No assets moved. Source-only literal inventory; absent ignored corpus is not exhaustive asset availability evidence.
 
+## Cutover
+
+Current mapping: `scripts/lib/asset-roots.ts:ASSET_SOURCES`. Acquisition, validators, Vite, Node Worker inputs now consume canonical sources. Copy-only migration and exact tracked font/story relocations precede cutover; vendor/policy remain unchanged. Operational acquisition reports stay in `generated/`. Historical/archived prose below remains baseline evidence, not active path configuration. See [implemented profiles/migration](asset-profiles.md).
+
 ## Root mapping
 
 | ID | Existing input | Planned managed root | Retained browser path / classification |

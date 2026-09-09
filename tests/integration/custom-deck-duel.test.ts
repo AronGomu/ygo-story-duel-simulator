@@ -1,3 +1,4 @@
+import { ASSET_SOURCES } from "../../scripts/lib/asset-roots.ts";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
 import { duelId, snapshotId } from "../../src/battle/duel/contracts/ids.ts";
@@ -8,7 +9,7 @@ import { loadActiveDuelDependenciesNode } from "../../src/battle/worker/assets/a
 import { DuelWorkerRuntime } from "../../src/battle/worker/DuelWorkerRuntime.ts";
 import { loadVendoredCoreNode } from "../../src/battle/worker/engine/load-vendored-core-node.ts";
 
-const ASSET_ROOT = path.resolve("generated/assets/current");
+const ASSET_ROOT = path.resolve(ASSET_SOURCES.data.source);
 const CUSTOM_DUEL_ID = duelId("custom-v1:integration");
 
 async function createRuntime(): Promise<{

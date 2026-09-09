@@ -1,3 +1,4 @@
+import { ASSET_SOURCES } from "./lib/asset-roots.ts";
 import { readFile, readdir, stat } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -19,8 +20,8 @@ const scriptDirectory = path.dirname(fileURLToPath(import.meta.url));
 const projectRoot = path.resolve(scriptDirectory, "..");
 const imageRoot = resolveProjectSubpath(
   projectRoot,
-  "generated/set-images",
-  "generated",
+  ASSET_SOURCES.setImages.source,
+  path.posix.dirname(ASSET_SOURCES.setImages.source),
   "set image archive",
 );
 const manifest = JSON.parse(

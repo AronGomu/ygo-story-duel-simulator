@@ -66,25 +66,38 @@ export function assertManagedPath(value: unknown): string {
 }
 
 /** Compare every parent spelling too: A/x and a/y cannot coexist portably. */
-export function assertNoPathCollisions(paths: readonly string[]): void {
+export function assertNoPathCollisions(
+  paths: readonly string[],
+  directories: readonly string[] = [],
+): void {
   const spellings = new Map<string, string>();
   const files = new Set<string>();
   const parents = new Set<string>();
+  const register = (prefix: string): string => {
+    // Lowercase first maps capital sharp-S before uppercase expands sharp-S.
+    const folded = prefix
+      .normalize("NFD")
+      .toLowerCase()
+      .toUpperCase()
+      .normalize("NFD");
+    const existing = spellings.get(folded);
+    if (existing !== undefined && existing !== prefix)
+      fail("ASSET_PATH_UNSAFE");
+    spellings.set(folded, prefix);
+    return folded;
+  };
+  for (const directory of directories) {
+    assertSafePath(directory);
+    const segments = directory.split("/");
+    for (let i = 1; i <= segments.length; i++)
+      parents.add(register(segments.slice(0, i).join("/")));
+  }
   for (const file of paths) {
     assertSafePath(file);
     const segments = file.split("/");
     for (let i = 1; i <= segments.length; i++) {
       const prefix = segments.slice(0, i).join("/");
-      // Lowercase first maps capital sharp-S before uppercase expands sharp-S.
-      const folded = prefix
-        .normalize("NFD")
-        .toLowerCase()
-        .toUpperCase()
-        .normalize("NFD");
-      const existing = spellings.get(folded);
-      if (existing !== undefined && existing !== prefix)
-        fail("ASSET_PATH_UNSAFE");
-      spellings.set(folded, prefix);
+      const folded = register(prefix);
       if (i < segments.length) {
         if (files.has(folded)) fail("ASSET_PATH_UNSAFE");
         parents.add(folded);

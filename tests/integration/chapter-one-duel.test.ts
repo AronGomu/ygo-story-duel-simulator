@@ -1,3 +1,4 @@
+import { ASSET_SOURCES } from "../../scripts/lib/asset-roots.ts";
 import { describe, expect, it } from "vitest";
 import { snapshotId } from "../../src/battle/duel/contracts/ids.ts";
 import {
@@ -29,7 +30,7 @@ describe("Chapter 1 real-engine defaults", () => {
         await loadDeckSources(),
       );
       const dependencies = await loadActiveDuelDependenciesNode(
-        "generated/assets/current",
+        ASSET_SOURCES.data.source,
         uniqueDeckCodes(preset.player, preset.opponent),
       );
       const adapter = await loadVendoredCoreNode();

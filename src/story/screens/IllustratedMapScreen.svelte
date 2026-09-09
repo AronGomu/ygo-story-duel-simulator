@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount, tick } from "svelte";
-  import mapAsset from "../assets/city-map-placeholder.svg";
+  import mapAsset from "../../../assets/story/city-map-placeholder.svg";
   import type { LocationId, StoryLocationState } from "../model/story-state.ts";
 
   type SelectionOwner = "hover" | "focus" | "tap";

@@ -1,3 +1,4 @@
+import { ASSET_SOURCES } from "./lib/asset-roots.ts";
 import {
   mkdir,
   readFile,
@@ -11,7 +12,8 @@ import { fileURLToPath } from "node:url";
 import { readCappedResponseBody } from "./lib/capped-response-body.ts";
 import { isJpeg } from "./lib/images.ts";
 import { resolveProjectSubpath } from "./lib/paths.ts";
-import { acquireRunLock, writeJsonAtomic } from "./lib/run-lock.ts";
+import { writeJsonAtomic } from "./lib/run-lock.ts";
+import { acquireAssetDeliveryLock } from "./lib/asset-delivery/local-lock.ts";
 import type {
   SetImageDownload,
   ShopSetIdentity,
@@ -43,13 +45,11 @@ const scriptDirectory = path.dirname(fileURLToPath(import.meta.url));
 const projectRoot = path.resolve(scriptDirectory, "..");
 const outputRoot = resolveProjectSubpath(
   projectRoot,
-  "generated/set-images",
-  "generated",
+  ASSET_SOURCES.setImages.source,
+  path.posix.dirname(ASSET_SOURCES.setImages.source),
   "set image output",
 );
-const releaseRunLock = await acquireRunLock(
-  path.join(projectRoot, "generated", ".locks", "set-image-download"),
-);
+const releaseRunLock = await acquireAssetDeliveryLock(projectRoot);
 
 try {
   const shop = JSON.parse(

@@ -1,3 +1,4 @@
+import { ASSET_SOURCES } from "../../scripts/lib/asset-roots.ts";
 import { link, mkdir, mkdtemp, readFile, rm } from "node:fs/promises";
 import path from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
@@ -21,8 +22,8 @@ async function fixture() {
   return contentSetupFilesFixture(root);
 }
 type Fixture = Awaited<ReturnType<typeof fixture>>;
-const assetRoot = "generated/assets/current";
-const runtimePath = "generated/runtime/current/manifest.json";
+const assetRoot = ASSET_SOURCES.data.source;
+const runtimePath = `${ASSET_SOURCES.runtime.source}/manifest.json`;
 const vendorRoot = "vendor/ocgcore-wasm/0.1.2";
 const mib = 1024 * 1024;
 
@@ -42,7 +43,7 @@ async function browserFixture(input: Fixture) {
           : relative === "engine/ocgcore.sync.wasm"
             ? `${vendorRoot}/lib/ocgcore.sync.wasm`
             : relative.startsWith("assets/current/")
-              ? `generated/${relative}`
+              ? `${ASSET_SOURCES.data.source}/${relative.slice("assets/current/".length)}`
               : null;
     if (url.origin !== "https://example.invalid" || file === null)
       return new Response("missing", { status: 404 });

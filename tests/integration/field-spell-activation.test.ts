@@ -1,3 +1,4 @@
+import { ASSET_SOURCES } from "../../scripts/lib/asset-roots.ts";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -52,7 +53,7 @@ beforeAll(async () => {
   );
   opponent = (await loadMvpPreset()).opponent;
   dependencies = await loadActiveDuelDependenciesNode(
-    path.resolve("generated/assets/current"),
+    path.resolve(ASSET_SOURCES.data.source),
     uniqueDeckCodes(spellbook, opponent),
   );
 });

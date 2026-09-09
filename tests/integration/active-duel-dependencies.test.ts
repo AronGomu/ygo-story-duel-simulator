@@ -1,3 +1,4 @@
+import { ASSET_SOURCES } from "../../scripts/lib/asset-roots.ts";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
 import { loadActiveDuelDependenciesNode } from "../../src/battle/worker/assets/active-duel-dependencies-node.ts";
@@ -13,7 +14,7 @@ describe("real MVP dependency snapshot", () => {
     const preset = await loadMvpPreset();
     const codes = uniqueDeckCodes(preset.player, preset.opponent);
     const dependencies = await loadActiveDuelDependenciesNode(
-      path.resolve("generated/assets/current"),
+      path.resolve(ASSET_SOURCES.data.source),
       codes,
     );
     const catalogCodes = new Set(dependencies.cards.keys());

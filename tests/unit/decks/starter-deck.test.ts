@@ -1,3 +1,4 @@
+import { ASSET_SOURCES } from "../../../scripts/lib/asset-roots.ts";
 // @vitest-environment node
 
 import "fake-indexeddb/auto";
@@ -164,7 +165,7 @@ describe("the bundled starter list", () => {
       JSON.parse(
         await readFile(
           path.resolve(
-            `generated/assets/current/catalog/${kind}/${shard}.json`,
+            `${ASSET_SOURCES.data.source}/catalog/${kind}/${shard}.json`,
           ),
           "utf8",
         ),

@@ -1,3 +1,4 @@
+import { ASSET_SOURCES } from "./lib/asset-roots.ts";
 import { existsSync } from "node:fs";
 import { readFile, stat, writeFile } from "node:fs/promises";
 import path from "node:path";
@@ -30,20 +31,20 @@ const scriptDirectory = path.dirname(fileURLToPath(import.meta.url));
 const projectRoot = path.resolve(scriptDirectory, "..");
 const cardArchive = resolveProjectSubpath(
   projectRoot,
-  "generated/card-images/archive/full",
-  "generated",
+  ASSET_SOURCES.fullImages.source,
+  path.posix.dirname(ASSET_SOURCES.setImages.source),
   "card image archive",
 );
 const cropArchive = resolveProjectSubpath(
   projectRoot,
-  "generated/card-images/archive/cropped",
-  "generated",
+  ASSET_SOURCES.croppedImages.source,
+  path.posix.dirname(ASSET_SOURCES.setImages.source),
   "cropped card image archive",
 );
 const setArchive = resolveProjectSubpath(
   projectRoot,
-  "generated/set-images",
-  "generated",
+  ASSET_SOURCES.setImages.source,
+  path.posix.dirname(ASSET_SOURCES.setImages.source),
   "set image archive",
 );
 

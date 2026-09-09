@@ -1,31 +1,31 @@
 import { assertManagedPath, assertSourcePath } from "./path-guards.ts";
 import { fail } from "./failure.ts";
 
-/** Legacy source → managed source. No files moved by these declarations. */
-export const SOURCE_MAPPING = [
-  ["generated/assets/current", "assets/shared/data/current"],
-  ["generated/runtime/current", "assets/shared/runtime/current"],
-  ["generated/card-images/archive/full", "assets/shared/card-images/full"],
-  [
-    "generated/card-images/archive/cropped",
-    "assets/shared/card-images/cropped",
-  ],
-  ["generated/card-images/card-back.jpg", "assets/shared/card-back.jpg"],
-  ["generated/set-images", "assets/shared/set-images"],
-  ["generated/engine/current", "assets/battle/engine/current"],
-  ["public/fonts", "assets/shared/fonts"],
-  ["src/story/assets", "assets/story"],
-] as const;
+import { ASSET_SOURCES } from "../asset-roots.ts";
+
+export const SOURCE_MAPPING = Object.values(ASSET_SOURCES).map(
+  ({ legacy, source }) => [legacy, source] as const,
+);
 
 export function mappedLegacyPath(value: unknown): string {
   const from = assertSourcePath(value);
-  for (const [oldRoot, newRoot] of SOURCE_MAPPING) {
-    if (
-      oldRoot.endsWith(".jpg")
-        ? from === oldRoot
-        : from.startsWith(`${oldRoot}/`)
-    )
-      return assertManagedPath(newRoot + from.slice(oldRoot.length));
+  for (const { legacy, source, kind } of Object.values(ASSET_SOURCES)) {
+    if (kind === "file" ? from === legacy : from.startsWith(`${legacy}/`))
+      return assertManagedPath(source + from.slice(legacy.length));
   }
   fail("ASSET_PATH_UNSAFE");
+}
+
+/** Longest segment prefix, never a blind assets/ strip. Null means explicit mapping needed. */
+export function mappedLogicalPath(value: string): string | null {
+  const from = assertSourcePath(value);
+  const matches = Object.values(ASSET_SOURCES)
+    .filter(
+      ({ source, kind, logical }) =>
+        logical !== null &&
+        (from === source || (kind === "tree" && from.startsWith(`${source}/`))),
+    )
+    .sort((a, b) => b.source.length - a.source.length);
+  const match = matches[0];
+  return match ? match.logical + from.slice(match.source.length) : null;
 }

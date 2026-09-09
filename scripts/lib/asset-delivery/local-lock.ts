@@ -3,12 +3,14 @@ import path from "node:path";
 import { randomUUID } from "node:crypto";
 import { assertSafeParents } from "./path-guards.ts";
 import { fail } from "./failure.ts";
+import { assertMigrationReady } from "./migration-state.ts";
 
 export const LOCAL_LOCK_PATH = "generated/.locks/asset-delivery";
 
 /** Local before remote; no reentrant acquisition or automatic stale takeover. */
 export async function acquireAssetDeliveryLock(
   root: string,
+  recoveryPlanSha256?: string,
 ): Promise<() => Promise<void>> {
   const file = await assertSafeParents(root, LOCAL_LOCK_PATH);
   const owner = `${randomUUID()}\n`;
@@ -35,7 +37,7 @@ export async function acquireAssetDeliveryLock(
     throw error;
   }
   // Failed creation/write deliberately leaves a busy lock for owner recovery.
-  return async () => {
+  const release = async () => {
     try {
       await assertSafeParents(root, LOCAL_LOCK_PATH);
       if ((await readFile(file, "utf8")) !== owner)
@@ -47,4 +49,11 @@ export async function acquireAssetDeliveryLock(
       throw error;
     }
   };
+  try {
+    await assertMigrationReady(root, recoveryPlanSha256);
+  } catch (error) {
+    await release();
+    throw error;
+  }
+  return release;
 }

@@ -1,3 +1,4 @@
+import { ASSET_SOURCES } from "./lib/asset-roots.ts";
 import { readFile, stat } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -268,7 +269,7 @@ if (failures.length) {
 
 function readOutputArgument(args: string[]): string {
   if (!args.length) {
-    return "generated/assets/current";
+    return ASSET_SOURCES.data.source;
   }
   if (args.length === 2 && args[0] === "--output" && args[1]) {
     return args[1];

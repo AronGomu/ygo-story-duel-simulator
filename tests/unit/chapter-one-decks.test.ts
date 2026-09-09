@@ -1,3 +1,4 @@
+import { ASSET_SOURCES } from "../../scripts/lib/asset-roots.ts";
 import { createHash } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import { describe, expect, it } from "vitest";
@@ -104,7 +105,7 @@ describe("Chapter 1 bundled prerequisites", () => {
       const codes = uniqueDeckCodes(deck);
       expect([...codes].filter((code) => !selected.has(code))).toEqual([]);
       const dependencies = await loadActiveDuelDependenciesNode(
-        "generated/assets/current",
+        ASSET_SOURCES.data.source,
         codes,
       );
       const shards = [
@@ -118,7 +119,7 @@ describe("Chapter 1 bundled prerequisites", () => {
             async (shard) =>
               JSON.parse(
                 await readFile(
-                  `generated/assets/current/catalog/cards/${shard}.json`,
+                  `${ASSET_SOURCES.data.source}/catalog/cards/${shard}.json`,
                   "utf8",
                 ),
               ) as AssetDeckCardRecord[],

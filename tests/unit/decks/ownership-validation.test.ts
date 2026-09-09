@@ -1,3 +1,4 @@
+import { ASSET_SOURCES } from "../../../scripts/lib/asset-roots.ts";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { beforeAll, describe, expect, it } from "vitest";
@@ -224,7 +225,7 @@ describe("the granted starter deck", () => {
       JSON.parse(
         await readFile(
           path.resolve(
-            `generated/assets/current/catalog/${kind}/${shard}.json`,
+            `${ASSET_SOURCES.data.source}/catalog/${kind}/${shard}.json`,
           ),
           "utf8",
         ),

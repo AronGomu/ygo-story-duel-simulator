@@ -1,3 +1,4 @@
+import { ASSET_SOURCES } from "../../../scripts/lib/asset-roots.ts";
 import path from "node:path";
 import {
   activeImageManifestSha256,
@@ -36,12 +37,7 @@ export function createNodeDuelWorkerRuntime(
     async (progress, signal) => {
       signal.throwIfAborted();
       progress("manifest", 0);
-      const assetRoot = path.join(
-        projectRoot,
-        "generated",
-        "assets",
-        "current",
-      );
+      const assetRoot = path.join(projectRoot, ASSET_SOURCES.data.source);
       const vendorRoot = path.join(
         projectRoot,
         "vendor",

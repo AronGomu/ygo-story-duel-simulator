@@ -1,3 +1,4 @@
+import { ASSET_SOURCES } from "./lib/asset-roots.ts";
 import { createHash } from "node:crypto";
 import { gunzipSync } from "node:zlib";
 import { mkdir, readFile, rename, rm, writeFile } from "node:fs/promises";
@@ -5,7 +6,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { replaceDirectoryRecoverably, writeJson } from "./lib/files.ts";
 import { resolveProjectSubpath } from "./lib/paths.ts";
-import { acquireRunLock } from "./lib/run-lock.ts";
+import { acquireAssetDeliveryLock } from "./lib/asset-delivery/local-lock.ts";
 import { readTarFiles } from "./lib/tar.ts";
 
 const PACKAGE_NAME = "ocgcore-wasm";
@@ -27,8 +28,8 @@ const cacheRoot = resolveProjectSubpath(
 );
 const output = resolveProjectSubpath(
   projectRoot,
-  "generated/engine/current",
-  "generated/engine",
+  ASSET_SOURCES.acquiredEngine.source,
+  path.posix.dirname(ASSET_SOURCES.acquiredEngine.source),
   "engine output",
 );
 const packagePath = path.join(
@@ -36,9 +37,7 @@ const packagePath = path.join(
   `${PACKAGE_NAME}-${PACKAGE_VERSION}.tgz`,
 );
 const staging = `${output}.staging-${process.pid}`;
-const releaseRunLock = await acquireRunLock(
-  path.join(projectRoot, "generated", ".locks", "engine-sync"),
-);
+const releaseRunLock = await acquireAssetDeliveryLock(projectRoot);
 
 try {
   await mkdir(cacheRoot, { recursive: true });
