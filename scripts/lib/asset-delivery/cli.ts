@@ -26,15 +26,21 @@ export function parseFlags(
 }
 export async function assetCli(
   operation: AssetSuccess["operation"],
-  action: (progress: Progress) => Promise<void>,
+  action: (progress: Progress) => Promise<void | string>,
   stdout = console.log,
   stderr = console.error,
 ): Promise<number> {
   try {
-    await action((phase, path = null, bytes = 0) =>
+    const snapshotSha256 = await action((phase, path = null, bytes = 0) =>
       stderr(JSON.stringify({ operation, phase, path, bytes })),
     );
-    stdout(JSON.stringify({ status: "ok", operation, snapshotSha256: null }));
+    stdout(
+      JSON.stringify({
+        status: "ok",
+        operation,
+        snapshotSha256: snapshotSha256 ?? null,
+      }),
+    );
     return 0;
   } catch (error) {
     const code =

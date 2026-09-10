@@ -223,6 +223,10 @@ npm run assets:lock
 
 Entries and keys are ordered by content alone, so the resulting diff shows the art whose bytes moved and nothing else.
 
+## Local delivery bundles
+
+Deterministic dev/player export is separate from acquisition and semantic verification. See [local asset bundles](asset-delivery-bundles.md) for producer commands, frozen object/history/core handoffs, limits, and owner-run large-file evidence requirements.
+
 ## First successful snapshot
 
 The initial verified run produced:
