@@ -3,6 +3,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import * as battle from "../../src/battle/index.ts";
+import * as content from "../../src/content/index.ts";
 import * as deckEditor from "../../src/deck-editor/index.ts";
 import * as deckSelect from "../../src/deck-select/index.ts";
 import * as decks from "../../src/decks/index.ts";
@@ -28,10 +29,12 @@ type Domain =
   | "deck-editor"
   | "deck-select"
   | "battle"
-  | "decks";
+  | "decks"
+  | "content";
 
 const PUBLIC_ENTRY: Readonly<Record<Domain, string | null>> = Object.freeze({
   main: null,
+  content: "src/content/index.ts",
   shell: "src/shell/index.ts",
   story: "src/story/index.ts",
   "deck-editor": "src/deck-editor/index.ts",
@@ -86,6 +89,7 @@ const ALLOWANCES: Readonly<Record<string, readonly string[]>> = Object.freeze({
 function domainOf(file: string): Domain {
   if (file === "src/main.ts") return "main";
   if (file === "src/acceptance-main.ts") return "battle";
+  if (file.startsWith("src/content/")) return "content";
   if (file.startsWith("src/shell/")) return "shell";
   if (file.startsWith("src/story/")) return "story";
   if (file.startsWith("src/deck-editor/")) return "deck-editor";
@@ -101,6 +105,7 @@ function isLegalImport(from: string, to: string): boolean {
   if (ALLOWANCES[from]?.includes(to) === true) return true;
 
   const source = domainOf(from);
+  if (source === "content") return to.startsWith("src/content/");
   const target = domainOf(to);
   if (source === target) return true;
 
@@ -138,17 +143,26 @@ function sourceFiles(): readonly string[] {
 const SPECIFIER =
   /(?:\bfrom\s*|\bimport\s*\(?\s*|\brequire\s*\(\s*)["']([^"']+)["']/g;
 
-/** Repo-relative targets of every relative code specifier in `file`, ignoring
-    bare package names, assets (css, svg, ydk) and anything outside `src/`. */
-function importsOf(file: string): readonly string[] {
-  const text = readFileSync(path.join(projectRoot, file), "utf8");
+/** Repo-relative code targets; content also checks bare/outside-src tooling imports. */
+function importsOf(
+  file: string,
+  text = readFileSync(path.join(projectRoot, file), "utf8"),
+): readonly string[] {
   const directory = path.posix.dirname(file);
   const targets: string[] = [];
   for (const [, specifier] of text.matchAll(SPECIFIER)) {
-    if (specifier === undefined || !specifier.startsWith(".")) continue;
+    if (specifier === undefined) continue;
+    if (!specifier.startsWith(".")) {
+      if (domainOf(file) === "content") targets.push(specifier);
+      continue;
+    }
     const resolved = path.posix.normalize(
       path.posix.join(directory, specifier.split("?")[0] ?? specifier),
     );
+    if (domainOf(file) === "content") {
+      targets.push(resolved);
+      continue;
+    }
     if (!resolved.startsWith("src/")) continue;
     if (!resolved.endsWith(".ts") && !resolved.endsWith(".svelte")) continue;
     targets.push(resolved);
@@ -190,6 +204,57 @@ function declaredExports(entry: string): {
 describe("public domain APIs are frozen", () => {
   /* Widening any list below is a deliberate edit, not a silent change. */
   const expected = [
+    {
+      name: "content",
+      entry: "src/content/index.ts",
+      namespace: content,
+      values: [
+        "CONTENT_CACHE_NAME",
+        "CONTENT_DATABASE_NAME",
+        "CONTENT_DATABASE_VERSION",
+        "CONTENT_FILE_MAX_BYTES",
+        "CONTENT_INSTALLER_LOCK",
+        "ZIP_PART_MAX_BYTES",
+        "ZIP_PART_MAX_UNPACKED_BYTES",
+        "contentObjectUrl",
+        "parseChapterSelections",
+        "parseContentIndex",
+        "parseContentManifest",
+      ],
+      types: [
+        "ChapterContentPolicy",
+        "ChapterId",
+        "ChapterReadiness",
+        "ChapterRelease",
+        "ChapterSelection",
+        "ChapterSelections",
+        "ContentFailure",
+        "ContentFailureCode",
+        "ContentIndex",
+        "ContentManager",
+        "ContentManifest",
+        "ContentMediaType",
+        "ContentReadPort",
+        "ContentResult",
+        "ContentSessionLease",
+        "ContentSetRef",
+        "DownloadPhase",
+        "DownloadProgress",
+        "DownloadResult",
+        "DownloadTarget",
+        "InstalledContentSet",
+        "ManifestRef",
+        "PackId",
+        "PackedFile",
+        "RuntimeActivationPort",
+        "RuntimeSnapshotRef",
+        "Sha256",
+        "StoryContentBinding",
+        "VerifiedMetadata",
+        "ZipPart",
+      ],
+    },
+
     {
       name: "battle",
       entry: "src/battle/index.ts",
@@ -419,6 +484,25 @@ describe("public domain APIs are frozen", () => {
 });
 
 describe("domain imports", () => {
+  it("content rejects dynamic Node and scripts imports", () => {
+    for (const specifier of [
+      "node:fs",
+      "fs",
+      "fs/promises",
+      "../../scripts/content-catalog.ts",
+      "../../scripts/lib/asset-delivery/bundle.ts",
+    ]) {
+      const targets = importsOf(
+        "src/content/probe.ts",
+        `import("${specifier}")`,
+      );
+      expect(targets).toHaveLength(1);
+      expect(isLegalImport("src/content/probe.ts", targets[0]!)).toBe(false);
+    }
+    expect(isLegalImport("src/content/probe.ts", "src/content/index.ts")).toBe(
+      true,
+    );
+  });
   it("no deep cross-domain imports", () => {
     const violations = sourceFiles().flatMap((file) =>
       importsOf(file)

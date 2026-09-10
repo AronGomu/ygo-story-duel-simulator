@@ -10,7 +10,8 @@ export interface DevManifest {
   readonly files: readonly FileDigest[];
 }
 
-import { object, releaseVersion, version } from "./schema.ts";
+import { assertSorted, object, releaseVersion, version } from "./schema.ts";
+import { compareCodePoints } from "./canonical-json.ts";
 import { objectRefIn } from "./object-ref.ts";
 import { parseFileDigests } from "./file-digest.ts";
 import { assertArchiveFiles } from "./archive-limits.ts";
@@ -24,6 +25,7 @@ export function parseDevManifest(value: unknown): DevManifest {
     archive: objectRefIn("dev/archives"),
     files: parseFileDigests,
   });
+  assertSorted(manifest.files, (a, b) => compareCodePoints(a.path, b.path));
   assertArchiveFiles(manifest.files, manifest.archive.bytes);
   return manifest;
 }

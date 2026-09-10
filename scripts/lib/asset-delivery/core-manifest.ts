@@ -14,6 +14,7 @@ export interface CoreManifest {
 
 import {
   array,
+  assertSorted,
   hash,
   integer,
   object,
@@ -27,6 +28,7 @@ import {
   assertNoPathCollisions,
 } from "./path-guards.ts";
 import { assertArchiveFiles } from "./archive-limits.ts";
+import { compareCodePoints } from "./canonical-json.ts";
 export function parseCoreFile(value: unknown): CoreFile {
   return object(value, {
     path: assertManagedPath,
@@ -43,6 +45,7 @@ export function parseCoreManifest(value: unknown): CoreManifest {
     archive: objectRefIn("core/archives"),
     files: array(parseCoreFile),
   });
+  assertSorted(manifest.files, (a, b) => compareCodePoints(a.path, b.path));
   assertArchiveFiles(manifest.files, manifest.archive.bytes);
   assertNoPathCollisions(manifest.files.map((file) => file.logicalPath));
   return manifest;

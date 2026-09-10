@@ -1,4 +1,5 @@
 import eslint from "@eslint/js";
+import { builtinModules } from "node:module";
 import svelte from "eslint-plugin-svelte";
 import globals from "globals";
 import tseslint from "typescript-eslint";
@@ -86,7 +87,29 @@ const BATTLE_MESSAGE =
 
 const boundaries = (files, patterns) => ({
   files,
-  rules: { "no-restricted-imports": ["error", { patterns }] },
+  rules: {
+    "no-restricted-imports": [
+      "error",
+      {
+        patterns: [
+          ...patterns,
+          ...(files.includes("src/content/**")
+            ? []
+            : [
+                {
+                  group: [
+                    "**/content/contracts/**",
+                    "**/content/parsers/**",
+                    "**/content/content-*.ts",
+                  ],
+                  message:
+                    "Reach player content through `src/content/index.ts`; parsers and type-only ports stay isolated.",
+                },
+              ]),
+        ],
+      },
+    ],
+  },
 });
 
 export default tseslint.config(
@@ -160,6 +183,45 @@ export default tseslint.config(
             "ImportExpression[source.value=/^(?:@aws-sdk\\/|.*scripts\\/lib\\/asset-delivery\\/)/]",
           message:
             "Node-only asset delivery stays in scripts; never import it into app domains.",
+        },
+      ],
+    },
+  },
+  boundaries(
+    ["src/content/**"],
+    [
+      {
+        group: [
+          "**/battle/**",
+          "**/story/**",
+          "**/shell/**",
+          "**/decks/**",
+          "**/deck-editor/**",
+          "**/deck-select/**",
+          "**/scripts/**",
+          "node:*",
+          ...builtinModules,
+          "@aws-sdk/**",
+        ],
+        message:
+          "Player content vocabulary/parsers import no domain, engine, DB, Node tooling or SDK.",
+      },
+    ],
+  ),
+  {
+    files: ["src/content/**"],
+    rules: {
+      "no-restricted-syntax": [
+        "error",
+        {
+          selector: `ImportExpression[source.value=/^(?:node:|@aws-sdk\\/|.*scripts\\/|(?:${builtinModules.map((name) => name.replaceAll("/", "\\/")).join("|")})$)/]`,
+          message:
+            "Player content cannot dynamically import Node tooling or SDKs.",
+        },
+        {
+          selector: "ImportExpression[source.type!='Literal']",
+          message:
+            "Player content dynamic imports require literal paths for boundary validation.",
         },
       ],
     },

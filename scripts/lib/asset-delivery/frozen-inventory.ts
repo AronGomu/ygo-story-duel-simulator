@@ -19,6 +19,7 @@ export interface FrozenInventory {
 
 import {
   array,
+  assertSorted,
   hash,
   nullable,
   object,
@@ -32,6 +33,7 @@ import { parseRetainedMetadata } from "./retained-metadata.ts";
 import { parsePreparedPlayerMetadata } from "./prepared-player-metadata.ts";
 import { assertNoPathCollisions } from "./path-guards.ts";
 import { fail } from "./failure.ts";
+import { compareCodePoints } from "./canonical-json.ts";
 export function parseFrozenInventory(value: unknown): FrozenInventory {
   const inventory = object(value, {
     schemaVersion: version,
@@ -44,6 +46,10 @@ export function parseFrozenInventory(value: unknown): FrozenInventory {
     retainedMetadata: parseRetainedMetadata,
     playerMetadata: nullable(parsePreparedPlayerMetadata),
   });
+  assertSorted(inventory.files, (a, b) => compareCodePoints(a.path, b.path));
+  assertSorted(inventory.vendorFiles, (a, b) =>
+    compareCodePoints(a.path, b.path),
+  );
   assertNoPathCollisions(inventory.files.map((file) => file.path));
   assertNoPathCollisions(
     inventory.files.flatMap((file) =>
