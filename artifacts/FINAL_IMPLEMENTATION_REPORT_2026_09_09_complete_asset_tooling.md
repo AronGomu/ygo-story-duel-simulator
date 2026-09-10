@@ -1,6 +1,6 @@
 # Complete asset tooling — implementation report
 
-State: **T3 merged locally — checkpoint push pending**. T1/T2 implemented, reviewed, merged and pushed. Last remote `main` verification: `2116ed0ef30112d058e28c6a988c4d3d872eb825`. T3 implementation and eight review repairs independently rechecked; user explicitly approved the paired-baseline full-suite exception. The failing test remains recorded, not fixed or reported green. T3 impl `902fbef`, glossary integration `4bdd541`, merge `aef9b00`; T4–T6 pending. No R2 writes.
+State: **T3 merged and pushed — paused by user**. T1/T2/T3 implemented, independently reviewed, merged and pushed. T3 checkpoint `c705d66a6037ae43c3ef3285735f6936c9bc02f1` verified on remote `main` after successful `git push origin main`. T3 implementation and eight review repairs independently rechecked; user explicitly approved the paired-baseline full-suite exception. The failing test remains recorded, not fixed or reported green. T3 impl `902fbef`, glossary integration `4bdd541`, merge `aef9b00`; T4–T6 pending. No R2 writes.
 
 ## Ticket State List
 
@@ -8,9 +8,9 @@ State: **T3 merged locally — checkpoint push pending**. T1/T2 implemented, rev
 | --- | --- | --- |
 | T1 | Implemented; independently reviewed; merged and pushed | Impl `5d0bda8`; integration `f154a59`; 57 contract tests pass |
 | T2 | Implemented; independently reviewed; merged and pushed | Impl `28c6a69`, cutover `0765665`, merge `f145921`; merged-main 94 tests pass; all ten findings closed |
-| T3 | Independently reviewed; merged locally; baseline exception approved; push pending | Impl `902fbef`, glossary `4bdd541`, merge `aef9b00`; 76-file fingerprint `ddf1b237787dae38015be397622da3050004865b41f123c2c080f792d8f2ddc0`; main focused148/typecheck/build pass |
-| T4 | Waiting for T3 | Publisher/remote prune not implemented; T1 approval seam recorded below |
-| T5 | Waiting for T3 | Anonymous install/local prune not implemented |
+| T3 | Independently reviewed; merged and pushed; baseline exception approved | Impl `902fbef`, glossary `4bdd541`, merge `aef9b00`; 76-file fingerprint `ddf1b237787dae38015be397622da3050004865b41f123c2c080f792d8f2ddc0`; main focused148/typecheck/build pass |
+| T4 | NOT STARTED — user requested pause | Publisher/remote prune not implemented; T1 approval seam recorded below |
+| T5 | NOT STARTED — user requested pause | Anonymous install/local prune not implemented |
 | T6 | Waiting for T4/T5 | Cross-platform/PWA handoff acceptance not executed |
 
 ## Evidence
@@ -61,7 +61,7 @@ T3R4. Real >4GiB/10GiB ZIP64/RSS/cross-OS/power-loss evidence remains missing. R
 
 T3R5. Parent verified all76 candidate file hashes plus6 binding inputs, scanned intentional diff/new files for secret patterns, staged only candidate paths, committed `902fbef`. Main precursor `4bdd541` staged only two T3 glossary rows; existing24 owner-added glossary lines stayed dirty. Normal non-fast-forward merge `aef9b007e893e8880bb54c17977d194aa64b7c3a` succeeded. Post-merge audit verified all76 committed files match reviewed candidate; eight dirty owner paths and72 untracked paths preserved (glossary owner delta identical).
 
-T3R6. Merged-main validation: six-file focused Node suite148/148 (34.14s), `npm run typecheck`0errors/1existing warning, `npm run build` exit0. Logs `.tmp/t3-main-focused.log`, `.tmp/t3-main-typecheck.log`, `.tmp/t3-main-build.log`. `graphify . --update` exit0;1326 cached files,164 re-extracted; generated graph not staged. Full-suite exception remains specific to paired baseline, not a test fix. Checkpoint push still pending; worktree/evidence retained for downstream handoff, no cleanup of user sources.
+T3R6. Merged-main validation: six-file focused Node suite148/148 (34.14s), `npm run typecheck`0errors/1existing warning, `npm run build` exit0. Logs `.tmp/t3-main-focused.log`, `.tmp/t3-main-typecheck.log`, `.tmp/t3-main-build.log`. `graphify . --update` exit0;1326 cached files,164 re-extracted; generated graph not staged. Full-suite exception remains specific to paired baseline, not a test fix. Checkpoint push subsequently succeeded: `origin/main` verified at `c705d66a6037ae43c3ef3285735f6936c9bc02f1`. User instructed `push but dont start, update plan implementation state`; T4/T5 remain not started. Plan index/T3 checklist updated from evidence; actual large-file proof left unchecked. Worktree/evidence retained for downstream handoff, no cleanup of user sources.
 
 ## T2 review checkpoint
 
@@ -144,7 +144,7 @@ Public five-argument `bundleAssets` signature stays unchanged. Retained closure 
 
 ## Cleanup
 
-C1. Final plan retirement not due: T3–T6 incomplete. Plan index, matching ticket directory and original plan HTML retained.
+C1. Final plan retirement not due: T4–T6 incomplete; T3 owner-run large-file/platform evidence pending. Plan index, matching ticket directory and original plan HTML retained.
 
 C2. Removed clean worktree `.tmp/asset-tooling-t1` (including agent ledgers/logs and copied validation inputs). Removed parent-owned `.tmp/t1-doc-integration.patch`, `.tmp/asset-tooling-original-dirty.patch`, `.tmp/t1-review-correctness.md`, `.tmp/t1-review-security.md`, `.tmp/t1-review-maintenance.md`, `.tmp/t1-review-final.md`, `.tmp/t1-main-npm-ci.log`, `.tmp/t1-main-contracts.log`, `.tmp/t1-graph-update.log`. Evidence consolidated above; implementation retained in commits/branch. No user-authored or unrelated files deleted. Harness-managed external session logs remain outside project cleanup.
 
