@@ -1,14 +1,14 @@
 # Complete asset tooling — implementation report
 
-State: **blocked at T2 Git publication boundary**. T1 pushed; T2 implemented, independently reviewed, migrated and merged locally (`f145921`). T3–T6 not implemented. Last verified remote `main`: `6d739d3644b13fe25a20c531d8470497bc32c3b7`. No R2 writes.
+State: **T3 merged locally — checkpoint push pending**. T1/T2 implemented, reviewed, merged and pushed. Last remote `main` verification: `2116ed0ef30112d058e28c6a988c4d3d872eb825`. T3 implementation and eight review repairs independently rechecked; user explicitly approved the paired-baseline full-suite exception. The failing test remains recorded, not fixed or reported green. T3 impl `902fbef`, glossary integration `4bdd541`, merge `aef9b00`; T4–T6 pending. No R2 writes.
 
 ## Ticket State List
 
 | ID | State | Evidence |
 | --- | --- | --- |
 | T1 | Implemented; independently reviewed; merged and pushed | Impl `5d0bda8`; integration `f154a59`; 57 contract tests pass |
-| T2 | Implemented; independently reviewed; merged locally; push pending | Impl `28c6a69`, cutover `0765665`, merge `f145921`; merged-main 94 tests pass; all ten findings closed |
-| T3 | Ready after T2 publication checkpoint | Deterministic producer not implemented; exact scan/lock/root-map seam added to T3 ticket |
+| T2 | Implemented; independently reviewed; merged and pushed | Impl `28c6a69`, cutover `0765665`, merge `f145921`; merged-main 94 tests pass; all ten findings closed |
+| T3 | Independently reviewed; merged locally; baseline exception approved; push pending | Impl `902fbef`, glossary `4bdd541`, merge `aef9b00`; 76-file fingerprint `ddf1b237787dae38015be397622da3050004865b41f123c2c080f792d8f2ddc0`; main focused148/typecheck/build pass |
 | T4 | Waiting for T3 | Publisher/remote prune not implemented; T1 approval seam recorded below |
 | T5 | Waiting for T3 | Anonymous install/local prune not implemented |
 | T6 | Waiting for T4/T5 | Cross-platform/PWA handoff acceptance not executed |
@@ -49,6 +49,20 @@ Three fresh-context reviewers covered Q1–Q12: code, contracts, data integrity,
 
 No remaining T1 review blockers. Six existing npm advisories remain unchanged: three moderate, three high, affecting pre-existing Vitest/sharp/Miniflare/Wrangler dependencies. No advisory delta attributable to new SDK packages. No unrelated audit fix performed.
 
+## T3 repair/recheck checkpoint — 2026-09-10
+
+T3R1. Independent recheck closed all eight findings: raw ZIP envelope/local metadata enforcement; embedded current/retained runtime binding; strict current pointer; canonical file-array order; stable malformed-URL error; dynamic tooling import restrictions; full-length source staging; source-open race classification. Reports: `.tmp/t3-recheck-security.md`, `.tmp/t3-recheck-integrity.md`, `.tmp/t3-recheck-contracts.md`. No remaining scoped code defect demonstrated. All reviewers verified 76 candidate files and six binding inputs unchanged.
+
+T3R2. Post-repair evidence: focused six-file Node suite148/148, boundary12/12, `npm run check:headless`, `npm run build`, `npm run build:reproducible` (583 identical files), Chromium3/3, `npm run test:acceptance`41/41 passed. Logs: `.tmp/asset-tooling-t3/.tmp/ship-t3-20260909/repair-*.log`; exact commands in ledger. Independent reviewers reran focused suites and adversarial fixture probes. Existing 2.44GB dev and synthetic-metadata prod candidates still verify.
+
+T3R3. Mandatory latest `npm test` remains FAILED at `tests/component/FreePlayUniqueOwner.test.ts:40`: `AssertionError: the given combination of arguments (undefined and string) is invalid for this assertion. You can use an array, a map, an object, a set, a string, or a weakset instead of a string`. Candidate1220 other component tests passed. Same assertion reproduced by `npx vitest run tests/component/FreePlayUniqueOwner.test.ts` on unchanged main `2116ed0`; evidence `.tmp/t3-owner-baseline.log`. Four attempts preserved; no fifth broad retry, unrelated UI fix, test weakening, or gate waiver. User subsequently replied `approve T3 baseline exception`, authorizing integration despite this specific baseline failure. Exception does not approve unrelated failing gates or establish a green full suite.
+
+T3R4. Real >4GiB/10GiB ZIP64/RSS/cross-OS/power-loss evidence remains missing. Real catalog preparation still fails on76 selected sets versus50 mapped shop IDs; synthetic metadata is not release proof. Hosted/native/publication acceptance remains unproved. Worker crash/revival preserved partial repairs; final worker `03a0a00e-deee-48d0-a445-156290362c76` completed stable handoff. Independent review itself performed no staging, commit, merge, push, or source cleanup. Parent subsequently committed and merged as recorded below.
+
+T3R5. Parent verified all76 candidate file hashes plus6 binding inputs, scanned intentional diff/new files for secret patterns, staged only candidate paths, committed `902fbef`. Main precursor `4bdd541` staged only two T3 glossary rows; existing24 owner-added glossary lines stayed dirty. Normal non-fast-forward merge `aef9b007e893e8880bb54c17977d194aa64b7c3a` succeeded. Post-merge audit verified all76 committed files match reviewed candidate; eight dirty owner paths and72 untracked paths preserved (glossary owner delta identical).
+
+T3R6. Merged-main validation: six-file focused Node suite148/148 (34.14s), `npm run typecheck`0errors/1existing warning, `npm run build` exit0. Logs `.tmp/t3-main-focused.log`, `.tmp/t3-main-typecheck.log`, `.tmp/t3-main-build.log`. `graphify . --update` exit0;1326 cached files,164 re-extracted; generated graph not staged. Full-suite exception remains specific to paired baseline, not a test fix. Checkpoint push still pending; worktree/evidence retained for downstream handoff, no cleanup of user sources.
+
 ## T2 review checkpoint
 
 Four independent reviewers inspected initial 97-path candidate; two independent repair reviewers and focused native-error closure verified final 103-path candidate (Git reports 98 paths after recognizing five renames). All ten findings closed: observed-root disappearance, file disappearance classification, cycle-test masking, crash-temp inclusion, empty-directory aliases, temp path limits, nullish CLI throws, oversized promotion comparison, quadratic rule diff, native-copy partial-temp deletion. Reviewer probes used fixtures; no user-source mutation.
@@ -87,7 +101,7 @@ Worker ran installed ship production/headless workflow; parent owned independent
 
 ### A4. Git publication boundary
 
-Developer rule G3 requires stop before outward-facing publication. User confirmed T1 push; normal `git push origin main` succeeded, remote SHA verified. T2 resumed after that checkpoint. T2 now merged locally; its new checkpoint push awaits confirmation. No PR requested or created; no authorization for R2 writes inferred.
+Developer rule G3 requires stop before outward-facing publication. User confirmed T1 push; normal `git push origin main` succeeded, remote SHA verified. T2 resumed after that checkpoint. User subsequently confirmed T2 checkpoint push; remote SHA verified at `2116ed0`, T3 resumed. No PR requested or created; no authorization for R2 writes inferred.
 
 ### A5. Approval evidence seam
 
@@ -113,6 +127,10 @@ T2 initially expanded chapter gameplay IDs into exact art rules, inventing 1,596
 
 T2 full browser run reports six failures: deck grid width (`Expected: 617`, `Received: 420`) plus five viewport variants waiting for `[data-cy="story-shop-sell-plus-89631139"]` (`Error: locator.click: Test timeout of 180000ms exceeded.`). Parent reran those exact six tests at original main `6d739d3`; all six fail identically. Command: `PLAYWRIGHT_PORT=4398 npx playwright test --grep 'free-play deck grid adds columns|T13 all story surfaces fit' --workers=6 --fully-parallel`, exit 1. Initial full baseline exceeded 600-second command deadline; parent terminated only its orphan preview processes, then completed focused baseline. Unrelated roster/layout defects not fixed; full browser suite not claimed green.
 
+### A11. T3 retained-history input location
+
+Public five-argument `bundleAssets` signature stays unchanged. Retained closure bytes come only from `generated/asset-delivery/retained/objects/<ObjectRef.key>`; private already-locked producer accepts explicit retained-object directory for T4's verified per-run materialization. No current-workspace fallback, remote fetch or inferred history from arbitrary object existence. T3 owner-only >4GiB/10GB measurement remains pending; small streaming fixtures never substitute.
+
 ## User TODO
 
 - [x] U1. Confirm T1 `git push origin main`; user confirmed, push succeeded, `git ls-remote origin refs/heads/main` returned `6d739d3644b13fe25a20c531d8470497bc32c3b7`. T2 resumed. Later publication boundaries remain explicit.
@@ -121,7 +139,7 @@ T2 full browser run reports six failures: deck grid width (`Expected: 617`, `Rec
 - [ ] U4. Bootstrap initial empty PublicationInventory only for confirmed new namespace, using create-only owner-run instructions in `docs/assets/asset-delivery-setup.md`. Validation: anonymous verified empty state; existing history never overwritten.
 - [ ] U5. Provide authorized hosted, native-device, cross-OS and >4GiB/10GB acceptance when respective later tickets are ready. Validation: actual evidence; small fixtures never substituted for large/native proof.
 
-- [ ] U6. Confirm T2 checkpoint `git push origin main` before continuing T3–T6. Validation: normal push reaches reviewed checkpoint; no force push.
+- [x] U6. User confirmed T2 checkpoint push. `git push origin main` succeeded; `git ls-remote origin refs/heads/main` returned `2116ed0ef30112d058e28c6a988c4d3d872eb825`. T3 resumed; no force push.
 - [ ] U7. Review retained legacy generated assets only if disk cleanup is desired. Validation: approved exact old-source cleanup after hash verification; agents have deleted none.
 
 ## Cleanup
