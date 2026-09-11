@@ -1,6 +1,6 @@
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { runPrune } from "./lib/asset-delivery/prune-cli.ts";
+import { runDownload } from "./lib/asset-delivery/download-cli.ts";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-process.exitCode = await runPrune(root, process.argv.slice(2));
+process.exitCode = await runDownload(root, process.argv.slice(2));

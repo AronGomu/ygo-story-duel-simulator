@@ -5,7 +5,7 @@ T1 provides read-only setup, strict Node-only schemas, path guards, common local
 ## Developer setup — no publisher credentials
 
 - D1. Install Node.js 24+, Git and npm. Run `node --version`, `git --version`, `npm --version`, then `npm ci` from this checkout. No S3 CLI or publisher credentials are needed for developer downloads.
-- D2. Continue using the existing README acquisition workflow until `assets:download` lands. The planned anonymous download restores all extant bytes under four managed roots, including originals and unused files. It does not guarantee all possible upstream assets exist or that gameplay readiness passes.
+- D2. Stop the running app and development server before `npm run assets:download`; installation replaces multiple managed files and is not globally atomic. The anonymous command restores every byte in the selected published dev bundle under the four managed roots, including originals and unused files. It does not fabricate missing upstream media or prove gameplay readiness. Keep free disk space for the downloaded archive, staging, a second copy of extracted files during installation, backups of replaced files, and metadata; required capacity therefore exceeds the published uncompressed corpus size. `ASSET_DISK_FULL` leaves the receipt unchanged.
 - D3. Run `npm run assets:setup -- --help`. Local `--check` validates `asset-delivery.config.json` and credential presence only; missing publisher credentials do not fail developer usage. Missing config fails explicitly with `ASSET_REFERENCE_MISSING`. No config or evidence files are created automatically.
 - D4. Local syntax success is not publication approval, credential verification, hosted availability, or native-player acceptance. Progress is JSON on stderr; final stdout is `AssetResult`. Exit 0 = check complete, 2 = expected invalid/missing/conflicting/resource state, 1 = unexpected internal failure. Errors never contain credential values, signed URLs, provider bodies, or unsafe input paths.
 
@@ -105,6 +105,7 @@ JS
 - S5. SDKs are devDependencies pinned exactly `@aws-sdk/client-s3@3.1128.0`, `@aws-sdk/lib-storage@3.1128.0`; zip.js remains `2.13.1`. No substitutions. ZIP options fixture: `tests/fixtures/asset-delivery-zip.ts`, using installed `ZipWriterConstructorOptions`, `ZipWriter(WritableStream)`, `add(ReadableStream)`, awaited sequential entry/close.
 - S6. ZIP fixture pins STORE0, raw DOS `0x00210000` (1980-01-01 00:00:00; no timezone conversion), UTF-8, zero comments/attributes, no timestamps/optional extras, unbuffered writes, no workers/native compression. `zip64` omitted: library auto-enables required ZIP64 for large/unknown-size streams. Small unknown-size fixture has required local ZIP64 extra only. UTC/Honolulu fixture match is not Windows/macOS or >4GiB/10GB proof; those remain later gates.
 - S7. [Asset-root inventory](asset-root-inventory.md) records old literals and classifications before any move. Frozen vendor, feedback and user assets stay untouched. Native PWA installer/build activation remains separate work, never claimed from these fixtures.
+- S8. Current local fixture evidence does not prove real ENOSPC behavior, Windows/macOS installation, or dev archives containing files larger than 4 GiB. Those remain T6 acceptance work; do not infer them from Linux fault simulation or small ZIP64 fixtures.
 
 ## Primary references
 
