@@ -50,3 +50,22 @@ These commands can upload or delete public remote bytes. Run them only after com
 - [ ] C3. Start two publishers, then publisher versus remote-prune preview. Verify one owns `_control/write-lock.json`; others return `ASSET_BUSY`. After forced process termination, inspect exact lock owner before removing only `_control/write-lock.json` in R2 console.
 - [ ] C4. Run `npm run assets:prune -- --remote`; inspect exact old-retired candidates, basis SHA, 24-hour cutoff, and release exclusions. Apply only reviewed plan with `npm run assets:prune -- --apply generated/asset-delivery/prune-remote.json`; changed state/object must fail `ASSET_PRUNE_STALE` before deletion.
 - [ ] C5. Interrupt prune after durable intent. After exact stale-lock recovery, run `npm run assets:prune -- --resume --remote`; verify journal-guided completion, final retired state, immutable release availability, anonymous HTTPS GET hash/length, exact-origin browser CORS.
+
+## Anonymous developer bootstrap (T5)
+
+Use a disposable checkout with owner-supplied no-secret config. No publisher environment is needed.
+
+- [ ] D1. Run `npm ci`, `npm run assets:download`, `npm run dev`. Verify all four managed roots restore from latest nightly and app starts without running `assets:mvp`.
+- [ ] D2. Rerun `assets:download`; verify unchanged files keep bytes. Edit one managed file locally; verify `ASSET_LOCAL_CONFLICT`, unchanged receipt and no partial replacement.
+- [ ] D3. Install a newer nightly that removed one prior file. Verify file remains listed retired until `assets:prune -- --local` preview plus reviewed apply; unknown or edited local files never become candidates.
+- [ ] D4. Interrupt one archive download, then Resume by rerunning command. Verify strong-ETag Range reuse or clean restart; invalid/missing range metadata never activates partial bytes.
+
+## Asset/PWA transport handoff (T6)
+
+These checks prove tooling/transport only. They do not mark browser installer, PWA shell, hosted release or native acceptance complete. Fixture receiver remains explicit seam: actual player trigger→dispatch→receive→observe evidence stays pending until real ContentManager/native installer exists.
+
+- [ ] E1. Run `node --test tests/asset-delivery-handoff.test.ts` on Ubuntu, Windows and macOS Node 24. Verify subprocess npm/Node CLI chain passes and all runs report same pinned snapshot/dev/core ZIP hashes.
+- [ ] E2. Against a disposable fake host, verify exact-origin CORS GET succeeds for index/manifest/part. Redirect, wrong SHA/length and 404/410 must map to existing content failures; no credential or AWS SDK enters browser requests/bundle.
+- [ ] E3. Stage a published prod snapshot with `stageCoreAssets`; verify every CoreCopyPlan path/hash matches staged bytes. Missing/wrong core or inventory fails; current workspace edits must never satisfy missing published bytes.
+- [ ] E4. Under release B fixture, resolve release-A retained index/manifest/part refs and keep save refs unchanged. Fixture success is not native save-restore acceptance.
+- [ ] E5. Only after owner authorization, run a real R2 canary and native hosted matrix. Record exact origin/device/release evidence. Until then leave hosted/native items unchecked; never deploy or write R2 during local T6 acceptance.

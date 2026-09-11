@@ -14,6 +14,26 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  asset-delivery-integration:
+    name: asset delivery integration (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - run: npm ci
+      - name: Prove public CLI, fixture publication, install, prune, and core handoff
+        run: node --test tests/asset-delivery-handoff.test.ts
+
   full-gate:
     runs-on: ubuntu-latest
     timeout-minutes: 120

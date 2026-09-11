@@ -1,5 +1,7 @@
 /// <reference types="vite/client" />
 
+declare const __CONTENT_BASE_URL__: string;
+declare const __CONTENT_INDEX_SHA256__: string;
 declare const __RUNTIME_MANIFEST_SHA256__: string;
 declare const __RUNTIME_SNAPSHOT_ID__: string;
 declare const __ACTIVATION_SNAPSHOT_ID__: string;

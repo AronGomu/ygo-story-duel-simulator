@@ -67,23 +67,34 @@ Generated data, downloaded images, caches, and `node_modules/` are intentionally
 
 ## Setup
 
+After the owner supplies the no-secret `asset-delivery.config.json` described in [asset delivery setup](docs/assets/asset-delivery-setup.md), fresh-clone development uses:
+
 ```bash
 git clone git@github.com:AronGomu/ascencio.git
 cd ascencio
 npm ci
-npm run assets:mvp
-npm run check
+npm run assets:download
 npm run dev
 ```
 
-`npm run assets:mvp` is resumable. Existing Git caches and valid JPEGs are reused, so rerun the same command after a temporary network failure. The development server prints its local URL and serves the same trusted runtime files used by production packaging.
+`assets:download` anonymously resolves the latest published nightly, verifies every immutable object/archive/file hash, then restores all four managed roots. No publisher environment is required. Requests retry at most three times; rerun after a temporary outage. Keep free disk for archive + extracted stage + installed files + replacement backups. A retired nightly can expire after 24 hours; `ASSET_REVISION_UNAVAILABLE` means rerun to resolve the current nightly.
+
+Run quality gates separately:
+
+```bash
+npm run check:headless
+npm run check:browser
+```
+
+`npm run assets:mvp` remains the resumable upstream acquisition command for maintainers. It no longer represents complete fresh-clone bootstrap because it does not consume the published four-root delivery snapshot.
 
 ## Public asset delivery setup
 
-- A1. Developer downloads need **no publisher credentials**. Current acquisition remains `assets:mvp`; the single anonymous `assets:download` command is planned, not implemented by the setup slice.
-- A2. `npm run assets:setup -- --help` explains read-only preflight. After owner supplies public config, `npm run assets:setup -- --check` validates syntax and reports pending publisher prerequisites without requiring credentials. Optional `--remote --origin <exact-origin>` performs read-only public/S3 probes; repeat `--origin` for actual dev/prod origins. Never provisions or publishes.
-- A3. [Owner setup](docs/assets/asset-delivery-setup.md) frontloads R2/account/domain/CORS/budget/rights/device prerequisites and explicit empty-index bootstrap. Public originals and unreleased bytes require explicit eligibility approval; public availability does not establish rights.
-- A4. Dev metadata truth means matching archive membership and bytes, **not** exhaustive upstream availability or gameplay readiness. Existing `content:setup:verify` remains separate. [Root inventory](docs/assets/asset-root-inventory.md) records the pre-migration mapping; no assets moved in this slice.
+- A1. Developer downloads need **no publisher credentials**. `npm run assets:download` is the canonical published-snapshot bootstrap; `assets:mvp` remains upstream acquisition only.
+- A2. `npm run assets:setup -- --help` explains read-only preflight. `npm run assets:setup -- --check` validates local config; optional `--remote --origin <exact-origin>` performs bounded read-only public/S3 probes. It never provisions or publishes.
+- A3. [Owner setup](docs/assets/asset-delivery-setup.md) defines the no-secret config, exact CORS origins, bounded retries, storage budget, rights scope and explicit empty-index bootstrap. Public originals and unreleased bytes require explicit approval; availability does not establish rights.
+- A4. `npm run assets:publish` and remote prune are explicit maintainer writes. Do not run them for development setup. Real R2 canary, Pages deploy and native PWA acceptance remain owner-authorized work.
+- A5. Dev metadata truth means matching archive membership and bytes, **not** exhaustive upstream availability or gameplay readiness. `content:setup:verify` remains separate.
 
 ## Quick asset launchers
 
@@ -106,10 +117,16 @@ Both launchers accept the same options as `npm run assets:mvp` and can be launch
 | Command                        | Description                                                                                      |
 | ------------------------------ | ------------------------------------------------------------------------------------------------ |
 | `npm ci`                       | Install the exact development dependencies from `package-lock.json`.                             |
-| `npm run assets:profiles:sync -- --check` | Check canonical roots, references, profile ownership without mutation. |
-| `npm run assets:promote -- --help` | Preview/apply explicit delivery rules; no asset moves. |
+| `npm run assets:setup -- --check` | Validate no-secret delivery config and local prerequisites; add `--remote --origin <origin>` for read-only probes. |
+| `npm run assets:download` | Anonymously download, verify and install latest published dev nightly; `--version 0.1.0` selects an immutable release. |
+| `npm run assets:profiles:sync -- --check` | Check canonical roots, references and profile ownership without mutation. |
+| `npm run assets:promote -- --help` | Preview/apply exact-file or tree delivery rules; no asset moves. |
 | `npm run assets:migrate -- --plan` | Preview hash-guarded copy-only legacy migration; originals retained. |
-| `npm run assets:mvp`           | Download, generate, and verify all currently supported external MVP assets.                      |
+| `npm run assets:bundle -- --target dev\|prod\|all` | Build deterministic local object graph; prod/all require prepared player metadata and explicit history. |
+| `npm run assets:publish -- --target dev\|prod\|all --origin <origin>` | Explicit rights-gated R2 write; add `--version 0.1.0` for immutable release. |
+| `npm run assets:prune -- --local` | Preview hash-safe retired local files; apply reviewed generated plan explicitly. |
+| `npm run assets:prune -- --remote` | Preview expired remote nightly objects; requires publisher environment and explicit apply. |
+| `npm run assets:mvp`           | Acquire and verify upstream MVP inputs; not complete published-snapshot bootstrap.                 |
 | `npm run assets:engine`        | Download, integrity-check, extract, and publish the pinned engine package.                       |
 | `npm run assets:engine:verify` | Verify the extracted engine package and WASM header.                                             |
 | `npm run assets:sync`          | Fetch Project Ignis sources and regenerate catalog, text, scripts, strings, and image manifests. |
@@ -134,10 +151,14 @@ Both launchers accept the same options as `npm run assets:mvp` and can be launch
 | `npm run snapshot:verify`      | Verify the generated runtime snapshot files and digests.                                         |
 | `npm run check:headless`       | Run the complete mandatory local headless quality gate.                                          |
 
-To display the unified downloader help:
+Display developer downloader help with `npm run assets:download -- --help`. Maintainer acquisition help remains `npm run assets:mvp -- --help`.
+
+Player producer adapters:
 
 ```bash
-npm run assets:mvp -- --help
+npm run content:catalog -- --help
+npm run content:pack -- --help
+npm run content:verify -- --help
 ```
 
 Root/profile migration details: [`docs/assets/asset-profiles.md`](docs/assets/asset-profiles.md). Legacy acquisition is explicit; scan/promotion never refresh upstream inputs.

@@ -7,7 +7,7 @@ import type { FileDigest } from "./file-digest.ts";
 import type { ObjectRef } from "./object-ref.ts";
 import { ZipFileReader } from "./zip-file-reader.ts";
 import { verifyArchive } from "./verify-archive.ts";
-import { assertSafeParents } from "./path-guards.ts";
+import { assertSafeParents, assertSafePath } from "./path-guards.ts";
 import { compareCodePoints } from "./canonical-json.ts";
 import { digestSource, sameDigest } from "./source-files.ts";
 import { fail } from "./failure.ts";
@@ -21,15 +21,15 @@ async function removeExtractTemp(root: string, temporary: string) {
 }
 
 /** Archive digest/structure is verified before any extracted byte reaches staging. */
-export async function extractDevArchive(
+export async function extractArchive(
   root: string,
   archivePath: string,
   archive: ObjectRef,
   files: readonly FileDigest[],
-  snapshotSha256: string,
+  stage: string,
 ): Promise<string> {
+  assertSafePath(stage);
   await verifyArchive(root, archivePath, archive, files);
-  const stage = `generated/asset-delivery/install/staged/${snapshotSha256}`;
   const ordered = [...files].sort((a, b) => compareCodePoints(a.path, b.path));
   const handle = await open(
     await assertSafeParents(root, archivePath),
@@ -104,4 +104,20 @@ export async function extractDevArchive(
   if (!sameDigest(await digestSource(root, archivePath, true), archive))
     fail("ASSET_INTEGRITY_FAILED", archive.key);
   return stage;
+}
+
+export function extractDevArchive(
+  root: string,
+  archivePath: string,
+  archive: ObjectRef,
+  files: readonly FileDigest[],
+  snapshotSha256: string,
+): Promise<string> {
+  return extractArchive(
+    root,
+    archivePath,
+    archive,
+    files,
+    `generated/asset-delivery/install/staged/${snapshotSha256}`,
+  );
 }

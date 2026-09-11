@@ -136,6 +136,7 @@ Worker, engine, and asset pipeline are "backend" here — nothing runs on a serv
 | roots | Canonical asset ownership paths and browser mapping | `scripts/lib/asset-roots.ts` (`ASSET_SOURCES`) |
 | profiles | Explicit asset delivery ownership independent of file location | `asset-profiles/`, `scripts/lib/asset-delivery/scan-assets.ts` |
 | bundle | Deterministic frozen dev/player archives; no install or publish | `scripts/lib/asset-delivery/bundle.ts` (`bundleAssets`) |
+| corestage | Exact published core bytes plus PWA copy plan | `scripts/lib/asset-delivery/stage-core-assets.ts` (`stageCoreAssets`) |
 | content | Player metadata parsers, immutable URLs, type-only integration ports | `src/content/index.ts` |
 | promotion | Hash-guarded rule edits without moving asset bytes | `scripts/lib/asset-delivery/promote.ts` (`promoteAssets`) |
 | migration | Hash-verified copy-only legacy source relocation; plan-bound temp ownership gates interrupted runs | `scripts/lib/asset-delivery/migrate.ts` (`applyMigration`), `scripts/lib/asset-delivery/migration-state.ts` |

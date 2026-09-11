@@ -1,13 +1,22 @@
 # Asset delivery setup
 
-T1 provides read-only setup, strict Node-only schemas, path guards, common local lock, rights-scope parsing. T4 adds explicit `assets:publish` plus remote `assets:prune`; downloading, local pruning and player installation remain separate slices. Existing `assets:mvp`, `content:setup:verify` and private build paths are unchanged.
+T1 provides read-only setup, strict Node-only schemas, path guards, common local lock and rights-scope parsing. T4 provides explicit `assets:publish` plus remote prune. T5 provides anonymous `assets:download` plus conflict-safe local prune. T6 connects immutable browser URLs and exact core staging; native PWA installer/build/deploy remain planned. Existing `assets:mvp`, `content:setup:verify` and private build paths remain separate.
 
 ## Developer setup — no publisher credentials
+
+Canonical flow after owner supplies `asset-delivery.config.json`:
+
+```bash
+npm ci
+npm run assets:download
+npm run dev
+```
 
 - D1. Install Node.js 24+, Git and npm. Run `node --version`, `git --version`, `npm --version`, then `npm ci` from this checkout. No S3 CLI or publisher credentials are needed for developer downloads.
 - D2. Stop the running app and development server before `npm run assets:download`; installation replaces multiple managed files and is not globally atomic. The anonymous command restores every byte in the selected published dev bundle under the four managed roots, including originals and unused files. It does not fabricate missing upstream media or prove gameplay readiness. Keep free disk space for the downloaded archive, staging, a second copy of extracted files during installation, backups of replaced files, and metadata; required capacity therefore exceeds the published uncompressed corpus size. `ASSET_DISK_FULL` leaves the receipt unchanged.
 - D3. Run `npm run assets:setup -- --help`. Local `--check` validates `asset-delivery.config.json` and credential presence only; missing publisher credentials do not fail developer usage. Missing config fails explicitly with `ASSET_REFERENCE_MISSING`. No config or evidence files are created automatically.
-- D4. Local syntax success is not publication approval, credential verification, hosted availability, or native-player acceptance. Progress is JSON on stderr; final stdout is `AssetResult`. Exit 0 = check complete, 2 = expected invalid/missing/conflicting/resource state, 1 = unexpected internal failure. Errors never contain credential values, signed URLs, provider bodies, or unsafe input paths.
+- D4. Anonymous reads use at most three attempts with 1s/2s backoff and 30-second request timeouts. Latest nightly re-resolves once when an immutable object expired. A missing/expired exact release stays `ASSET_REVISION_UNAVAILABLE`; no upstream fallback occurs.
+- D5. Local syntax success is not publication approval, credential verification, hosted availability, or native-player acceptance. Progress is JSON on stderr; final stdout is `AssetResult`. Exit 0 = check complete, 2 = expected invalid/missing/conflicting/resource state, 1 = unexpected internal failure. Errors never contain credential values, signed URLs, provider bodies, or unsafe input paths.
 
 ## Owner prerequisites — complete before any publication
 
@@ -104,8 +113,9 @@ JS
 - S4. Remote publish/prune writers use `_control/write-lock.json`, no lease expiry or automatic takeover. Owner recovery: confirm no process active, inspect exact lock owner, remove only that lock in R2 console. Pending `_control/prune-journal.json` requires `npm run assets:prune -- --resume --remote`; never delete journal to bypass recovery. `npm run assets:publish -- --target dev|prod|all --origin https://app.example [--version 0.1.0]` rebuilds and rights-checks before its first remote PUT, then requires every public object to return that exact CORS origin plus immutable cache metadata and matching bytes before channel commit. Use an actual configured app origin, never `*`. `npm run assets:prune -- --remote` writes preview only; `npm run assets:prune -- --apply generated/asset-delivery/prune-remote.json` revalidates before deletion. No `sync --delete`.
 - S5. SDKs are devDependencies pinned exactly `@aws-sdk/client-s3@3.1128.0`, `@aws-sdk/lib-storage@3.1128.0`; zip.js remains `2.13.1`. No substitutions. ZIP options fixture: `tests/fixtures/asset-delivery-zip.ts`, using installed `ZipWriterConstructorOptions`, `ZipWriter(WritableStream)`, `add(ReadableStream)`, awaited sequential entry/close.
 - S6. ZIP fixture pins STORE0, raw DOS `0x00210000` (1980-01-01 00:00:00; no timezone conversion), UTF-8, zero comments/attributes, no timestamps/optional extras, unbuffered writes, no workers/native compression. `zip64` omitted: library auto-enables required ZIP64 for large/unknown-size streams. Small unknown-size fixture has required local ZIP64 extra only. UTC/Honolulu fixture match is not Windows/macOS or >4GiB/10GB proof; those remain later gates.
-- S7. [Asset-root inventory](asset-root-inventory.md) records old literals and classifications before any move. Frozen vendor, feedback and user assets stay untouched. Native PWA installer/build activation remains separate work, never claimed from these fixtures.
-- S8. Current local fixture evidence does not prove real ENOSPC behavior, Windows/macOS installation, or dev archives containing files larger than 4 GiB. Those remain T6 acceptance work; do not infer them from Linux fault simulation or small ZIP64 fixtures.
+- S7. [Asset-root inventory](asset-root-inventory.md) records old literals and classifications before any move. Frozen vendor, feedback and user assets stay untouched. Native PWA installer/build activation remains separate work, never claimed from transport fixtures.
+- S8. T6 CI runs the same small isolated fixture on Ubuntu, Windows and macOS and pins cross-OS snapshot/dev/core ZIP hashes. This does not prove real ENOSPC behavior or archives containing files larger than 4 GiB.
+- S9. Large streaming proof stays opt-in: `node tests/fixtures/asset-delivery-large.ts --directory /approved-disk/new-fixture --bytes 4294967297`; use `10737418240` for 10 GiB. Review printed peak RSS and disk requirement. Routine CI never allocates these files.
 
 ## Primary references
 

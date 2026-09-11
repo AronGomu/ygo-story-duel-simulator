@@ -12,6 +12,7 @@ import {
 import { browserRuntimeAssetsPlugin } from "./scripts/lib/vite-runtime-assets.ts";
 import { syncOnlyVendoredCorePlugin } from "./scripts/lib/vite-sync-core.ts";
 import { sourceAssetsPlugin } from "./scripts/lib/vite-source-assets.ts";
+import { contentObjectUrl } from "./src/content/index.ts";
 
 const projectRoot = path.dirname(fileURLToPath(import.meta.url));
 const appBuildDate = new Date().toISOString().slice(0, 10);
@@ -19,6 +20,15 @@ const developmentPort = Number(process.env.DEV_PORT ?? "4202");
 if (!Number.isSafeInteger(developmentPort) || developmentPort <= 0) {
   throw new Error("DEV_PORT must be a positive integer");
 }
+const contentBaseUrl = process.env.CONTENT_BASE_URL ?? "";
+const contentIndexSha256 = process.env.CONTENT_INDEX_SHA256 ?? "";
+if ((contentBaseUrl === "") !== (contentIndexSha256 === "")) {
+  throw new Error(
+    "CONTENT_BASE_URL and CONTENT_INDEX_SHA256 must be set together",
+  );
+}
+if (contentBaseUrl !== "")
+  contentObjectUrl(contentBaseUrl, "indexes", contentIndexSha256);
 const runtimeManifestBytes = readFileSync(
   path.join(projectRoot, `${ASSET_SOURCES.runtime.source}/manifest.json`),
 );
@@ -67,6 +77,8 @@ export default defineConfig({
     sourceAssetsPlugin(projectRoot),
   ],
   define: {
+    __CONTENT_BASE_URL__: JSON.stringify(contentBaseUrl),
+    __CONTENT_INDEX_SHA256__: JSON.stringify(contentIndexSha256),
     __RUNTIME_MANIFEST_SHA256__: JSON.stringify(runtimeManifestSha256),
     __RUNTIME_SNAPSHOT_ID__: JSON.stringify(runtimeSnapshotId),
     __ACTIVATION_SNAPSHOT_ID__: JSON.stringify(activationSnapshotId),

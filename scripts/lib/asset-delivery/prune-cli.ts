@@ -20,7 +20,9 @@ export async function runPrune(
   stderr: Output = console.error,
 ): Promise<number> {
   const environment =
-    typeof environmentOrStdout === "function" ? process.env : environmentOrStdout;
+    typeof environmentOrStdout === "function"
+      ? process.env
+      : environmentOrStdout;
   const stdout =
     typeof environmentOrStdout === "function"
       ? environmentOrStdout
@@ -42,10 +44,7 @@ export async function runPrune(
         return;
       }
       if (flags.has("--resume")) {
-        if (
-          flags.size !== 2 ||
-          flags.has("--local") === flags.has("--remote")
-        )
+        if (flags.size !== 2 || flags.has("--local") === flags.has("--remote"))
           fail("ASSET_ARGUMENT_INVALID");
         const scope = flags.has("--local") ? "local" : "remote";
         progress(
@@ -58,7 +57,8 @@ export async function runPrune(
           scope === "local"
             ? await resumeLocalPrune(root)
             : await resumePrune(root, "remote", environment);
-        if (result.status === "failed") fail(result.code, result.path ?? undefined);
+        if (result.status === "failed")
+          fail(result.code, result.path ?? undefined);
         return result.snapshotSha256 ?? undefined;
       }
       if (flags.has("--apply")) {
@@ -70,13 +70,11 @@ export async function runPrune(
           plan.scope === "local"
             ? await applyLocalPrune(root, plan)
             : await applyPrune(root, plan, environment);
-        if (result.status === "failed") fail(result.code, result.path ?? undefined);
+        if (result.status === "failed")
+          fail(result.code, result.path ?? undefined);
         return result.snapshotSha256 ?? undefined;
       }
-      if (
-        flags.size !== 1 ||
-        flags.has("--local") === flags.has("--remote")
-      )
+      if (flags.size !== 1 || flags.has("--local") === flags.has("--remote"))
         fail("ASSET_ARGUMENT_INVALID");
       if (flags.has("--local")) {
         const plan = await planLocalPrune(root);

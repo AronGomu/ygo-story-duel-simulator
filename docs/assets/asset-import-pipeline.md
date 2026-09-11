@@ -223,9 +223,19 @@ npm run assets:lock
 
 Entries and keys are ordered by content alone, so the resulting diff shows the art whose bytes moved and nothing else.
 
-## Local delivery bundles
+## Published delivery and local bootstrap
 
-Deterministic dev/player export is separate from acquisition and semantic verification. See [local asset bundles](asset-delivery-bundles.md) for producer commands, frozen object/history/core handoffs, limits, and owner-run large-file evidence requirements.
+Upstream acquisition remains separate from delivery. Maintainers use profiles plus deterministic bundling, explicit rights-gated R2 publication and hash-safe prune. Developers with owner-supplied no-secret config use:
+
+```bash
+npm ci
+npm run assets:download
+npm run dev
+```
+
+The anonymous downloader resolves the published nightly, verifies snapshot → dev manifest/inventory/archive → every file, preserves local conflicts and retires removed managed bytes until explicit local prune. `stageCoreAssets` separately recovers exact frozen core bytes from a published prod snapshot for the planned PWA build; it never rereads current workspace assets. Browser content URLs use `contentObjectUrl` with injected immutable base/index pins; native installer activation remains planned.
+
+See [asset delivery setup](asset-delivery-setup.md) and [deterministic asset bundles](asset-delivery-bundles.md) for commands, object/history/core handoffs, retries, disk requirements and opt-in >4 GiB evidence.
 
 ## First successful snapshot
 

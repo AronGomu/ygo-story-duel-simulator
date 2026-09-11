@@ -152,6 +152,8 @@ export default tseslint.config(
     languageOptions: {
       globals: {
         ...globals.browser,
+        __CONTENT_BASE_URL__: "readonly",
+        __CONTENT_INDEX_SHA256__: "readonly",
         __RUNTIME_MANIFEST_SHA256__: "readonly",
         __RUNTIME_SNAPSHOT_ID__: "readonly",
         __ACTIVATION_SNAPSHOT_ID__: "readonly",

@@ -35,16 +35,18 @@ Current tracked 50-set shop map does not represent every owner-selected Chapter 
 | S1 | Future publisher | Acquire common local lock once; call private `bundleAlreadyLocked` in `bundle-locked.ts`. It returns `{run,snapshot,snapshotRef}`. Hold run ownership through upload. Optional `retainedObjects` is repository-relative explicit history staging. Public `bundleAssets` acquires/releases itself; never call it while already locked. |
 | S2 | Retained history | Public/CLI source: `generated/asset-delivery/retained/objects/<ObjectRef.key>`. Explicit RetainedMetadata lists drive traversal. Every referenced catalog, manifest, part must exist with exact bytes/hash; no object-existence inference, remote lookup, or workspace fallback. Future publisher materializes verified history before calling private seam. |
 | S3 | Future dev installer | `DevManifest.inventory`, `.archive`, `.files` match exact frozen inventory/archive file set. ZIP64 dev archive is Node-only; never feed browser installer. |
-| S4 | Future core staging/build | `snapshot.prod.inventory` pins target's original inventory; `.core` pins CoreManifest plus independent core archive. Core files have source path and browser logical path. No workspace reread fallback; staging/download command remains separate work. |
-| S5 | Future browser receiver | `src/content/index.ts` exports pure parsers/constants, type-only accepted contracts/ports, `contentObjectUrl`. `ContentReadPort.readCatalog` uses `content/catalogs/<sha>.json`; startup uses `content/indexes/<sha>.json`; both contain identical canonical ContentIndex bytes. Future build supplies `__CONTENT_BASE_URL__` plus `__CONTENT_INDEX_SHA256__`; current private build has no content installer. |
+| S4 | Core staging/build | `stageCoreAssets(root, snapshot)` anonymously fetches exact `snapshot.prod.inventory`/`.core`, verifies CoreManifest/archive/files, then writes hash-addressed staged bytes plus CoreCopyPlan under `generated/asset-delivery/core/<core-manifest-sha>/`. No workspace reread fallback. Future `build:pwa` consumes this plan. |
+| S5 | Browser receiver | `src/content/index.ts` exports pure parsers/constants, type-only accepted contracts/ports and `contentObjectUrl`. `ContentReadPort.readCatalog` uses `content/catalogs/<sha>.json`; startup uses `content/indexes/<sha>.json`; both contain identical canonical ContentIndex bytes. Vite injects `__CONTENT_BASE_URL__` plus `__CONTENT_INDEX_SHA256__`; current private build leaves both empty and still has no content installer. |
 
 ContentIndex `releaseId` is `appVersion + "+" + frozenInventorySha256`. Snapshot closure includes distinct index/catalog role keys, inventories, core/dev objects, retained catalogs/manifests/parts. Snapshot excludes its own ref. Retained prod targets keep their own inventory/core refs when a future publisher combines targets. Browser synthetic Cache Storage keys remain same-origin; external URL resolver changes network transport only.
 
 ## Validation
 
-V1. `node --test tests/asset-delivery-contracts.test.ts tests/asset-delivery-profiles.test.ts tests/asset-delivery-bundle.test.ts tests/asset-delivery-repairs.test.ts tests/asset-delivery-metadata-repairs.test.ts tests/asset-delivery-zip-structure.test.ts` checks canonical determinism, source mutation, independent copies, exact closure/history, real 24 MiB part splitting, bounded I/O faults, strict ZIP envelopes/local headers, embedded current/retained runtime identity, canonical file order, current-pointer binding, parser limits, CLI adapters, producer dependency isolation.
+V1. `node --test tests/asset-delivery-contracts.test.ts tests/asset-delivery-profiles.test.ts tests/asset-delivery-bundle.test.ts tests/asset-delivery-publish.test.ts tests/asset-delivery-install.test.ts tests/asset-delivery-handoff.test.ts` checks canonical determinism, profile/publication/install lifecycle, cross-origin content transport, frozen core staging, release-A retained refs and isolated conflict/prune behavior.
 
-V2. Large-file proof is owner-run, not inferred from synthetic ZIP64 headers. On an approved disk with a new destination:
+V2. CI runs `tests/asset-delivery-handoff.test.ts` on Node 24 across Ubuntu, Windows and macOS. Same fixture asserts pinned snapshot/dev/core archive hashes, so per-platform repeatability alone cannot pass.
+
+V3. Large-file proof is owner-run, not inferred from synthetic ZIP64 headers. On an approved disk with a new destination:
 
 ```sh
 node tests/fixtures/asset-delivery-large.ts --directory /approved-disk/new-fixture --bytes 4294967297
