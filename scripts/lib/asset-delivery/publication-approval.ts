@@ -1,5 +1,7 @@
 import type { Sha256, AssetRoot, BundleTarget } from "./identity.ts";
 import type { FileDigest } from "./file-digest.ts";
+import type { BundleSnapshot } from "./bundle-snapshot.ts";
+import type { FrozenInventory } from "./frozen-inventory.ts";
 
 export type ApprovalRule =
   | {
@@ -28,6 +30,7 @@ import { parseFileDigest } from "./file-digest.ts";
 import { assertSourcePath, parseAssetRoot } from "./path-guards.ts";
 import { fail } from "./failure.ts";
 import type { AssetResult } from "./asset-result.ts";
+import { digestSource, sameDigest } from "./source-files.ts";
 
 export function parseApprovalRule(value: unknown): ApprovalRule {
   if (typeof value !== "object" || value === null || !("kind" in value)) fail();
@@ -102,4 +105,57 @@ export function checkPublicationScope(
       );
   }
   return { status: "ok", operation: "check", snapshotSha256: null };
+}
+
+/** Binding rights-only contract. Evidence bytes are verified separately by caller. */
+export function verifyPublicationApproval(
+  approval: PublicationApproval,
+  snapshot: BundleSnapshot,
+  inventories: readonly FrozenInventory[],
+): AssetResult {
+  const parsed = parsePublicationApproval(approval);
+  for (const target of [
+    ...(snapshot.dev ? (["dev"] as const) : []),
+    ...(snapshot.prod ? (["prod"] as const) : []),
+  ]) {
+    for (const inventory of inventories) {
+      const result = checkPublicationScope(parsed, target, [
+        ...inventory.files
+          .filter((file) => target === "dev" || file.profile !== "dev-only")
+          .map((file) => ({
+            root: file.root,
+            path: file.sourcePath,
+            sha256: file.sha256,
+          })),
+        ...(target === "prod"
+          ? inventory.vendorFiles.map((file) => ({
+              root: "vendor" as const,
+              path: file.path.replace(/^vendor\//, ""),
+              sha256: file.sha256,
+            }))
+          : []),
+      ]);
+      if (result.status === "failed") return result;
+    }
+  }
+  return { status: "ok", operation: "check", snapshotSha256: null };
+}
+
+/** Hash every attestation input before publisher performs any remote object PUT. */
+export async function verifyPublicationEvidence(
+  root: string,
+  approval: PublicationApproval,
+): Promise<void> {
+  const evidence = new Map<string, FileDigest>();
+  for (const rule of parsePublicationApproval(approval).rules) {
+    const previous = evidence.get(rule.evidence.path);
+    if (previous && !sameDigest(previous, rule.evidence))
+      fail("ASSET_PUBLICATION_DENIED", rule.evidence.path);
+    evidence.set(rule.evidence.path, rule.evidence);
+  }
+  for (const expected of evidence.values()) {
+    const actual = await digestSource(root, expected.path, true);
+    if (!sameDigest(actual, expected))
+      fail("ASSET_PUBLICATION_DENIED", expected.path);
+  }
 }
