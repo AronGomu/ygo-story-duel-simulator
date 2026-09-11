@@ -56,3 +56,10 @@ Previously approved `FreePlayUniqueOwner.test.ts:40` baseline exception remains 
 - R1. Live Cloudflare R2 multipart, conditional headers, CDN cache/CORS behavior remain unobserved.
 - R2. Native PWA ContentManager/player receive path remains missing by explicit handoff boundary.
 - R3. External author edits outside tooling locks rely on source-change detection; hostile filesystem behavior beyond tested races remains platform-dependent.
+
+## Final Cleanup
+
+- C1. Completed plan index `artifacts/PLAN_2026_09_09_complete_asset_tooling.md` removed.
+- C2. Matching ticket directory removed; final implementation report retained.
+- C3. Implementation worktrees and run-local ignored validation inputs removed.
+- C4. Pre-existing dirty primary-worktree files, unrelated artifacts, owner feedback, and pre-existing worktrees preserved.
