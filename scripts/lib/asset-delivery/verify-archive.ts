@@ -26,8 +26,8 @@ export async function verifyArchive(
   ref: ObjectRef,
   files: readonly FileDigest[],
   player = false,
-  capturePath?: string,
-): Promise<Uint8Array | null> {
+  capturePaths: readonly string[] = [],
+): Promise<ReadonlyMap<string, Uint8Array>> {
   const total = files.reduce((sum, f) => sum + f.bytes, 0);
   if (
     ref.bytes > (player ? 20971520 : MAX_ARCHIVE_BYTES) ||
@@ -51,7 +51,8 @@ export async function verifyArchive(
   try {
     await verifyZipStructure(source, player, expected.length);
     let index = 0;
-    let captured: Uint8Array | null = null;
+    const requestedCaptures = new Set(capturePaths);
+    const captured = new Map<string, Uint8Array>();
     for await (const entry of reader.getEntriesGenerator()) {
       const file = expected[index++];
       if (
@@ -75,9 +76,9 @@ export async function verifyArchive(
         fail("ASSET_ARCHIVE_REJECTED");
       if (player && file.bytes > 16777216) fail("ASSET_LIMIT_EXCEEDED");
       const hash = createHash("sha256");
-      if (file.path === capturePath) {
+      if (requestedCaptures.has(file.path)) {
         if (file.bytes > 32 * 1024 * 1024) fail("ASSET_LIMIT_EXCEEDED");
-        captured = new Uint8Array(file.bytes);
+        captured.set(file.path, new Uint8Array(file.bytes));
       }
       let bytes = 0;
       await entry.getData!(
@@ -86,8 +87,7 @@ export async function verifyArchive(
             bytes += chunk.length;
             if (bytes > file.bytes) fail("ASSET_LIMIT_EXCEEDED");
             hash.update(chunk);
-            if (file.path === capturePath)
-              captured!.set(chunk, bytes - chunk.length);
+            captured.get(file.path)?.set(chunk, bytes - chunk.length);
           },
         }),
         { checkSignature: true, strictness: "strict" },
@@ -95,7 +95,11 @@ export async function verifyArchive(
       if (!sameDigest(file, { bytes, sha256: hash.digest("hex") }))
         fail("ASSET_INTEGRITY_FAILED");
     }
-    if (index !== expected.length || reader.comment?.length)
+    if (
+      index !== expected.length ||
+      reader.comment?.length ||
+      capturePaths.some((entry) => !captured.has(entry))
+    )
       fail("ASSET_ARCHIVE_REJECTED");
     return captured;
   } catch (error) {

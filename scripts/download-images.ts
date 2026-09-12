@@ -13,6 +13,7 @@ import {
 } from "./lib/shop-set-image-codes.ts";
 import { loadDeckSources } from "../src/battle/duel/presets/deck-sources-node.ts";
 import { reviewedCardPool } from "../src/battle/duel/presets/reviewed-card-pool.ts";
+import { loadChapterOneContentSource } from "./lib/chapter-content-source.ts";
 
 /* The biggest of the 14,579 files in the local card archive is 330,480 bytes,
    so this clears legitimate art by roughly 25x. It exists because an endless
@@ -61,6 +62,12 @@ try {
   if (options.active) {
     const activeCodes = new Set(reviewedCardPool(await loadDeckSources()));
     records = records.filter(({ code }) => activeCodes.has(code));
+  }
+  if (options.chapter === "chapter-01") {
+    const chapterCodes = new Set(
+      (await loadChapterOneContentSource(projectRoot)).normalized.cardCodes,
+    );
+    records = records.filter(({ code }) => chapterCodes.has(code));
   }
   records = records.slice(0, options.limit);
   const limiter = createRateLimiter(options.requestsPerSecond);
@@ -147,6 +154,7 @@ interface DownloadOptions {
   force: boolean;
   kind: "full" | "cropped";
   active: boolean;
+  chapter: "chapter-01" | null;
 }
 
 type DownloadResult =
@@ -199,6 +207,9 @@ function parseOptions(args: string[]): DownloadOptions {
     throw new Error("--kind must be full or cropped");
   if (active && kind !== "cropped")
     throw new Error("--active is only supported with --kind cropped");
+  const chapter = values.get("--chapter") ?? null;
+  if (chapter !== null && chapter !== "chapter-01")
+    throw new Error("--chapter must be chapter-01");
 
   return {
     assetDirectory: values.get("--assets") ?? ASSET_SOURCES.data.source,
@@ -213,6 +224,7 @@ function parseOptions(args: string[]): DownloadOptions {
     force,
     kind,
     active,
+    chapter,
   };
 }
 

@@ -14,6 +14,7 @@ import {
   invalid,
   literal,
   manifestRef,
+  packId,
   paths,
   record,
   result,
@@ -32,6 +33,7 @@ export function parseContentManifest(
       "packId",
       "runtimeSnapshotId",
       "storyContentId",
+      "gameplayPath",
       "dependencies",
       "cardCodes",
       "opponentIds",
@@ -39,11 +41,12 @@ export function parseContentManifest(
       "files",
     ]);
     const manifest: ContentManifest = {
-      schemaVersion: literal(v.schemaVersion, 1),
-      packId: literal(v.packId, "runtime", "chapter-01"),
+      schemaVersion: literal(v.schemaVersion, 2),
+      packId: packId(v.packId),
       runtimeSnapshotId: hash(v.runtimeSnapshotId),
       storyContentId: literal(v.storyContentId, "prototype-prologue-v1", null),
-      dependencies: array(v.dependencies, manifestRef, 1),
+      gameplayPath: v.gameplayPath === null ? null : safePath(v.gameplayPath),
+      dependencies: array(v.dependencies, manifestRef, 99),
       cardCodes: codes(v.cardCodes),
       opponentIds: strings(v.opponentIds),
       parts: array(v.parts, (value) => {
@@ -87,16 +90,32 @@ export function parseContentManifest(
         };
       }),
     };
-    if (
-      manifest.packId === "runtime"
-        ? manifest.dependencies.length !== 0 || manifest.storyContentId !== null
-        : manifest.dependencies.length !== 1 ||
-          manifest.dependencies[0]!.packId !== "runtime"
+    if (manifest.packId === "runtime") {
+      if (
+        manifest.dependencies.length !== 0 ||
+        manifest.storyContentId !== null ||
+        manifest.gameplayPath !== null
+      )
+        invalid();
+    } else if (
+      manifest.dependencies.length === 0 ||
+      manifest.dependencies.some(({ packId }) => packId === manifest.packId) ||
+      manifest.gameplayPath !== `chapters/${manifest.packId}/gameplay.json`
     )
       invalid();
+    unique(manifest.dependencies, ({ packId }) => packId);
     sorted(manifest.files, (a, b) => compare(a.path, b.path));
     unique(manifest.parts, (p) => p.sha256);
     paths(manifest.files.map((f) => f.path));
+    if (
+      manifest.gameplayPath !== null &&
+      !manifest.files.some(
+        (file) =>
+          file.path === manifest.gameplayPath &&
+          file.mediaType === "application/json",
+      )
+    )
+      invalid();
     const parts = new Map(
       manifest.parts.map((p) => [
         p.sha256,

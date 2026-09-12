@@ -15,7 +15,7 @@ import type { ObjectRef } from "./object-ref.ts";
 import type { PlayerBundleRef } from "./bundle-snapshot.ts";
 import type { BundleObjects } from "./bundle-objects.ts";
 import { compareCodePoints } from "./canonical-json.ts";
-import { chapterPolicyBytes, playerPayload } from "./player-payload.ts";
+import { playerPayload } from "./player-payload.ts";
 import { readSourceJson } from "./source-files.ts";
 import {
   writeArchive,
@@ -108,10 +108,12 @@ async function pack(
   const chapter = metadata.chapters[0]!;
   const manifest: ContentManifest = contentValue(
     parseContentManifest({
-      schemaVersion: 1,
+      schemaVersion: 2,
       packId,
       runtimeSnapshotId: metadata.runtimeSnapshotId,
       storyContentId: packId === "runtime" ? null : chapter.storyContentId,
+      gameplayPath:
+        packId === "runtime" ? null : `chapters/${packId}/gameplay.json`,
       dependencies,
       cardCodes:
         packId === "runtime" ? metadata.runtimeCardCodes : chapter.cardCodes,
@@ -140,19 +142,27 @@ export async function buildPlayerBundle(
     )
   )
     fail("ASSET_TARGET_UNAVAILABLE");
-  const stagedPolicy = `${store.run}/derived/chapter-01.json`;
-  const selected = (id: PackId): PlayerFile[] =>
-    playerPayload(inventory, id).map((f) => ({
-      path: f.path,
-      bytes: f.bytes,
-      sha256: f.sha256,
-      stagedPath:
-        f.sourcePath === null
-          ? stagedPolicy
-          : frozenSourcePath(store.run, f.sourcePath),
-      mediaType: mediaType(f.path),
-    }));
-  const runtime = selected("runtime");
+  const selected = async (id: PackId): Promise<PlayerFile[]> => {
+    const files = playerPayload(inventory, id);
+    const selectedFiles: PlayerFile[] = [];
+    for (const [index, file] of files.entries()) {
+      const stagedPath =
+        file.sourcePath === null
+          ? `${store.run}/derived/${id}-${index}`
+          : frozenSourcePath(store.run, file.sourcePath);
+      if (file.derivedBytes !== null)
+        await store.bytes(stagedPath, file.derivedBytes);
+      selectedFiles.push({
+        path: file.path,
+        bytes: file.bytes,
+        sha256: file.sha256,
+        stagedPath,
+        mediaType: mediaType(file.path),
+      });
+    }
+    return selectedFiles;
+  };
+  const runtime = await selected("runtime");
   const manifestFile = runtime.find(
     (f) => f.path === "runtime/current/manifest.json",
   );
@@ -167,8 +177,7 @@ export async function buildPlayerBundle(
     manifest.snapshotId !== metadata.runtimeSnapshotId
   )
     fail("ASSET_TARGET_UNAVAILABLE", "runtime/current/manifest.json");
-  const chapter = selected("chapter-01");
-  await store.bytes(stagedPolicy, chapterPolicyBytes(inventory));
+  const chapter = await selected("chapter-01");
   assertNoPathCollisions(
     [
       ...runtime,
@@ -184,7 +193,7 @@ export async function buildPlayerBundle(
     : null;
   const index: ContentIndex = contentValue(
     parseContentIndex({
-      schemaVersion: 1,
+      schemaVersion: 2,
       releaseId: `${inventory.appVersion}+${inventoryRef.sha256}`,
       runtimeSnapshotId: metadata.runtimeSnapshotId,
       runtime: runtimeRef,
@@ -193,12 +202,14 @@ export async function buildPlayerBundle(
           ? {
               id: "chapter-01",
               title: metadata.chapters[0]!.title,
+              description: metadata.chapters[0]!.description,
               status: "published",
               manifest: chapterRef,
             }
           : {
               id: "chapter-01",
               title: metadata.chapters[0]!.title,
+              description: metadata.chapters[0]!.description,
               status: "unreleased",
             },
       ],

@@ -211,9 +211,9 @@ describe("Chapter 1 authoring scope", () => {
         .map(({ name }) => name),
     ).toContain(emptySetName);
   });
-  it("real readiness stays blocked on selected gaps, not all later chronology or unknown orphans", async () => {
+  it("real readiness accepts verified media plus approved null images without later chronology or orphan blockers", async () => {
     const report = await inspectContentSetup(process.cwd(), {});
-    expect(report).toMatchObject({ codeReady: false, publishReady: false });
+    expect(report).toMatchObject({ codeReady: true, publishReady: false });
     expect(
       report.blockers.some(({ code }) => code === "OWNER_MAPPING_REQUIRED"),
     ).toBe(false);

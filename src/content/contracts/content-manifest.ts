@@ -5,10 +5,11 @@ import type { ZipPart } from "./zip-part.ts";
 import type { PackedFile } from "./packed-file.ts";
 
 export interface ContentManifest {
-  readonly schemaVersion: 1;
+  readonly schemaVersion: 2;
   readonly packId: PackId;
   readonly runtimeSnapshotId: Sha256;
   readonly storyContentId: "prototype-prologue-v1" | null;
+  readonly gameplayPath: string | null;
   readonly dependencies: readonly ManifestRef[];
   readonly cardCodes: readonly number[];
   readonly opponentIds: readonly string[];

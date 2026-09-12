@@ -1,18 +1,30 @@
+import type {
+  ChapterGameplay,
+  ChapterStoryDocument,
+} from "../../../src/content/index.ts";
+import {
+  parseChapterGameplay,
+  parseChapterStoryDocument,
+} from "../../../src/content/index.ts";
 import type { Sha256 } from "./identity.ts";
 import type { FileDigest } from "./file-digest.ts";
 
 export interface PreparedPlayerMetadata {
-  readonly schemaVersion: 1;
+  readonly schemaVersion: 2;
   readonly sourceInputs: readonly FileDigest[];
   readonly runtimeSnapshotId: Sha256;
   readonly runtimeCardCodes: readonly number[];
   readonly chapters: readonly {
     readonly id: "chapter-01";
     readonly title: string;
+    readonly description: string;
     readonly storyContentId: "prototype-prologue-v1" | null;
     readonly setIds: readonly string[];
+    readonly unavailableSetImageIds: readonly string[];
     readonly cardCodes: readonly number[];
     readonly opponentIds: readonly string[];
+    readonly gameplay: ChapterGameplay;
+    readonly story: ChapterStoryDocument;
   }[];
 }
 
@@ -25,7 +37,6 @@ import {
   nullable,
   object,
   text,
-  version,
 } from "./schema.ts";
 import { parseFileDigests } from "./file-digest.ts";
 import { fail } from "./failure.ts";
@@ -39,7 +50,7 @@ export function parsePreparedPlayerMetadata(
   value: unknown,
 ): PreparedPlayerMetadata {
   const metadata = object(value, {
-    schemaVersion: version,
+    schemaVersion: literal(2),
     sourceInputs: parseFileDigests,
     runtimeSnapshotId: hash,
     runtimeCardCodes: array(cardCode, (v) => v),
@@ -48,10 +59,22 @@ export function parsePreparedPlayerMetadata(
         object(v, {
           id: literal("chapter-01"),
           title: text,
+          description: text,
           storyContentId: nullable(literal("prototype-prologue-v1")),
           setIds: array(text, (v) => v, 2048),
+          unavailableSetImageIds: array(text, (v) => v, 2048),
           cardCodes: array(cardCode, (v) => v),
           opponentIds: array(text, (v) => v),
+          gameplay: (value) => {
+            const parsed = parseChapterGameplay(value);
+            if (parsed.kind !== "ok") fail("ASSET_CONFIG_INVALID");
+            return parsed.value;
+          },
+          story: (value) => {
+            const parsed = parseChapterStoryDocument(value);
+            if (parsed.kind !== "ok") fail("ASSET_CONFIG_INVALID");
+            return parsed.value;
+          },
         }),
       (chapter) => chapter.id,
       1,
@@ -61,6 +84,7 @@ export function parsePreparedPlayerMetadata(
   for (const chapter of metadata.chapters) {
     assertSorted(chapter.cardCodes, (left, right) => left - right);
     assertSorted(chapter.setIds, compareCodePoints);
+    assertSorted(chapter.unavailableSetImageIds, compareCodePoints);
     assertSorted(chapter.opponentIds, compareCodePoints);
   }
   return metadata;

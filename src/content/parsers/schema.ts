@@ -1,5 +1,7 @@
 import type { ContentResult } from "../contracts/content-result.ts";
+import type { ChapterId } from "../contracts/chapter-id.ts";
 import type { ManifestRef } from "../contracts/manifest-ref.ts";
+import type { PackId } from "../contracts/pack-id.ts";
 
 class InvalidContent extends Error {}
 export function invalid(): never {
@@ -139,10 +141,18 @@ export function paths(paths: readonly string[]): void {
     }
   }
 }
+export function chapterId(value: unknown): ChapterId {
+  if (typeof value !== "string" || !/^chapter-(0[1-9]|[1-9][0-9])$/.test(value))
+    invalid();
+  return value as ChapterId;
+}
+export function packId(value: unknown): PackId {
+  return value === "runtime" ? value : chapterId(value);
+}
 export function manifestRef(value: unknown): ManifestRef {
   const v = record(value, ["packId", "sha256", "bytes"]);
   return {
-    packId: literal(v.packId, "runtime", "chapter-01"),
+    packId: packId(v.packId),
     sha256: hash(v.sha256),
     bytes: integer(v.bytes, 4194304, 1),
   };
@@ -159,7 +169,7 @@ export function budget(value: unknown, max: number): void {
       typeof v === "number" ||
       typeof v === "string"
     ) {
-      if (typeof v === "number") integer(v);
+      if (typeof v === "number" && !Number.isSafeInteger(v)) invalid();
       if (typeof v === "string" && v.length > remaining) invalid();
       remaining -= new TextEncoder().encode(JSON.stringify(v)).length;
     } else if (typeof v === "object") {

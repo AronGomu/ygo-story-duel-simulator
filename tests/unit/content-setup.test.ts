@@ -524,7 +524,7 @@ describe("content setup", () => {
     );
     expect(result.stdout + result.stderr + report).not.toContain(sentinel);
     expect(JSON.parse(report)).toMatchObject({
-      codeReady: false,
+      codeReady: true,
       publishReady: false,
     });
   });

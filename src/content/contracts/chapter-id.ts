@@ -1,1 +1,1 @@
-export type ChapterId = "chapter-01";
+export type ChapterId = `chapter-${string}`;

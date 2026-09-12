@@ -43,6 +43,20 @@ describe("shop set tiles", () => {
     ).toBeNull();
   });
 
+  it("maps an installed null image to text-only set tiles", () => {
+    const { container } = render(ShopBrowseScreen, {
+      sets: [set(LOB, 2002)],
+      error: null,
+      dp: 1000,
+      onbuy: noop,
+      onback: noop,
+      imageUrlFor: () => null,
+    });
+    expect(container.querySelector("img")).toBeNull();
+    expect(container.textContent).toContain("legend of blue eyes white dragon");
+    expect(container.textContent).toContain("2002");
+  });
+
   it("renders a typographic tile when none exists", () => {
     const { container } = render(SetTile, {
       set: set("metal-raiders", 2002),

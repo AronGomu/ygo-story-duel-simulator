@@ -352,7 +352,7 @@ test("retained release A catalog/manifests/parts stay reachable in release B; no
     ),
   );
   const policy = policyManifest.files.find(
-    (f: { path: string }) => f.path === "story/policy/chapter-01.json",
+    (f: { path: string }) => f.path === "chapters/chapter-01/gameplay.json",
   );
   const reader = new ZipReader(
     new Uint8ArrayReader(
@@ -373,7 +373,10 @@ test("retained release A catalog/manifests/parts stay reachable in release B; no
   const value = JSON.parse(
     new TextDecoder().decode(await entry.getData!(new Uint8ArrayWriter())),
   );
-  assert.deepEqual(value.setIds, prepared.chapters[0]!.setIds);
+  assert.deepEqual(
+    value.sets.map(({ id }: { id: string }) => id).sort(),
+    prepared.chapters[0]!.setIds,
+  );
   await reader.close();
   await verifyBundle(root, runB);
 });
@@ -450,13 +453,14 @@ test("real 24 MiB player input splits into bounded STORE parts; 16 MiB+1 selecte
   assert.deepEqual(await current(root), pointer);
 });
 
-test("player parsers reject extras, traversal, collisions, dangling parts, chapter-02, limits", () => {
+test("player parsers reject extras, traversal, collisions, dangling parts and limits", () => {
   const h = "b".repeat(64);
   const manifest = {
-    schemaVersion: 1,
+    schemaVersion: 2,
     packId: "runtime",
     runtimeSnapshotId: h,
     storyContentId: null,
+    gameplayPath: null,
     dependencies: [],
     cardCodes: [1],
     opponentIds: [],
@@ -475,7 +479,6 @@ test("player parsers reject extras, traversal, collisions, dangling parts, chapt
   assert.equal(parseContentManifest(manifest).kind, "ok");
   for (const invalid of [
     { ...manifest, extra: true },
-    { ...manifest, packId: "chapter-02" },
     { ...manifest, files: [{ ...manifest.files[0], path: "../unsafe.png" }] },
     { ...manifest, files: [{ ...manifest.files[0], path: "unsafe.js" }] },
     { ...manifest, files: [{ ...manifest.files[0], bytes: 16777217 }] },
@@ -493,11 +496,18 @@ test("player parsers reject extras, traversal, collisions, dangling parts, chapt
   ])
     assert.equal(parseContentManifest(invalid).kind, "failed");
   const index = {
-    schemaVersion: 1,
+    schemaVersion: 2,
     releaseId: "0.1.0+" + h,
     runtimeSnapshotId: h,
     runtime: { packId: "runtime", sha256: h, bytes: 200 },
-    chapters: [{ id: "chapter-01", title: "DM", status: "unreleased" }],
+    chapters: [
+      {
+        id: "chapter-01",
+        title: "DM",
+        description: "Prototype.",
+        status: "unreleased",
+      },
+    ],
     retainedCatalogs: [],
     retainedManifests: [],
   };
@@ -505,7 +515,28 @@ test("player parsers reject extras, traversal, collisions, dangling parts, chapt
   assert.equal(
     parseContentIndex({
       ...index,
-      chapters: [{ id: "chapter-02", title: "GX", status: "unreleased" }],
+      chapters: [
+        {
+          id: "chapter-02",
+          title: "GX",
+          description: "Fixture.",
+          status: "unreleased",
+        },
+      ],
+    }).kind,
+    "ok",
+  );
+  assert.equal(
+    parseContentIndex({
+      ...index,
+      chapters: [
+        {
+          id: "chapter-100",
+          title: "Invalid",
+          description: "Invalid.",
+          status: "unreleased",
+        },
+      ],
     }).kind,
     "failed",
   );
@@ -602,7 +633,7 @@ test("ZIP verifier rejects ZIP64 player fixtures, encryption, dirs, extras, unde
   );
 });
 
-test("explicit content:catalog preserves duplicate-membership set IDs; pins source bytes; unmapped names fail", async () => {
+test("explicit content:catalog preserves mapped set IDs, hashes new IDs and pins source bytes", async () => {
   const { preparePlayerMetadata } =
     await import("../scripts/lib/asset-delivery/prepare-player.ts");
   const root = await fixture();
@@ -653,7 +684,30 @@ test("explicit content:catalog preserves duplicate-membership set IDs; pins sour
     ],
     cardsWithoutSetMembership: [],
   });
-  const shard = canonicalBytes([{ code: 1 }, { code: 2 }, { code: 81480460 }]);
+  const runtimeRecord = (code: number) => ({
+    code,
+    alias: 0,
+    setcodes: [],
+    type: 17,
+    level: 4,
+    attribute: 1,
+    race: "1",
+    attack: 1000,
+    defense: 1000,
+    lscale: 0,
+    rscale: 0,
+    linkMarker: 0,
+    ot: 1,
+    category: 0,
+  });
+  const runtimeText = (code: number) => ({
+    code,
+    name: code === 81480460 ? "Barrel Dragon" : `Card ${code}`,
+    description: "Description",
+    strings: Array.from({ length: 16 }, () => ""),
+  });
+  const cardShard = canonicalBytes([1, 2, 81480460].map(runtimeRecord));
+  const textShard = canonicalBytes([1, 2, 81480460].map(runtimeText));
   await put(root, "content/authoring/card-set-source.json", source);
   await put(
     root,
@@ -703,13 +757,117 @@ test("explicit content:catalog preserves duplicate-membership set IDs; pins sour
     "public/story/shop-sets.v1.json",
     canonicalBytes({
       version: 1,
-      sets: [
-        { id: "one", name: "One" },
-        { id: "two", name: "Two" },
-      ],
+      sets: [{ id: "one", name: "One" }],
     }),
   );
-  await put(root, "assets/shared/data/current/catalog/cards/00.json", shard);
+  const setMediaSource = canonicalBytes([
+    {
+      set_name: "One",
+      set_image: "https://images.ygoprodeck.com/images/sets/ONE.jpg",
+    },
+    { set_name: "Two", set_image: null },
+  ]);
+  await put(
+    root,
+    "content/authoring/ygoprodeck-cardsets-2026-09-12.json",
+    setMediaSource,
+  );
+  await put(
+    root,
+    "content/authoring/chapter-one-set-media.json",
+    canonicalBytes({
+      schemaVersion: 1,
+      provider: "YGOPRODeck",
+      query: "https://db.ygoprodeck.com/api/v7/cardsets.php",
+      setsWithoutImage: [
+        {
+          id: `set-${sha(new TextEncoder().encode("Two")).slice(0, 16)}`,
+          name: "Two",
+          sourceSetCode: "TWO",
+          providerRecords: 1,
+          providerRecordsWithImage: 0,
+        },
+      ],
+      source: {
+        path: "content/authoring/ygoprodeck-cardsets-2026-09-12.json",
+        bytes: setMediaSource.byteLength,
+        sha256: sha(setMediaSource),
+      },
+    }),
+  );
+  await put(
+    root,
+    "content/authoring/chapter-one-gameplay.json",
+    canonicalBytes({
+      schemaVersion: 1,
+      description: "Fixture chapter.",
+      decks: [{ id: "starter", name: "Starter", path: "src/decks/test.ydk" }],
+      opponents: [
+        {
+          id: "practice-bot",
+          name: "Practice Bot",
+          line: "Practice.",
+          deckId: "starter",
+          policyId: "basic",
+        },
+      ],
+      defaults: { starterDeckId: "starter", opponentId: "practice-bot" },
+      story: {
+        contentId: "prototype-prologue-v1",
+        document: "content/authoring/chapter-one-story.json",
+      },
+    }),
+  );
+  await put(
+    root,
+    "content/authoring/chapter-one-story.json",
+    canonicalBytes({
+      schemaVersion: 1,
+      contentId: "prototype-prologue-v1",
+      title: "Fixture",
+      beats: [
+        {
+          id: "arrival",
+          speaker: null,
+          kind: "narration",
+          text: "Arrival.",
+          background: "station",
+          characters: [],
+        },
+      ],
+      choices: [
+        { id: "trust-rin", label: "Trust" },
+        { id: "challenge-rin", label: "Challenge" },
+        { id: "observe-first", label: "Observe" },
+      ],
+      choiceResponses: {
+        "trust-rin": "Trusted.",
+        "challenge-rin": "Challenged.",
+        "observe-first": "Observed.",
+      },
+      laterAcknowledgments: {
+        "trust-rin": "Trust remembered.",
+        "challenge-rin": "Challenge remembered.",
+        "observe-first": "Observation remembered.",
+      },
+      mapImage: { packId: "chapter-01", path: "story/media/map.png" },
+    }),
+  );
+  await put(
+    root,
+    "src/decks/test.ydk",
+    `#main\n${Array.from({ length: 40 }, () => "1").join("\n")}\n#extra\n!side\n`,
+  );
+  await put(
+    root,
+    "assets/shared/data/current/catalog/cards/00.json",
+    cardShard,
+  );
+  await put(
+    root,
+    "assets/shared/data/current/catalog/texts/en/00.json",
+    textShard,
+  );
   await put(
     root,
     "assets/shared/data/current/manifest.json",
@@ -725,23 +883,35 @@ test("explicit content:catalog preserves duplicate-membership set IDs; pins sour
         files: [
           {
             path: "catalog/cards/00.json",
-            bytes: shard.length,
-            sha256: sha(shard),
+            bytes: cardShard.length,
+            sha256: sha(cardShard),
+          },
+          {
+            path: "catalog/texts/en/00.json",
+            bytes: textShard.length,
+            sha256: sha(textShard),
           },
         ],
       },
     }),
   );
   const output = await preparePlayerMetadata(root);
-  assert.deepEqual(output.chapters[0]!.setIds, ["one", "two"]);
+  assert.deepEqual(output.chapters[0]!.setIds, [
+    "one",
+    `set-${sha(new TextEncoder().encode("Two")).slice(0, 16)}`,
+  ]);
   assert.deepEqual(output.chapters[0]!.cardCodes, [1, 81480460]);
   assert.deepEqual(output.runtimeCardCodes, [1, 2, 81480460]);
-  assert.equal(output.sourceInputs.length, 8);
-  assert(
-    output.sourceInputs.some(
-      ({ path }) => path === "content/authoring/chapter-one-corrections.json",
-    ),
+  assert.equal(
+    output.chapters[0]!.gameplay.sets.find(({ name }) => name === "Two")!.image,
+    null,
   );
+  assert.equal(output.sourceInputs.length, 14);
+  for (const requiredPath of [
+    "content/authoring/chapter-one-corrections.json",
+    "content/authoring/ygoprodeck-cardsets-2026-09-12.json",
+  ])
+    assert(output.sourceInputs.some(({ path }) => path === requiredPath));
   for (const input of output.sourceInputs)
     assert.equal(
       sha(await readFile(path.join(root, input.path))),
@@ -750,12 +920,8 @@ test("explicit content:catalog preserves duplicate-membership set IDs; pins sour
   const before = await readFile(
     path.join(root, "generated/asset-delivery/prepared-player.json"),
   );
-  await put(
-    root,
-    "public/story/shop-sets.v1.json",
-    canonicalBytes({ version: 1, sets: [{ id: "one", name: "One" }] }),
-  );
-  await assert.rejects(preparePlayerMetadata(root), /ASSET_REFERENCE_MISSING/);
+  await put(root, "content/authoring/chapter-one-gameplay.json", "{}");
+  await assert.rejects(preparePlayerMetadata(root), /ASSET_CONFIG_INVALID/);
   assert.deepEqual(
     await readFile(
       path.join(root, "generated/asset-delivery/prepared-player.json"),

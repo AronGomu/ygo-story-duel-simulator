@@ -129,6 +129,12 @@ const mockedWorkerClientCtor = MockedDuelWorkerClient as unknown as {
     which is the one way the two contracts can be made to disagree from here. */
 let refuseBattleRequest = false;
 
+const READY_CORE_GATE = {
+  kind: "ready" as const,
+  chapterIds: ["chapter-01" as const],
+  generation: 1,
+};
+
 const loaders: DomainLoaders = {
   duel: async () => {
     const battle = await import("../../src/battle/index.ts");
@@ -173,7 +179,12 @@ function renderShell() {
   store = createShellStore(hash, (next) => {
     hash = next;
   });
-  return render(AppShell, { store, loaders, saves });
+  return render(AppShell, {
+    store,
+    loaders,
+    saves,
+    initialCoreGate: READY_CORE_GATE,
+  });
 }
 
 function region(name: string): Element | null {
