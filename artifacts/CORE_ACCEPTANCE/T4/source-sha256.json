@@ -1,0 +1,202 @@
+[
+  {
+    "path": "artifacts/manual_test_checklist.md",
+    "sha256": "46b43b3a7bfb9ca1c38f0d18ddd0ab7949b6c93a3bba49c92982a3a1f4ff0efa"
+  },
+  {
+    "path": "docs/GLOSSARY.md",
+    "sha256": "800ca5fe4eaaa2c05013df2943907a6d2d822bdc4804f1896a9f077946805c07"
+  },
+  {
+    "path": "e2e-content/installer.spec.ts",
+    "sha256": "3a36e43ec6e2a2e0d5891989e2590300a5914c83a6e681f25b3a16c392931dde"
+  },
+  {
+    "path": "e2e-content/real-installer.spec.ts",
+    "sha256": "5b480b3f74a02787e171dbc55b0ce3ffb43a2c25f6fd0a799a2ccf9739cb86fc"
+  },
+  {
+    "path": "eslint.config.js",
+    "sha256": "fc40087c8a0b125f25c710ce98c2be50bd95770f6b5b2ad195b067b63798835d"
+  },
+  {
+    "path": "package.json",
+    "sha256": "a1310dc71bc6418771e63e04d16be4304381ee2ec0ab3bc536c475f372b66da6"
+  },
+  {
+    "path": "playwright.content.config.ts",
+    "sha256": "f8037fdd74f6f0674ec09446eba30edb3dfee06bba6faa81b0a44496a3fbfcb6"
+  },
+  {
+    "path": "src/battle/content-activation.ts",
+    "sha256": "5ea26b2bff2eee24e67ce808a88437c4337888ad500e8dfb02189a28bd8505fc"
+  },
+  {
+    "path": "src/battle/storage/frozen-vendor-pin.ts",
+    "sha256": "16b006cbe0efe3fd96b6427329c5b5afe1824cd188a59d405b908103f704c5ed"
+  },
+  {
+    "path": "src/battle/storage/installed-runtime-receipt.ts",
+    "sha256": "0f2c6896b68b7dcad045d41d3c485b9f5c298ef7aa05212675a8caf7b16dd236"
+  },
+  {
+    "path": "src/battle/storage/prepare-installed-runtime.ts",
+    "sha256": "f387def105ef9ff369f36638bb1fb990d065a80974a496febc27a9ced71b5deb"
+  },
+  {
+    "path": "src/battle/storage/snapshot-store.ts",
+    "sha256": "e6e3ff3f29361d4fac8a493976826e3f96dc722820f2f5d4fff0ac421b917a02"
+  },
+  {
+    "path": "src/battle/storage/verify-runtime-support.ts",
+    "sha256": "d32ba1e6a97d534f47706179a350a6b612fd38d38d74bc3922839fc713f8dce5"
+  },
+  {
+    "path": "src/content/content-api.ts",
+    "sha256": "27cbf3245336d06d2987f2a5bb371ccd156479048c9438ce15eec36b06047a0e"
+  },
+  {
+    "path": "src/content/content-verification.ts",
+    "sha256": "d49ee6d410d6dea77d5a733a1bd013ee1f34c6b3bf8b40bc7197e59282ad7019"
+  },
+  {
+    "path": "src/content/contracts/content-installer.ts",
+    "sha256": "a32eb2c67c7d45eb7fef72c3225f75b8f8fdb1af659070d9a272b207e6369f6b"
+  },
+  {
+    "path": "src/content/contracts/download-job.ts",
+    "sha256": "227277b62e04d2e096fc36f76dc5fc5d35851cdec3aa3249d0f7d3ce541c1b4b"
+  },
+  {
+    "path": "src/content/contracts/download-phase.ts",
+    "sha256": "c3c5bb778950d8868bdcd01219b62249b9410325e5874afd4e8b627a0fe8d64c"
+  },
+  {
+    "path": "src/content/contracts/download-result.ts",
+    "sha256": "6a93c64f56d4907e3d02dc9cacbc221d347191bc1b9f6dab672bffd8457fd796"
+  },
+  {
+    "path": "src/content/contracts/download-target.ts",
+    "sha256": "789556de20b626a5251ff183cfe6c8b45a85f58d93a9473ab95ae73408a3ddc2"
+  },
+  {
+    "path": "src/content/contracts/install-receipt.ts",
+    "sha256": "27aa5dc80fe15fa8ca1314de590e2824d5d4277e961991d8c96fca7957f8feac"
+  },
+  {
+    "path": "src/content/contracts/installed-runtime-receipt.ts",
+    "sha256": "101c2218956c8cb8836a287b9eb5333fb1b029ef9e362ebae9b70f5457b643c5"
+  },
+  {
+    "path": "src/content/contracts/persisted-download-job.ts",
+    "sha256": "2ca5d72ff10b735b1b6bb9ed551a3614e796f29c7dfd85e96a797b92ca32da34"
+  },
+  {
+    "path": "src/content/contracts/runtime-receipt-file.ts",
+    "sha256": "b2b35ded3101243b0d187c5d3434f8caa7a7c73642263e0ad2940a12f0931268"
+  },
+  {
+    "path": "src/content/contracts/saved-content-refs-port.ts",
+    "sha256": "60364d3d3a963b88f2eec835a0da964a8a377af035eb6d6bf106e56b7456826c"
+  },
+  {
+    "path": "src/content/create-content-installer.ts",
+    "sha256": "68385341c39606e8774d52f52f78d25bf20632ae0ab208ae054bdaa8e5865724"
+  },
+  {
+    "path": "src/content/index.ts",
+    "sha256": "a8a5f80da47101b530261c650de433b3d6f36ee0e1eac9074e73be04f0d8e1eb"
+  },
+  {
+    "path": "src/content/install/manifest-closure.ts",
+    "sha256": "0996bb3011780b98f849f1304ba0e0d5d1df0de5dd4636211bed77ef594b5bbd"
+  },
+  {
+    "path": "src/content/install/verified-archive.ts",
+    "sha256": "ee7be8bf16265135c9949d18ee32a75f7e1f0a09afb501c20ca7f769466e6535"
+  },
+  {
+    "path": "src/content/install/verified-fetch.ts",
+    "sha256": "ed5f4de1dc397b96558a275eaae80f999f5ce9cff4f060970112c14dd6a3af5f"
+  },
+  {
+    "path": "src/content/install/verify-gameplay.ts",
+    "sha256": "fcd3f5d88cd5bd13ab60b37982abe568cd5c7399e479836de347d0e92df6a129"
+  },
+  {
+    "path": "src/content/parsers/content-failure.ts",
+    "sha256": "b98df0a5eab482e91348630b5285ac3da7a977ea46867373d2235e58532486a6"
+  },
+  {
+    "path": "src/content/storage/content-cache.ts",
+    "sha256": "f8ec4e83b419827ec19fa36f5288b664fbfa131658e0faf51c6740f93212351d"
+  },
+  {
+    "path": "src/content/storage/content-database.ts",
+    "sha256": "e8ab721c3b9b374c0d8f15d1be34de6059ca3611455faa80b28f537cef3affcb"
+  },
+  {
+    "path": "src/content/storage/content-reader.ts",
+    "sha256": "30e0f24c5aefb4c13150a6985194ac31440b182595312597463d730bd0d96f06"
+  },
+  {
+    "path": "src/content/storage/content-session-lease.ts",
+    "sha256": "ccfc1d51cf65184ee7618a499403f0f01fd75346c0a65cbe5709b8cd5a7f189a"
+  },
+  {
+    "path": "src/shell/content/content-error-copy.ts",
+    "sha256": "43e41c739e3d2ce7111715cbf17fd1cad50dabec8b8784337f15285b8609a11c"
+  },
+  {
+    "path": "src/shell/content/installer-chapter-sizes.ts",
+    "sha256": "5261c4ba60de5f367dcaea421b9c4eeabe82a78cac02459e8e27230127e2c79f"
+  },
+  {
+    "path": "src/shell/content/saved-content-refs.ts",
+    "sha256": "4b41d3dd955f4560117164e4dfc65e4bba00b3a4743450751aa9250a0755e1bf"
+  },
+  {
+    "path": "src/shell/screens/InstallContentScreen.svelte",
+    "sha256": "89f11f0c353d69643cf048997b711214d55352eb57fcb3a4ea7a9f1f7744a2da"
+  },
+  {
+    "path": "tests/asset-delivery-bundle.test.ts",
+    "sha256": "8ec54566350187855b6bb4227d60aa1d31fea89c5f2b2e11da43ab3f95c6e1cf"
+  },
+  {
+    "path": "tests/component/content-installer.test.ts",
+    "sha256": "b8cd8c0fbb2eceaad2756aa6840f4dd6c6946258e220aa6c5ceb787b64df4173"
+  },
+  {
+    "path": "tests/fixtures/content-install-fixture.ts",
+    "sha256": "2297c2dab9c035a1cf825bf7ef1eaddfc766116e0f467b73d37b667235e46e48"
+  },
+  {
+    "path": "tests/fixtures/content-runtime-fixture.ts",
+    "sha256": "fc6dbffd2ed151861e97fbdd528e16276264b2f637efb4d52325c9ca61da563e"
+  },
+  {
+    "path": "tests/unit/content-installer.test.ts",
+    "sha256": "5144558d8a69200a5281885ea43281af5baf610842409adb5192b55d73dadb13"
+  },
+  {
+    "path": "tests/unit/content-runtime-activation.test.ts",
+    "sha256": "b5e72f11235be586ee59322919388ea41d3fc52d261485d5f38283ab5d46dbfb"
+  },
+  {
+    "path": "tests/unit/content-storage.test.ts",
+    "sha256": "3e2da8a25d816e8cde16f3fb926942ba613cceee14575d924d16430c3b3d2751"
+  },
+  {
+    "path": "tests/unit/content-tooling-gates.test.ts",
+    "sha256": "f1a40413a8a566d4d24f0084c03bd3fc0adf6a838d1d5dc678ebda0122e359f9"
+  },
+  {
+    "path": "tests/unit/domain-boundaries.test.ts",
+    "sha256": "fef9524dca857aec68c44b3a684f4658d5d4901d0394acc362c33d8fa57814a2"
+  },
+  {
+    "path": "tsconfig.json",
+    "sha256": "49f37c8affe6aa5068208e47537c227b46c130d291505457d6dadb5c78c89dfc"
+  }
+]

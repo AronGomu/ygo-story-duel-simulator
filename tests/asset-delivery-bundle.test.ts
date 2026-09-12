@@ -1006,8 +1006,23 @@ test("producer dependency graph has no semantic validator, acquisition, or prepa
     );
     for (const match of text.matchAll(
       /(?:from\s*|import\s*\(\s*)["'](\.[^"']+\.ts)["']/g,
-    ))
+    )) {
+      // Public browser factories are lazy exports, never producer invocations.
+      // Only these exact dynamic edges are excluded; producer edges stay checked.
+      if (
+        file === path.resolve("src/content/content-api.ts") &&
+        match[0].startsWith("import")
+      ) {
+        assert(
+          [
+            "./create-content-installer.ts",
+            "./storage/content-reader.ts",
+          ].includes(match[1]!),
+        );
+        continue;
+      }
       await visit(path.resolve(path.dirname(file), match[1]!));
+    }
   };
   await visit(path.resolve("scripts/bundle-assets.ts"));
   await visit(path.resolve("scripts/content-pack.ts"));

@@ -1,0 +1,163 @@
+{
+  "run": "generated/asset-delivery/runs/7660bc2c-520a-41fa-a6fd-dfdecc770807",
+  "candidate": {
+    "schemaVersion": 1,
+    "snapshot": {
+      "bytes": 6690,
+      "key": "snapshots/03571be5332cda2bf41de3b09a3c9350a1e82b7325aaeea48f0fafdc309808d0.json",
+      "sha256": "03571be5332cda2bf41de3b09a3c9350a1e82b7325aaeea48f0fafdc309808d0"
+    }
+  },
+  "bootstrap": {
+    "schemaVersion": 1,
+    "appSchemaVersion": 1,
+    "contentSchemaVersion": 2,
+    "hashAlgorithm": "SHA-256",
+    "delivery": {
+      "baseUrl": "./",
+      "index": {
+        "sha256": "50a83e1523980debe40f2fc7633dc6faccd06b885519dcaea97fd4229f852cb4",
+        "bytes": 597
+      }
+    },
+    "chapters": [
+      {
+        "id": "chapter-01",
+        "title": "DM",
+        "description": "Current Chapter 1 prototype."
+      }
+    ]
+  },
+  "evidence": {
+    "state": {
+      "kind": "ok",
+      "value": {
+        "generation": 1,
+        "current": {
+          "catalogSha256": "50a83e1523980debe40f2fc7633dc6faccd06b885519dcaea97fd4229f852cb4",
+          "snapshot": {
+            "activationId": "6e995868e832c309e660886348f111642c5656996921aeca4a715847daeaaa63",
+            "runtimeSnapshotId": "a562f5ad6794e377157d91adba6a51d73960d5384a00b25fd8bf1236b0f69fb2",
+            "runtimeManifestSha256": "9ed74dc557b46acae70a365a3b61eeb368a92f2cb09dad00d8b23d881f61cb36",
+            "releaseCatalogSha256": "50a83e1523980debe40f2fc7633dc6faccd06b885519dcaea97fd4229f852cb4"
+          },
+          "runtime": {
+            "packId": "runtime",
+            "sha256": "0d7568ac30575f32c4fcf1c1c352d58919403802d7ca2896d24d2edbcc824597",
+            "bytes": 274121
+          },
+          "chapters": [
+            {
+              "packId": "chapter-01",
+              "sha256": "9cc9f942b71fcee142dc8b0af4a7b5fa053fd0d3090c8d699380503495461e7f",
+              "bytes": 947662
+            }
+          ]
+        },
+        "previous": null
+      }
+    },
+    "receipt": {
+      "kind": "ok",
+      "value": {
+        "schemaVersion": 1,
+        "kind": "installed-runtime-v1",
+        "snapshot": {
+          "activationId": "6e995868e832c309e660886348f111642c5656996921aeca4a715847daeaaa63",
+          "runtimeSnapshotId": "a562f5ad6794e377157d91adba6a51d73960d5384a00b25fd8bf1236b0f69fb2",
+          "runtimeManifestSha256": "9ed74dc557b46acae70a365a3b61eeb368a92f2cb09dad00d8b23d881f61cb36",
+          "releaseCatalogSha256": "50a83e1523980debe40f2fc7633dc6faccd06b885519dcaea97fd4229f852cb4"
+        },
+        "runtimePack": {
+          "packId": "runtime",
+          "sha256": "0d7568ac30575f32c4fcf1c1c352d58919403802d7ca2896d24d2edbcc824597",
+          "bytes": 274121
+        },
+        "runtimeManifestFile": {
+          "path": "runtime/current/manifest.json",
+          "bytes": 76245,
+          "sha256": "9ed74dc557b46acae70a365a3b61eeb368a92f2cb09dad00d8b23d881f61cb36"
+        },
+        "assetManifestFile": {
+          "path": "runtime/assets/current/manifest.json",
+          "bytes": 56927,
+          "sha256": "ea047d44f83d5402c87c42bc5bfcbb0a0e81cbbb65e8630a207a0b6c25e992de"
+        },
+        "engineManifestFile": {
+          "path": "runtime/engine/vendor-manifest.json",
+          "bytes": 3992,
+          "sha256": "d9ba49ebec98f3568ba236ec2fcc04c2d6d3bbf6eee2d052938849ca1bde87e8"
+        },
+        "verifiedAt": 1789231702591
+      }
+    },
+    "jobs": [
+      {
+        "jobId": "f1dcd4e5-d3b9-4376-8cc3-285a13cf787d",
+        "target": {
+          "kind": "chapter",
+          "chapterId": "chapter-01"
+        },
+        "expectedGeneration": 0,
+        "content": {
+          "catalogSha256": "50a83e1523980debe40f2fc7633dc6faccd06b885519dcaea97fd4229f852cb4",
+          "runtime": {
+            "packId": "runtime",
+            "sha256": "0d7568ac30575f32c4fcf1c1c352d58919403802d7ca2896d24d2edbcc824597",
+            "bytes": 274121
+          },
+          "chapters": [
+            {
+              "packId": "chapter-01",
+              "sha256": "9cc9f942b71fcee142dc8b0af4a7b5fa053fd0d3090c8d699380503495461e7f",
+              "bytes": 947662
+            }
+          ],
+          "snapshot": {
+            "activationId": "6e995868e832c309e660886348f111642c5656996921aeca4a715847daeaaa63",
+            "runtimeSnapshotId": "a562f5ad6794e377157d91adba6a51d73960d5384a00b25fd8bf1236b0f69fb2",
+            "runtimeManifestSha256": "9ed74dc557b46acae70a365a3b61eeb368a92f2cb09dad00d8b23d881f61cb36",
+            "releaseCatalogSha256": "50a83e1523980debe40f2fc7633dc6faccd06b885519dcaea97fd4229f852cb4"
+          }
+        },
+        "verifiedParts": [
+          "e7cc5f43d75e9118ca65fcaa11da86c805ccd2631ab6e886b56ee90fda529b12",
+          "1797cf41760b215607c2026556dc3849fa3349f59686a2405d14f85e497bf811",
+          "0f922de43fecdfa27c6174f790ea28afc00c30a509c600b11a8122d422d5f5d8",
+          "4744b3b274f7b921be8dbe9e076bca59f21b88f9a73b2b9cdaab484f403b12b4",
+          "2f82d88e1cea54f090ee9082443361e3a5cafd65d182f2edda6e40cc5aa76f07",
+          "634300b4e2b3b36907cda21baf8e697db998ff95f992fbdc2874bcefc04d97e9",
+          "3124b443bc6c581befdc331a465d0fe25e87f5d0c7946c1efe7b648f87977cbf",
+          "083b91544c3e32894726e104a689ce6a4c72b674eb0c7c89d3ca1589879036f8",
+          "bfa4fc73e7b39a872a05de12bd28cd89be3ed6355ac59933a4aef71009fd045a",
+          "fe8939154fff0345dfdcd96247c8317c25f3b71fe0cb9af8794f6fe994911a7d",
+          "7fa523610b69b7ff90e87ac8cb9a0e740df59afae1689ccdf32f20f4124b8380",
+          "545a8952607c589e966afcc45bac78eff085bc403ee63e769f04012b979a1398",
+          "9accf7c5117fd3d776b2e99238ed9d88405734ce8deaf6ca57e4466d2520e8b2",
+          "b34f891bc0b8ca41d398fdce1f21c761ed30c74b2703179c29e963c24a6b52e8",
+          "5638dd6a27906758868a13718724372d76aaed42341e80803015004c89dcbd57",
+          "666fd9f834353ed0ed4d7b992e7924f9d903e8af99dcb51a3620375adfeb5efe",
+          "50405441c05d67bed085089674935a886aed076842714251432145e8d3bc775c",
+          "47c8905cd1297871c275d1b7d004fb542f0f259b6ca4d3a38d740362f0c2bd96",
+          "12f901d2882e77903098ea3283dd8a0900efe6305ffdb7f49a1221d66f71e2ae",
+          "cac07bb68229ecbc22dbe9b622d5d90e960e9d2de14bfee7499e4651da333fd5",
+          "7baab69e9be56d037571988bff9a35e8e1d2c42477e851c53fcb1c5921811e8d",
+          "9fe54ca0cb0448f41bd20f3a496213355e212a1c6bae23f6fc33a34b1860620c",
+          "b2af94e9b673ce40ea92e15c8249fb55896bd2f85d947ce8d5e09872c2e3483a",
+          "1e03c298be2cb23df3ee896e2c78ad4aa3cda6a6f1eb669d6f1efabb035e5029"
+        ],
+        "failure": null,
+        "progress": {
+          "jobId": "f1dcd4e5-d3b9-4376-8cc3-285a13cf787d",
+          "packId": "chapter-01",
+          "phase": "complete",
+          "verifiedDownloadBytes": 468243718,
+          "totalDownloadBytes": 468243718,
+          "currentPartReceivedBytes": 3287278,
+          "currentPartTotalBytes": 3287278
+        }
+      }
+    ]
+  },
+  "workers": []
+}

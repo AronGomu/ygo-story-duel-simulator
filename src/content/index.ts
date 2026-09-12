@@ -59,3 +59,12 @@ export {
   CONTENT_CACHE_NAME,
   CONTENT_INSTALLER_LOCK,
 } from "./content-constants.ts";
+
+export type { DownloadJob } from "./contracts/download-job.ts";
+export type { PersistedDownloadJob } from "./contracts/persisted-download-job.ts";
+export type { InstallReceipt } from "./contracts/install-receipt.ts";
+export type { ContentInstaller } from "./contracts/content-installer.ts";
+export type { SavedContentRefsPort } from "./contracts/saved-content-refs-port.ts";
+export type { RuntimeReceiptFile } from "./contracts/runtime-receipt-file.ts";
+export type { InstalledRuntimeReceipt } from "./contracts/installed-runtime-receipt.ts";
+export { createContentInstaller, openContentReader } from "./content-api.ts";

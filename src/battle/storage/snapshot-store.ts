@@ -1,7 +1,8 @@
 import { openDB, type DBSchema, type IDBPDatabase } from "idb";
 import type { SnapshotId } from "../duel/contracts/ids.ts";
+import type { InstalledRuntimeReceipt } from "../../content/index.ts";
 
-const DATABASE_VERSION = 2;
+const DATABASE_VERSION = 3;
 export const SNAPSHOT_DATABASE_NAME = "ygo-story-duel";
 const MAXIMUM_DEBUG_RUNS = 20;
 
@@ -61,6 +62,10 @@ export interface SnapshotStorageStatus {
 }
 
 interface SnapshotDatabase extends DBSchema {
+  installedRuntimeReceipts: {
+    key: string;
+    value: InstalledRuntimeReceipt;
+  };
   snapshots: {
     key: string;
     value: StoredSnapshot;
@@ -104,50 +109,95 @@ export class SnapshotStore {
     databaseName = SNAPSHOT_DATABASE_NAME,
     now: () => Date = () => new Date(),
   ): Promise<SnapshotStore> {
-    const database = await openDB<SnapshotDatabase>(
-      databaseName,
-      DATABASE_VERSION,
-      {
-        async upgrade(db, oldVersion, _newVersion, transaction) {
-          if (oldVersion < 1) {
-            const snapshots = db.createObjectStore("snapshots", {
-              keyPath: "snapshotId",
-            });
-            snapshots.createIndex("status", "status");
-            snapshots.createIndex("stagedAt", "stagedAt");
-            db.createObjectStore("pointers", { keyPath: "name" });
-            db.createObjectStore("preferences", { keyPath: "key" });
-            const debugRuns = db.createObjectStore("debugRuns", {
-              keyPath: "id",
-            });
-            debugRuns.createIndex("createdAt", "createdAt");
-            return;
-          }
-          if (oldVersion < 2) {
-            const snapshots = transaction.objectStore("snapshots");
-            let cursor = await snapshots.openCursor();
-            while (cursor !== null) {
-              const value = cursor.value as StoredSnapshot & {
-                readonly revisions: Omit<
-                  SnapshotRevisionSet,
-                  "runtimeSnapshotId"
-                > & { readonly runtimeSnapshotId?: string };
-              };
-              if (value.revisions.runtimeSnapshotId === undefined)
-                await cursor.update({
-                  ...value,
-                  revisions: {
-                    ...value.revisions,
-                    runtimeSnapshotId: value.snapshotId,
-                  },
-                });
-              cursor = await cursor.continue();
+    return new Promise<SnapshotStore>((resolve, reject) => {
+      let abandoned = false;
+      const fail = (error: unknown) => {
+        if (abandoned) return;
+        abandoned = true;
+        clearTimeout(timeout);
+        reject(error);
+      };
+      const timeout = setTimeout(
+        () =>
+          fail(
+            new SnapshotStorageError(
+              "Browser snapshot storage did not open in time",
+            ),
+          ),
+        5000,
+      );
+      const opening = Promise.resolve().then(() =>
+        openDB<SnapshotDatabase>(databaseName, DATABASE_VERSION, {
+          blocked() {
+            fail(
+              new SnapshotStorageError(
+                "Browser snapshot storage is blocked by another context",
+              ),
+            );
+          },
+          blocking(_currentVersion, _blockedVersion, event) {
+            (event.target as IDBDatabase).close();
+          },
+          async upgrade(db, oldVersion, _newVersion, transaction) {
+            // An abandoned IDB request cannot be cancelled. Abort its late upgrade.
+            const done = transaction.done.then(
+              () => null,
+              (error: unknown) => error,
+            );
+            if (abandoned) {
+              transaction.abort();
+              await done;
+              return;
             }
-          }
-        },
-      },
-    );
-    return new SnapshotStore(database, now);
+            if (oldVersion < 3)
+              db.createObjectStore("installedRuntimeReceipts");
+            if (oldVersion < 1) {
+              const snapshots = db.createObjectStore("snapshots", {
+                keyPath: "snapshotId",
+              });
+              snapshots.createIndex("status", "status");
+              snapshots.createIndex("stagedAt", "stagedAt");
+              db.createObjectStore("pointers", { keyPath: "name" });
+              db.createObjectStore("preferences", { keyPath: "key" });
+              const debugRuns = db.createObjectStore("debugRuns", {
+                keyPath: "id",
+              });
+              debugRuns.createIndex("createdAt", "createdAt");
+              return;
+            }
+            if (oldVersion < 2) {
+              const snapshots = transaction.objectStore("snapshots");
+              let cursor = await snapshots.openCursor();
+              while (cursor !== null) {
+                const value = cursor.value as StoredSnapshot & {
+                  readonly revisions: Omit<
+                    SnapshotRevisionSet,
+                    "runtimeSnapshotId"
+                  > & { readonly runtimeSnapshotId?: string };
+                };
+                if (value.revisions.runtimeSnapshotId === undefined)
+                  await cursor.update({
+                    ...value,
+                    revisions: {
+                      ...value.revisions,
+                      runtimeSnapshotId: value.snapshotId,
+                    },
+                  });
+                cursor = await cursor.continue();
+              }
+            }
+          },
+        }),
+      );
+      void opening.then((database) => {
+        if (abandoned) {
+          database.close();
+          return;
+        }
+        clearTimeout(timeout);
+        resolve(new SnapshotStore(database, now));
+      }, fail);
+    });
   }
 
   async stageSnapshot(input: StagedSnapshotInput): Promise<StoredSnapshot> {
@@ -553,6 +603,16 @@ export class SnapshotStore {
   ): Promise<string | number | boolean | undefined> {
     requireSafeKey(key, "preference");
     return (await this.#database.get("preferences", key))?.value;
+  }
+
+  async recordInstalledRuntimeReceipt(
+    receipt: InstalledRuntimeReceipt,
+  ): Promise<void> {
+    await this.#database.put(
+      "installedRuntimeReceipts",
+      receipt,
+      receipt.snapshot.activationId,
+    );
   }
 
   async recordDebugRun(value: DebugRunMetadata): Promise<void> {

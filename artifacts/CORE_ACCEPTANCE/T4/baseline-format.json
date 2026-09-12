@@ -1,0 +1,10 @@
+{
+  "command": "npm run format:check",
+  "exitCode": 1,
+  "output": "artifacts/CORE_ACCEPTANCE/T4/format-baseline-failure.txt",
+  "warning": "[warn] e2e/asset-root-urls.spec.ts",
+  "base": "25d761f117a6260890a2465d81c3433c850deb10",
+  "baseBlob": "b58c453d02101ee38e719e0bedf976c1b798a762",
+  "workingBlob": "b58c453d02101ee38e719e0bedf976c1b798a762",
+  "supervisorDisposition": "Preserve unchanged file per D2; carry explicit pre-existing residual; changed-path Prettier required."
+}

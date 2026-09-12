@@ -101,6 +101,8 @@ const boundaries = (files, patterns) => ({
                     "**/content/contracts/**",
                     "**/content/parsers/**",
                     "**/content/content-*.ts",
+                    // Shell-owned error copy is not a player-content internal.
+                    "!**/content/content-error-copy.ts",
                   ],
                   message:
                     "Reach player content through `src/content/index.ts`; parsers and type-only ports stay isolated.",
@@ -356,6 +358,43 @@ export default tseslint.config(
       {
         group: [...BATTLE_INTERNALS, ...DECK_FORMAT_PENDING_RELOCATION],
         message: BATTLE_MESSAGE,
+      },
+    ],
+  ),
+  boundaries(
+    ["src/shell/screens/InstallContentScreen.svelte"],
+    [
+      { group: STORY_INTERNALS, message: STORY_MESSAGE },
+      { group: DECK_EDITOR_INTERNALS, message: DECK_EDITOR_MESSAGE },
+      { group: DECK_SELECT_INTERNALS, message: DECK_SELECT_MESSAGE },
+      {
+        group: [...BATTLE_INTERNALS, "!**/battle/content-activation.ts"],
+        message: BATTLE_MESSAGE,
+      },
+    ],
+  ),
+  // Only this verifier may reuse these pure shared rules. No domain UI imports.
+  boundaries(
+    ["src/content/install/verify-gameplay.ts"],
+    [
+      {
+        group: [
+          "**/battle/**",
+          "**/story/**",
+          "**/shell/**",
+          "**/decks/**",
+          "!**/decks/catalog",
+          "!**/decks/catalog/pinned-ruleset.ts",
+          "!**/decks/catalog/ocg-mask.ts",
+          "**/deck-editor/**",
+          "**/deck-select/**",
+          "**/scripts/**",
+          "node:*",
+          ...builtinModules,
+          "@aws-sdk/**",
+        ],
+        message:
+          "Content validation reuses only pinned quantity/type rules, never domain UI.",
       },
     ],
   ),

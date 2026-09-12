@@ -1,0 +1,56 @@
+[
+  {
+    "command": "npx vitest run tests/unit/content-installer.test.ts tests/unit/content-storage.test.ts tests/unit/content-runtime-activation.test.ts",
+    "exitCode": 0,
+    "output": "artifacts/CORE_ACCEPTANCE/T4/unit.txt",
+    "seconds": 2.01
+  },
+  {
+    "command": "npx vitest run tests/unit/content-tooling-gates.test.ts",
+    "exitCode": 0,
+    "output": "artifacts/CORE_ACCEPTANCE/T4/review-gates-green.txt",
+    "seconds": 1.46
+  },
+  {
+    "command": "npx vitest run tests/component/content-installer.test.ts",
+    "exitCode": 0,
+    "output": "artifacts/CORE_ACCEPTANCE/T4/component.txt",
+    "seconds": 1.43
+  },
+  {
+    "command": "node artifacts/CORE_ACCEPTANCE/T4/check-changed-format.mjs",
+    "exitCode": 0,
+    "output": "artifacts/CORE_ACCEPTANCE/T4/format.txt",
+    "seconds": 0.79
+  },
+  {
+    "command": "npm run typecheck",
+    "exitCode": 0,
+    "output": "artifacts/CORE_ACCEPTANCE/T4/typecheck.txt",
+    "seconds": 12.95
+  },
+  {
+    "command": "npm run lint",
+    "exitCode": 0,
+    "output": "artifacts/CORE_ACCEPTANCE/T4/lint.txt",
+    "seconds": 8.95
+  },
+  {
+    "command": "npm test",
+    "exitCode": 0,
+    "output": "artifacts/CORE_ACCEPTANCE/T4/full-tests.txt",
+    "seconds": 58.71
+  },
+  {
+    "command": "npm run build",
+    "exitCode": 0,
+    "output": "artifacts/CORE_ACCEPTANCE/T4/build.txt",
+    "seconds": 1.8
+  },
+  {
+    "command": "CONTENT_RUN=generated/asset-delivery/runs/7660bc2c-520a-41fa-a6fd-dfdecc770807 npx playwright test -c playwright.content.config.ts --project=chromium --grep \"installer|atomic|quota|archive\"",
+    "exitCode": 0,
+    "output": "artifacts/CORE_ACCEPTANCE/T4/browser.txt",
+    "seconds": 47.74
+  }
+]

@@ -3,5 +3,5 @@ import type { ContentFailure } from "./content-failure.ts";
 
 export type DownloadResult =
   | { readonly kind: "complete"; readonly content: ContentSetRef }
-  | { readonly kind: "paused"; readonly jobId: string }
+  | { readonly kind: "paused" | "cancelled"; readonly jobId: string }
   | ContentFailure;

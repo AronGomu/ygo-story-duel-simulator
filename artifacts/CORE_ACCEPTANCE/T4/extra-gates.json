@@ -1,0 +1,26 @@
+[
+  {
+    "command": "npm run build:reproducible",
+    "exitCode": 0,
+    "output": "artifacts/CORE_ACCEPTANCE/T4/reproducible.txt",
+    "seconds": 2.24
+  },
+  {
+    "command": "CONTENT_RUN=generated/asset-delivery/runs/7660bc2c-520a-41fa-a6fd-dfdecc770807 npm run build",
+    "exitCode": 0,
+    "output": "artifacts/CORE_ACCEPTANCE/T4/build-private.txt",
+    "seconds": 8.34
+  },
+  {
+    "command": "npm run content:verify -- --run generated/asset-delivery/runs/7660bc2c-520a-41fa-a6fd-dfdecc770807",
+    "exitCode": 0,
+    "output": "artifacts/CORE_ACCEPTANCE/T4/producer-verify.txt",
+    "seconds": 3.17
+  },
+  {
+    "command": "npx playwright test -c playwright.core.config.ts --project=chromium --grep \"source-only CORE\"",
+    "exitCode": 0,
+    "output": "artifacts/CORE_ACCEPTANCE/T4/source-only.txt",
+    "seconds": 14.14
+  }
+]
