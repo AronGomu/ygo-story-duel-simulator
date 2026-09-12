@@ -1,4 +1,8 @@
 export type { ChapterId } from "./contracts/chapter-id.ts";
+export type {
+  CoreBootstrap,
+  CoreChapterId,
+} from "./contracts/core-bootstrap.ts";
 export type { Sha256 } from "./contracts/sha256.ts";
 export type { PackId } from "./contracts/pack-id.ts";
 export type { ManifestRef } from "./contracts/manifest-ref.ts";
@@ -29,6 +33,7 @@ export type { RuntimeActivationPort } from "./contracts/runtime-activation-port.
 export type { VerifiedMetadata } from "./contracts/verified-metadata.ts";
 export type { ChapterContentPolicy } from "./contracts/chapter-content-policy.ts";
 export { parseChapterSelections } from "./parsers/chapter-selections.ts";
+export { parseCoreBootstrap } from "./parsers/core-bootstrap.ts";
 export { parseContentIndex } from "./parsers/content-index.ts";
 export { parseContentManifest } from "./parsers/content-manifest.ts";
 export { contentObjectUrl } from "./content-object-url.ts";

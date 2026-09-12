@@ -142,8 +142,27 @@
      Surrender. `null` where the host owns its own way out. */
   export let onleavematch: (() => void) | null = null;
 
-  const CURRENT_RUNTIME_SNAPSHOT_ID = snapshotId(__RUNTIME_SNAPSHOT_ID__);
-  const CURRENT_ACTIVATION_SNAPSHOT_ID = snapshotId(__ACTIVATION_SNAPSHOT_ID__);
+  function requiredRuntimeConstant<T>(value: T | null): T {
+    if (value === null) throw new Error("Installed runtime is unavailable");
+    return value;
+  }
+
+  const RUNTIME_MANIFEST_SHA256 = requiredRuntimeConstant(
+    __RUNTIME_MANIFEST_SHA256__,
+  );
+  const ACTIVE_IMAGE_MANIFEST_SHA256 = requiredRuntimeConstant(
+    __ACTIVE_IMAGE_MANIFEST_SHA256__,
+  );
+  const ACTIVE_IMAGE_MANIFEST = requiredRuntimeConstant(
+    __ACTIVE_IMAGE_MANIFEST__,
+  );
+  const RUNTIME_REVISIONS = requiredRuntimeConstant(__RUNTIME_REVISIONS__);
+  const CURRENT_RUNTIME_SNAPSHOT_ID = snapshotId(
+    requiredRuntimeConstant(__RUNTIME_SNAPSHOT_ID__),
+  );
+  const CURRENT_ACTIVATION_SNAPSHOT_ID = snapshotId(
+    requiredRuntimeConstant(__ACTIVATION_SNAPSHOT_ID__),
+  );
   const DEFAULT_CARD_PLACEHOLDER =
     "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 72 104'%3E%3Crect width='72' height='104' rx='5' fill='%2318243b'/%3E%3Cpath d='M8 8h56v88H8z' fill='none' stroke='%23697895' stroke-width='2'/%3E%3Ctext x='36' y='57' fill='%23a9b5ca' font-size='28' text-anchor='middle'%3E?%3C/text%3E%3C/svg%3E";
   /* Every card the packaged database holds, fetched once per page and shared
@@ -161,8 +180,8 @@
   > = new Map();
   const EMPTY_OFF_FIELD_TARGETS: readonly OffFieldTargetEntry[] = [];
   const CURRENT_ARTIFACT_RECEIPTS: readonly SnapshotArtifactReceipt[] = [
-    { id: "runtime-package", sha256: __RUNTIME_MANIFEST_SHA256__ },
-    { id: "active-images", sha256: __ACTIVE_IMAGE_MANIFEST_SHA256__ },
+    { id: "runtime-package", sha256: RUNTIME_MANIFEST_SHA256 },
+    { id: "active-images", sha256: ACTIVE_IMAGE_MANIFEST_SHA256 },
   ];
   /* The pinned catalog every local deck is validated against: the same cards
      the editor offered when the deck was built, because both read the same
@@ -468,7 +487,7 @@
         if (disposed) return;
         const stageOperation = store.stageSnapshot({
           snapshotId: CURRENT_ACTIVATION_SNAPSHOT_ID,
-          revisions: __RUNTIME_REVISIONS__,
+          revisions: RUNTIME_REVISIONS,
           requiredArtifacts: CURRENT_ARTIFACT_RECEIPTS,
         });
         try {
@@ -536,8 +555,8 @@
         const library =
           request === null
             ? await cardImageCache.preload(
-                __ACTIVE_IMAGE_MANIFEST__,
-                __ACTIVE_IMAGE_MANIFEST_SHA256__,
+                ACTIVE_IMAGE_MANIFEST,
+                ACTIVE_IMAGE_MANIFEST_SHA256,
                 onProgress,
                 controller.signal,
               )
@@ -571,14 +590,14 @@
           imageLibrary?.dispose();
           const placeholderManifest =
             request === null
-              ? __ACTIVE_IMAGE_MANIFEST__
+              ? ACTIVE_IMAGE_MANIFEST
               : {
-                  ...__ACTIVE_IMAGE_MANIFEST__,
+                  ...ACTIVE_IMAGE_MANIFEST,
                   snapshotId: request.snapshotId,
                 };
           imageLibrary = createPlaceholderCardImageLibrary(
             placeholderManifest,
-            request?.manifestSha256 ?? __ACTIVE_IMAGE_MANIFEST_SHA256__,
+            request?.manifestSha256 ?? ACTIVE_IMAGE_MANIFEST_SHA256,
             detail,
           );
           imageWarning = detail;
@@ -852,7 +871,7 @@
     const activationGuard = snapshotStorageStatus;
     try {
       const receipts: readonly SnapshotArtifactReceipt[] = [
-        { id: "runtime-package", sha256: __RUNTIME_MANIFEST_SHA256__ },
+        { id: "runtime-package", sha256: RUNTIME_MANIFEST_SHA256 },
         { id: "active-images", sha256: images.imageManifestSha256 },
       ];
       await store.verifyStagedSnapshot(

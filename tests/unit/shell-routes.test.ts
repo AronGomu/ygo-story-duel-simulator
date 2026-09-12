@@ -16,6 +16,7 @@ const KNOWN_ROUTES: ReadonlyArray<readonly [string, AppRoute]> = [
   ["", HOME_ROUTE],
   ["#", HOME_ROUTE],
   ["#/", HOME_ROUTE],
+  ["#/install-content", { kind: "install-content" }],
   ["#/free-play", { kind: "free-play" }],
   ["#/free-play/decks", { kind: "free-play-decks" }],
   ["#/free-play/decks/abc", { kind: "free-play-deck", deckId: deckId("abc") }],
@@ -31,6 +32,7 @@ const KNOWN_ROUTES: ReadonlyArray<readonly [string, AppRoute]> = [
 /** Every kind, so the round-trip below covers the whole union. */
 const EVERY_ROUTE: readonly AppRoute[] = [
   HOME_ROUTE,
+  { kind: "install-content" },
   { kind: "free-play" },
   { kind: "free-play-decks" },
   { kind: "free-play-deck", deckId: deckId("deck-1") },
@@ -148,6 +150,9 @@ describe("parseAppRoute", () => {
 describe("formatAppRoute", () => {
   it("formats every route", () => {
     expect(formatAppRoute(HOME_ROUTE)).toBe("#/");
+    expect(formatAppRoute({ kind: "install-content" })).toBe(
+      "#/install-content",
+    );
     expect(formatAppRoute({ kind: "free-play" })).toBe("#/free-play");
     expect(formatAppRoute({ kind: "free-play-decks" })).toBe(
       "#/free-play/decks",
@@ -182,6 +187,7 @@ describe("routeLabel", () => {
   it("labels every route with stable user-facing copy", () => {
     const expected = [
       "Main Menu",
+      "Install Content",
       "Deck Selection",
       "Deck Selection",
       "Deck Builder",
@@ -244,6 +250,7 @@ describe("deckRouteContext", () => {
   it("reports nothing for a route that names no deck library", () => {
     for (const route of [
       HOME_ROUTE,
+      { kind: "install-content" } as const,
       { kind: "free-play" } as const,
       { kind: "free-play-collection" } as const,
       { kind: "story" } as const,

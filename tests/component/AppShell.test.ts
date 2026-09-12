@@ -24,7 +24,11 @@ import type {
   DomainLoaders,
 } from "../../src/shell/domain-loaders.ts";
 import { resetFreePlayDeckCacheForTests } from "../../src/shell/screens/free-play-deck-listing.ts";
-import { createShellStore } from "../../src/shell/shell-store.ts";
+import {
+  createShellStore,
+  type ShellStore,
+} from "../../src/shell/shell-store.ts";
+import type { CoreGate } from "../../src/shell/core/core-gate.ts";
 import { installPrototypeActiveCatalog } from "../fixtures/active-catalog.ts";
 import { createInitialStoryState } from "../../src/story/model/story-state.ts";
 import type {
@@ -63,6 +67,11 @@ const loaders: DomainLoaders = {
 };
 
 const SESSION_HANDOFF = "77777777-2222-4333-8444-555555555555";
+const READY_CORE_GATE: CoreGate = {
+  kind: "ready",
+  chapterIds: ["chapter-01"],
+  generation: 1,
+};
 
 /* A wait that gates on a real domain root being imported is waiting for a
    Vite transform of the whole module graph behind it, which is work the
@@ -148,8 +157,16 @@ const deckProbeLoaders: DomainLoaders = {
   decks: async () => ({ default: DeckEditorProbe }),
 };
 
+function renderShell(props: {
+  readonly store: ShellStore;
+  readonly loaders: DomainLoaders;
+  readonly saves?: StorySaveRepository;
+}) {
+  return render(AppShell, { initialCoreGate: READY_CORE_GATE, ...props });
+}
+
 function renderAt(hash: string, domainLoaders: DomainLoaders = loaders) {
-  return render(AppShell, {
+  return renderShell({
     store: createShellStore(hash, () => {}),
     loaders: domainLoaders,
   });
@@ -232,7 +249,7 @@ describe("AppShell", () => {
   it("loads the battle domain only once free play is opened", async () => {
     const duel = vi.fn(never);
     const store = createShellStore("#/", () => {});
-    render(AppShell, { store, loaders: { ...loaders, duel } });
+    renderShell({ store, loaders: { ...loaders, duel } });
 
     expect(duel).not.toHaveBeenCalled();
 
@@ -280,7 +297,7 @@ describe("AppShell", () => {
      the main menu without having started anything. */
   it("returns to the main menu from the setup screen", async () => {
     const hashes: string[] = [];
-    render(AppShell, {
+    renderShell({
       store: createShellStore("#/free-play", (hash) => hashes.push(hash)),
       loaders,
     });
@@ -298,7 +315,7 @@ describe("AppShell", () => {
      themselves, and it is the shell that owns that route. */
   it("opens the free-play deck library from the selection screen", async () => {
     const hashes: string[] = [];
-    render(AppShell, {
+    renderShell({
       store: createShellStore("#/free-play", (hash) => hashes.push(hash)),
       loaders,
     });
@@ -334,7 +351,7 @@ describe("AppShell", () => {
      on a duel nobody asked to resume. */
   it("ends the match when the route leaves free play", async () => {
     const store = createShellStore("#/free-play", () => {});
-    render(AppShell, { store, loaders });
+    renderShell({ store, loaders });
     await startMatch();
 
     store.syncFromHash("#/");
@@ -351,7 +368,7 @@ describe("AppShell", () => {
   /* A story session owns its own exit, so the shell offers the duel none:
      leaving it is the story's business, not an item the duel menu adds. */
   it("hands a story session's duel no exit of its own", async () => {
-    render(AppShell, {
+    renderShell({
       store: createShellStore(`#/duel/session/${SESSION_HANDOFF}`, () => {}),
       loaders: probeLoaders,
       saves: savesAnswering(checkpointFor(SESSION_HANDOFF)),
@@ -375,7 +392,7 @@ describe("AppShell", () => {
   });
 
   it("mounts the duel once the session's checkpoint is restored", async () => {
-    render(AppShell, {
+    renderShell({
       store: createShellStore(`#/duel/session/${SESSION_HANDOFF}`, () => {}),
       loaders: {
         ...loaders,
@@ -412,7 +429,7 @@ describe("AppShell", () => {
     ],
   ])("sends a session route with %s back to the story", async (_name, read) => {
     let hash = `#/duel/session/${SESSION_HANDOFF}`;
-    render(AppShell, {
+    renderShell({
       store: createShellStore(hash, (next) => {
         hash = next;
       }),
@@ -451,7 +468,7 @@ describe("AppShell", () => {
   it("returns an editor entered from story to that exact origin", async () => {
     const hashes: string[] = [];
     const store = createShellStore("#/story", (hash) => hashes.push(hash));
-    render(AppShell, {
+    renderShell({
       store,
       loaders: deckProbeLoaders,
       saves: savesHolding({}),
@@ -478,7 +495,7 @@ describe("AppShell", () => {
     "returns a direct %s editor route to its scoped deck selection",
     async (_context, hash, expected) => {
       const hashes: string[] = [];
-      render(AppShell, {
+      renderShell({
         store: createShellStore(hash, (next) => hashes.push(next)),
         loaders: deckProbeLoaders,
         saves: savesHolding({}),
@@ -507,7 +524,7 @@ describe("AppShell", () => {
   });
 
   it("loads the real story domain root through its public entry", async () => {
-    render(AppShell, {
+    renderShell({
       store: createShellStore("#/story", () => {}),
       loaders: {
         ...loaders,
@@ -547,7 +564,7 @@ describe("AppShell", () => {
      the counts it records, and nothing else in the database. */
   it("lists the loaded save's own cards with their counts", async () => {
     const darkMagician = 46986414;
-    render(AppShell, {
+    renderShell({
       store: createShellStore("#/story/collection", () => {}),
       loaders,
       saves: savesHolding({ [darkMagician]: 3 }),
@@ -576,7 +593,7 @@ describe("AppShell", () => {
      none loaded has nothing to browse. ADR-051 sends it back to the main menu
      rather than opening an empty one, exactly as the story deck routes do. */
   it("sends the story collection route home when no save is loaded", async () => {
-    render(AppShell, {
+    renderShell({
       store: createShellStore("#/story/collection", () => {}),
       loaders,
       saves: savesAnswering({ kind: "empty", slot: "checkpoint:pre-duel" }),
@@ -619,7 +636,7 @@ describe("AppShell", () => {
     async (domain, hash, other) => {
       const failing = () =>
         Promise.reject(new Error("__ACTIVE_CARD_DATA__ is not defined"));
-      render(AppShell, {
+      renderShell({
         store: createShellStore(hash, () => {}),
         loaders: {
           ...loaders,
@@ -731,7 +748,7 @@ describe("AppShell", () => {
 
   it("follows store navigation without a remount", async () => {
     const store = createShellStore("#/", () => {});
-    render(AppShell, { store, loaders });
+    renderShell({ store, loaders });
     store.syncFromHash("#/decks");
     await Promise.resolve();
     expect(

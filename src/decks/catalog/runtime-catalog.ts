@@ -232,6 +232,8 @@ let pending: Promise<readonly DeckBuilderCardView[]> | null = null;
 export function runtimeCatalog(): Promise<readonly DeckBuilderCardView[]> {
   if (pending !== null) return pending;
   const base = import.meta.env.BASE_URL;
+  if (__RUNTIME_MANIFEST_SHA256__ === null || __RUNTIME_SNAPSHOT_ID__ === null)
+    return Promise.reject(new Error("Installed runtime is unavailable"));
   const attempt = loadRuntimeCatalog(
     createFetchShardReader(base, {
       expectedManifestSha256: __RUNTIME_MANIFEST_SHA256__,

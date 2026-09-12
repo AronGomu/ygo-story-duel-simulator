@@ -83,20 +83,23 @@ describe("MainMenuScreen", () => {
       "main-menu-new-game",
       "main-menu-continue",
       "main-menu-load",
+      "main-menu-install-content",
       "main-menu-settings",
       "main-menu-free-play",
     ]);
     expect(query("main-menu-title")).not.toBeNull();
   });
 
-  it("hides Continue when no save exists", async () => {
+  it("disables Continue when no compatible save exists", async () => {
     renderMenu();
     await settleSaveProbe();
 
-    expect(query("main-menu-continue")).toBeNull();
+    expect(query("main-menu-continue")).toHaveProperty("disabled", true);
     expect(entryOrder()).toEqual([
       "main-menu-new-game",
+      "main-menu-continue",
       "main-menu-load",
+      "main-menu-install-content",
       "main-menu-settings",
       "main-menu-free-play",
     ]);
