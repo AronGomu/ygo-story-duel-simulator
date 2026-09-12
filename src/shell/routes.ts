@@ -18,6 +18,7 @@ export type RouteContext = "free-play" | "story";
 
 export type AppRoute =
   | { readonly kind: "home" }
+  | { readonly kind: "install-content" }
   | { readonly kind: "free-play" }
   | { readonly kind: "free-play-decks" }
   | { readonly kind: "free-play-deck"; readonly deckId: DeckId }
@@ -30,6 +31,7 @@ export type AppRoute =
   | { readonly kind: "admin" };
 
 export const HOME_ROUTE: AppRoute = { kind: "home" };
+export const INSTALL_CONTENT_ROUTE: AppRoute = { kind: "install-content" };
 
 /** The deck route `context` owns: its library when `id` is `null`, that one
     deck otherwise. */
@@ -89,6 +91,8 @@ export function parseAppRoute(hash: string): AppRoute {
       /* `#/duel` and `#/decks` are the links from before routes carried a
          context. They redirect rather than 404 so bookmarks and shared URLs
          keep landing on the screen they named. */
+      case "install-content":
+        return INSTALL_CONTENT_ROUTE;
       case "duel":
       case "free-play":
         return { kind: "free-play" };
@@ -145,6 +149,8 @@ export function routeLabel(route: AppRoute): string {
   switch (route.kind) {
     case "home":
       return "Main Menu";
+    case "install-content":
+      return "Install Content";
     case "free-play":
     case "free-play-decks":
       return "Deck Selection";
@@ -169,6 +175,8 @@ export function formatAppRoute(route: AppRoute): string {
   switch (route.kind) {
     case "home":
       return "#/";
+    case "install-content":
+      return "#/install-content";
     case "free-play":
       return "#/free-play";
     case "free-play-decks":

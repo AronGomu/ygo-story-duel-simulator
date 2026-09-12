@@ -5,10 +5,11 @@ export function contentObjectUrl(
   baseUrl: string,
   kind: "indexes" | "catalogs" | "manifests" | "parts",
   sha256: Sha256,
+  applicationBaseUrl = baseUrl,
 ): string {
   if (
     typeof baseUrl !== "string" ||
-    !/^https:\/\//.test(baseUrl) ||
+    typeof applicationBaseUrl !== "string" ||
     !baseUrl.endsWith("/") ||
     /[\\%?#\s\p{Cc}]/u.test(baseUrl) ||
     !["indexes", "catalogs", "manifests", "parts"].includes(kind) ||
@@ -23,12 +24,28 @@ export function contentObjectUrl(
     if (error instanceof TypeError) throw new Error("CONTENT_INVALID_MANIFEST");
     throw error;
   }
+  let application: URL;
+  try {
+    application = new URL(applicationBaseUrl);
+  } catch (error) {
+    if (error instanceof TypeError) throw new Error("CONTENT_INVALID_MANIFEST");
+    throw error;
+  }
+  const loopback = new Set(["localhost", "127.0.0.1", "[::1]"]);
+  const secure = url.protocol === "https:";
+  const local =
+    url.protocol === "http:" &&
+    application.protocol === "http:" &&
+    loopback.has(url.hostname) &&
+    loopback.has(application.hostname) &&
+    url.origin === application.origin;
   if (
-    url.protocol !== "https:" ||
+    (!secure && !local) ||
     !url.hostname ||
     url.username ||
     url.password ||
     url.href !== baseUrl ||
+    /[\\%?#\s\p{Cc}]/u.test(baseUrl) ||
     url.pathname
       .slice(1, -1)
       .split("/")

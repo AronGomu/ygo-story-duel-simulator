@@ -220,6 +220,7 @@ describe("public domain APIs are frozen", () => {
         "parseChapterSelections",
         "parseContentIndex",
         "parseContentManifest",
+        "parseCoreBootstrap",
       ],
       types: [
         "ChapterContentPolicy",
@@ -238,6 +239,8 @@ describe("public domain APIs are frozen", () => {
         "ContentResult",
         "ContentSessionLease",
         "ContentSetRef",
+        "CoreBootstrap",
+        "CoreChapterId",
         "DownloadPhase",
         "DownloadProgress",
         "DownloadResult",

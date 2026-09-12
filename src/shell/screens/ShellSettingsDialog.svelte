@@ -1,6 +1,8 @@
 <script lang="ts">
   import { onMount } from "svelte";
+  import { coreGateMessage, type CoreGate } from "../core/core-gate.ts";
 
+  export let coreGate: CoreGate;
   export let onclose: () => void;
 
   let heading: HTMLHeadingElement | undefined;
@@ -26,6 +28,9 @@
     >
       Settings
     </h2>
+    <p class="hint" role="status" data-cy="shell-settings-content-status">
+      {coreGateMessage(coreGate)}
+    </p>
     <p class="hint" data-cy="shell-settings-fullscreen-hint">
       Press F11 for fullscreen.
     </p>

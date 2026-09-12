@@ -10,6 +10,9 @@ Shared vocabulary between user and agents. Say the word, mean the code.
 | word | short description | ref in code |
 | ---- | ----------------- | ----------- |
 | app | Browser product mounted through modular shell | `src/main.ts` (`mount`), `src/shell/AppShell.svelte` |
+| CORE | Small installable shell build: UI, installer skeleton, bootstrap, fonts/icons, licences, vendored engine wrapper/WASM; no acquired gameplay payload | `vite.config.ts`, `scripts/lib/vite-core-content.ts` |
+| core bootstrap | Strict tracked startup manifest naming schemas, hash algorithm, optional delivery index, chapter labels | `content/core-bootstrap.json`, `src/content/contracts/core-bootstrap.ts` |
+| install content | Shell-owned gated route shown until verified gameplay content becomes ready | `src/shell/screens/InstallContentScreen.svelte`, `src/shell/core/core-gate.ts` |
 | shell | Router/composition layer owning lazy domain transitions | `src/shell/AppShell.svelte`, `src/shell/routes.ts` (`AppRoute`) |
 | duel simulator | Production battle UI plus Worker-owned rules runtime | `src/battle/app/`, `src/battle/duel/`, `src/battle/field/`, `src/battle/worker/` |
 | deck editor | Local deck library/editor domain loaded through shell | `src/deck-editor/DeckEditorApp.svelte`, `src/deck-editor/index.ts` |
@@ -135,6 +138,8 @@ Worker, engine, and asset pipeline are "backend" here — nothing runs on a serv
 | profiles | Explicit asset delivery ownership independent of file location | `asset-profiles/`, `scripts/lib/asset-delivery/scan-assets.ts` |
 | bundle | Deterministic frozen dev/player archives; no install or publish | `scripts/lib/asset-delivery/bundle.ts` (`bundleAssets`) |
 | content | Player metadata parsers, immutable URLs, type-only integration ports | `src/content/index.ts` |
+| chapter id | Stable content-pack identity matching `chapter-NN`; independent from title/label | `src/content/contracts/core-bootstrap.ts` (`CoreChapterId`) |
+| content generation | Monotonic activation epoch used to rebuild content-bound runtime resources after verified install change | `src/shell/core/core-gate.ts` (`CoreGate`) |
 | promotion | Hash-guarded rule edits without moving asset bytes | `scripts/lib/asset-delivery/promote.ts` (`promoteAssets`) |
 | migration | Hash-verified copy-only legacy source relocation; plan-bound temp ownership gates interrupted runs | `scripts/lib/asset-delivery/migrate.ts` (`applyMigration`), `scripts/lib/asset-delivery/migration-state.ts` |
 | plugins | Vite plugins serving runtime assets/core | `scripts/lib/vite-runtime-assets.ts`, `vite-sync-core.ts` |

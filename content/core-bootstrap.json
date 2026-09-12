@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "appSchemaVersion": 1,
+  "contentSchemaVersion": 2,
+  "hashAlgorithm": "SHA-256",
+  "delivery": null,
+  "chapters": [
+    {
+      "id": "chapter-01",
+      "title": "DM",
+      "description": "Current Chapter 1 prototype."
+    }
+  ]
+}

@@ -1,6 +1,12 @@
 <script lang="ts">
   import { onMount, setContext } from "svelte";
   import { readonly, writable } from "svelte/store";
+  import type { CoreBootstrap } from "../content/index.ts";
+  import {
+    loadCoreStartup,
+    routeForCoreGate,
+    type CoreGate,
+  } from "./core/core-gate.ts";
   import {
     DEFAULT_DOMAIN_LOADERS,
     type DomainLoaders,
@@ -15,6 +21,7 @@
     deckRoute,
     deckRouteContext,
     HOME_ROUTE,
+    INSTALL_CONTENT_ROUTE,
     routeLabel,
     type AppRoute,
     type RouteContext,
@@ -26,6 +33,7 @@
     type CardOwnership,
   } from "../decks/card-ownership.ts";
   import DomainLoadError from "./screens/DomainLoadError.svelte";
+  import InstallContentScreen from "./screens/InstallContentScreen.svelte";
   import MainMenuScreen from "./screens/MainMenuScreen.svelte";
   import type { BattleFacadeResult, BattleRequest } from "../battle/index.ts";
   import type {
@@ -54,6 +62,10 @@
   );
   export let loaders: DomainLoaders = DEFAULT_DOMAIN_LOADERS;
   export let settings: ShellSettingsStore = createShellSettingsStore();
+  export let initialCoreGate: CoreGate | null = null;
+  export let initialCoreBootstrap: CoreBootstrap | null = null;
+  let coreGate: CoreGate = initialCoreGate ?? { kind: "checking" };
+  let coreBootstrap: CoreBootstrap | null = initialCoreBootstrap;
   /* Story progress is written by the shell only for the pre-duel checkpoint.
      The default reaches the repository through the visual novel's own lazy
      chunk, so `#/free-play` and its decks never load the story to hold it. */
@@ -233,14 +245,25 @@
     });
   }
 
+  let requestedRoute: AppRoute = HOME_ROUTE;
   let route: AppRoute;
   let previousRoute: AppRoute | null = null;
   let storyEntryIntent: StoryEntryIntent | null = null;
   const unsubscribe = store.subscribe((state) => {
-    route = state.route;
+    requestedRoute = state.route;
     previousRoute = state.previousRoute;
     storyEntryIntent = state.storyEntryIntent;
   });
+  /* Project the requested route before every reactive binding below. During the
+     bootstrap check a direct gameplay hash already renders CORE; once failure is
+     known, replace that unsafe history entry with the canonical installer. */
+  $: route = routeForCoreGate(requestedRoute, coreGate);
+  $: if (
+    coreGate.kind === "locked" &&
+    requestedRoute.kind !== "home" &&
+    requestedRoute.kind !== "install-content"
+  )
+    store.navigate(INSTALL_CONTENT_ROUTE, { replace: true });
   $: syncSession(route);
   /* Which pairing the duel below mounts on: the one free play's setup screen
      produced, or the one the story's encounter chose. `#/duel` standalone has
@@ -431,6 +454,23 @@
   });
 
   onMount(() => {
+    let mounted = true;
+    if (initialCoreGate === null) {
+      const appBaseUrl = new URL(
+        import.meta.env.BASE_URL,
+        globalThis.location.origin,
+      ).href;
+      void loadCoreStartup(
+        (input, init) => globalThis.fetch(input, init),
+        appBaseUrl,
+        globalThis.indexedDB,
+      ).then((startup) => {
+        if (!mounted) return;
+        coreBootstrap = startup.bootstrap;
+        coreGate = startup.gate;
+      });
+    }
+
     const syncFromLocation = () => store.syncFromHash(globalThis.location.hash);
     globalThis.addEventListener("hashchange", syncFromLocation);
     const syncVisibility = () => toasts.setPageHidden(document.hidden);
@@ -450,6 +490,7 @@
     else observer.observe(document.documentElement);
 
     return () => {
+      mounted = false;
       observer?.disconnect();
       globalThis.removeEventListener("resize", measure);
       globalThis.removeEventListener("hashchange", syncFromLocation);
@@ -476,7 +517,18 @@
 >
   {#if route.kind === "home"}
     <div class="shell-region shell-region--home" data-cy="shell-region-home">
-      <MainMenuScreen {store} onfreeplaywarm={warmFreePlay} />
+      <MainMenuScreen {store} {coreGate} onfreeplaywarm={warmFreePlay} />
+    </div>
+  {:else if route.kind === "install-content"}
+    <div
+      class="shell-region shell-region--install-content"
+      data-cy="shell-region-install-content"
+    >
+      <InstallContentScreen
+        gate={coreGate}
+        bootstrap={coreBootstrap}
+        onback={() => store.navigate(HOME_ROUTE)}
+      />
     </div>
   {:else if collectionContext !== null}
     <div

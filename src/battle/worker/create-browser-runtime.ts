@@ -33,6 +33,13 @@ export interface BrowserDuelWorkerRuntimeOptions {
 export function createBrowserDuelWorkerRuntime(
   options: BrowserDuelWorkerRuntimeOptions = {},
 ): DuelWorkerRuntime {
+  const runtimeManifestSha256 = requiredRuntimeConstant(
+    __RUNTIME_MANIFEST_SHA256__,
+  );
+  const runtimeSnapshotId = requiredRuntimeConstant(__RUNTIME_SNAPSHOT_ID__);
+  const activeImageManifestSha256 = requiredRuntimeConstant(
+    __ACTIVE_IMAGE_MANIFEST_SHA256__,
+  );
   const runtimeId = globalThis.crypto.randomUUID();
   const logger = safeWorkerLogger(options.logger ?? workerLog);
   const applicationBaseUrl =
@@ -42,7 +49,7 @@ export function createBrowserDuelWorkerRuntime(
     async (progress, signal) => {
       let lastProgressStage = "";
       let lastProgressPercent = -1;
-      let selectedImageManifestSha256 = __ACTIVE_IMAGE_MANIFEST_SHA256__;
+      let selectedImageManifestSha256 = activeImageManifestSha256;
       const assets = await runDuelRuntimeInitializationStage(
         "snapshot_validation_failed",
         "Unable to validate the browser runtime snapshot",
@@ -65,8 +72,8 @@ export function createBrowserDuelWorkerRuntime(
           try {
             return await loadBrowserRuntimeAssets(applicationBaseUrl, {
               ...common,
-              expectedManifestSha256: __RUNTIME_MANIFEST_SHA256__,
-              cacheSnapshotId: __RUNTIME_SNAPSHOT_ID__,
+              expectedManifestSha256: runtimeManifestSha256,
+              cacheSnapshotId: runtimeSnapshotId,
             });
           } catch (networkError) {
             logger.warn({
@@ -77,14 +84,14 @@ export function createBrowserDuelWorkerRuntime(
             try {
               return await loadBrowserRuntimeAssets(applicationBaseUrl, {
                 ...common,
-                expectedManifestSha256: __RUNTIME_MANIFEST_SHA256__,
-                cacheOnlySnapshotId: __RUNTIME_SNAPSHOT_ID__,
+                expectedManifestSha256: runtimeManifestSha256,
+                cacheOnlySnapshotId: runtimeSnapshotId,
               });
             } catch (currentCacheError) {
               const lookupFallbacks = (): Promise<
                 Awaited<ReturnType<typeof readCachedSnapshotFallbacks>>
               > =>
-                readCachedSnapshotFallbacks(__RUNTIME_SNAPSHOT_ID__).catch(
+                readCachedSnapshotFallbacks(runtimeSnapshotId).catch(
                   (error: unknown) => {
                     logger.warn({
                       event: "duel.worker.snapshot.fallback_lookup_failed",
@@ -247,6 +254,11 @@ function abortableDelay(
     };
     signal.addEventListener("abort", abort, { once: true });
   });
+}
+
+function requiredRuntimeConstant(value: string | null): string {
+  if (value === null) throw new Error("Installed runtime is unavailable");
+  return value;
 }
 
 function resolveApplicationBaseUrl(): string {

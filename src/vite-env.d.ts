@@ -1,11 +1,11 @@
 /// <reference types="vite/client" />
 
-declare const __RUNTIME_MANIFEST_SHA256__: string;
-declare const __RUNTIME_SNAPSHOT_ID__: string;
-declare const __ACTIVATION_SNAPSHOT_ID__: string;
+declare const __RUNTIME_MANIFEST_SHA256__: string | null;
+declare const __RUNTIME_SNAPSHOT_ID__: string | null;
+declare const __ACTIVATION_SNAPSHOT_ID__: string | null;
 declare const __APP_BUILD_ID__: string;
 declare const __APP_BUILD_DATE__: string;
-declare const __ACTIVE_IMAGE_MANIFEST_SHA256__: string;
+declare const __ACTIVE_IMAGE_MANIFEST_SHA256__: string | null;
 declare const __ACTIVE_IMAGE_MANIFEST__: Readonly<{
   schemaVersion: 1;
   snapshotId: string;
@@ -18,7 +18,7 @@ declare const __ACTIVE_IMAGE_MANIFEST__: Readonly<{
     sha256: string;
   }>[];
   missing: readonly number[];
-}>;
+}> | null;
 declare const __RUNTIME_REVISIONS__: Readonly<{
   runtimeSnapshotId: string;
   runtimeManifestSha256: string;
@@ -28,7 +28,7 @@ declare const __RUNTIME_REVISIONS__: Readonly<{
   cardScripts: string;
   distribution: string;
   imageProvider: string;
-}>;
+}> | null;
 
 declare module "*.ydk?raw" {
   const source: string;

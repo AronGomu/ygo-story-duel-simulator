@@ -11,5 +11,25 @@
 Object.assign(globalThis, {
   __RUNTIME_MANIFEST_SHA256__: "0".repeat(64),
   __RUNTIME_SNAPSHOT_ID__: "1".repeat(64),
+  __ACTIVATION_SNAPSHOT_ID__: "2".repeat(64),
+  __ACTIVE_IMAGE_MANIFEST_SHA256__: "3".repeat(64),
+  __ACTIVE_IMAGE_MANIFEST__: {
+    schemaVersion: 1,
+    snapshotId: "1".repeat(64),
+    provider: "bundled-archive",
+    redistributionApproved: false,
+    files: [],
+    missing: [],
+  },
+  __RUNTIME_REVISIONS__: {
+    runtimeSnapshotId: "1".repeat(64),
+    runtimeManifestSha256: "0".repeat(64),
+    assetManifestSha256: "4".repeat(64),
+    engineManifestSha256: "5".repeat(64),
+    babelCdb: "fixture",
+    cardScripts: "fixture",
+    distribution: "fixture",
+    imageProvider: "fixture",
+  },
   __APP_BUILD_DATE__: "2026-08-20",
 });
