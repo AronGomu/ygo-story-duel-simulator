@@ -113,8 +113,7 @@ async function inspectAvailability(
     await Promise.all(
       [
         "src/story/content/prologue.ts",
-        `${ASSET_SOURCES.story.source}/city-map-placeholder.svg`,
-        `${ASSET_SOURCES.story.source}/PROVENANCE.md`,
+        `${ASSET_SOURCES.story.source}/chapter-01/city-map-placeholder.svg`,
       ].map(async (file) => {
         const bytes = await readBounded(root, file, MAX_SETUP_BYTES);
         return bytes !== null && bytes.length > 0;

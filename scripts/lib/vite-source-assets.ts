@@ -11,7 +11,7 @@ import { readSourceJson, sourceFiles } from "./asset-delivery/source-files.ts";
 export function sourceAssetsPlugin(projectRoot: string): Plugin {
   let config: ResolvedConfig;
   const fonts = new Map<string, string>();
-  const mapSource = `${ASSET_SOURCES.story.source}/city-map-placeholder.svg`;
+  const mapSource = `${ASSET_SOURCES.story.source}/chapter-01/city-map-placeholder.svg`;
   return {
     name: "ygo-declared-source-assets",
     transform(source, id) {

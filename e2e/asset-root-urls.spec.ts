@@ -13,11 +13,11 @@ test("canonical source relocation retains browser asset URLs and exact bytes", a
   await page.goto("./");
   for (const [source, logical] of [
     [
-      `${ASSET_SOURCES.fonts.source}/forum-latin.woff2`,
+      "src/assets/fonts/forum-latin.woff2",
       "fonts/forum-latin.woff2",
     ],
     [
-      `${ASSET_SOURCES.fonts.source}/source-serif-4-latin.woff2`,
+      "src/assets/fonts/source-serif-4-latin.woff2",
       "fonts/source-serif-4-latin.woff2",
     ],
     [
@@ -55,7 +55,5 @@ test("canonical source relocation retains browser asset URLs and exact bytes", a
     }),
   ).toBe(true);
   const provenance = await request.get("assets/story/PROVENANCE.md");
-  expect(await provenance.text()).not.toBe(
-    await readFile("assets/story/PROVENANCE.md", "utf8"),
-  );
+  expect(provenance.status()).toBe(404);
 });

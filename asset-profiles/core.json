@@ -1,1 +1,1 @@
-{"dependsOn":[],"id":"core","rules":[{"kind":"file","logicalPath":"fonts/forum-latin.woff2","path":"fonts/forum-latin.woff2","root":"shared"},{"kind":"file","logicalPath":"fonts/source-serif-4-italic-latin.woff2","path":"fonts/source-serif-4-italic-latin.woff2","root":"shared"},{"kind":"file","logicalPath":"fonts/source-serif-4-latin.woff2","path":"fonts/source-serif-4-latin.woff2","root":"shared"}],"schemaVersion":1}
+{"dependsOn":[],"id":"core","rules":[],"schemaVersion":1}

@@ -147,7 +147,7 @@ Open, undecided in this round: colour is still doing real work here (the red/blu
 
 ## Non-goals
 
-- No real Yu-Gi-Oh! card art anywhere in the prototype — every illustration is authored inline SVG geometry, matching the discipline in `src/story/assets/PROVENANCE.md`. The real implementation swaps each placeholder for the cover card's cropped image from the pinned asset snapshot.
+- No real Yu-Gi-Oh! card art anywhere in the prototype — every illustration is authored inline SVG geometry, matching story prototype asset policy. The real implementation swaps each placeholder for the cover card's cropped image from the pinned asset snapshot.
 - No chosen product-wide visual direction is implied here — this is a refinement of the incumbent `src/styles/tokens.css` world, not an adoption of any of the twenty unselected directions explored elsewhere in `artifacts/`.
 - No real deck-builder editor screen exists yet; every "Open"/"Open in deck builder" action in the prototype is a simulated acknowledgement (a tile pulse), not a navigation.
 

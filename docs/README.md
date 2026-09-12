@@ -80,6 +80,27 @@ architecture/
 └── 07-governance/           # Security, licensing, future extensions
 ```
 
+## Accepted asset tooling decisions — planned, not implemented
+
+| ID | Decision | Meaning |
+| --- | --- | --- |
+| A1 | [ADR-081](ADR/081_ADR_asset_roots_and_delivery_profiles.md) | Four asset-only ownership roots; tracked delivery profiles; promotion without moving files |
+| A2 | [ADR-082](ADR/082_ADR_r2_nightly_and_immutable_asset_releases.md) | R2 public delivery; latest nightly with 24-hour grace; immutable releases |
+| A3 | [ADR-083](ADR/083_ADR_verified_conflict_safe_dev_assets.md) | Verified dev download; ownership receipt; conflict-safe install and explicit prune |
+
+These decisions amend asset storage/delivery only. Existing player installer work remains separate; new commands are not implemented yet.
+
+## Accepted PWA deployment decisions — planned, not implemented
+
+| ID | Decision |
+| --- | --- |
+| ADR-075 | [Static chapter ZIP delivery](ADR/075_ADR_static_pwa_chapter_zip_delivery.md) |
+| ADR-076 | [Content storage ownership and saved refs](ADR/076_ADR_content_storage_and_saved_refs.md) |
+| ADR-077 | [Runtime/catalog activation receipts](ADR/077_ADR_runtime_catalog_receipts.md) |
+| ADR-078 | [Installed visible-media leases](ADR/078_ADR_installed_visible_media_leases.md) |
+| ADR-079 | [Cold service-worker updates](ADR/079_ADR_cold_service_worker_updates.md) |
+| ADR-080 | [Retained public release inventory](ADR/080_ADR_retained_public_release_inventory.md) |
+
 ## Approved future architecture handoff
 
 [`card-game-vn-handoff/`](card-game-vn-handoff/) defines the approved post-MVP visual-novel campaign target and phased implementation plan. It preserves the completed duel architecture but is not evidence that story, map, save, deck-library, content-pack, or PWA work is implemented. Current runtime behavior remains governed by [`architecture/`](architecture/) until each handoff phase lands and updates its owning canonical decision.

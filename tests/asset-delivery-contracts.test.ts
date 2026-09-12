@@ -791,8 +791,8 @@ test("schema-defined sorted sets reject permutations without reordering arbitrar
   const migration = {
     schemaVersion: 1,
     files: ["a", "b"].map((name) => ({
-      from: `public/fonts/${name}.woff2`,
-      to: `assets/shared/fonts/${name}.woff2`,
+      from: `src/story/assets/${name}.svg`,
+      to: `assets/story/${name}.svg`,
       bytes: 1,
       sha256: sha,
     })),

@@ -4,6 +4,7 @@
 > Decided: 2026-08-16
 > Owners: decks data architecture
 > Relates: ADR-036 (shared preview panel)
+> Amended by [ADR-078](078_ADR_installed_visible_media_leases.md): §§1–3 use cache-only installed media leases in planned PWA mode; explicit private profile remains separate.
 > Amended by [ADR-043](043_ADR_runtime_catalog_whole_card_database.md): art is a URL by convention for **every** code, not only manifest-listed ones, and the `missing-art` warning is deleted; the parenthesis in §1 is superseded.
 
 ## Context

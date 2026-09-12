@@ -4,6 +4,7 @@
 > Decided: 2026-08-14
 > Owners: application-shell, duel, deck-editor, visual-novel architecture
 > Superseded in part by ADR-045 (branch topology only; the import boundaries stand).
+> Amended by [ADR-081](081_ADR_asset_roots_and_delivery_profiles.md): asset-only `assets/shared/` allowed; generic shared code prohibition and public-entry boundaries remain.
 
 ## Context
 

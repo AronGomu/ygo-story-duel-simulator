@@ -40,3 +40,4 @@ graphify-out/
 # every run; the transcripts also carry opaque session tokens.
 .pi-subagents/
 .tmp/
+.cptr

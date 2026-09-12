@@ -6,10 +6,10 @@
 
 | Profile | Initial ownership |
 | --- | --- |
-| `core` | Three exact font files, served at unchanged `fonts/` URLs |
+| `core` | Core CSS-imported font files under `src/assets/fonts/`; excluded from asset-delivery inventory |
 | `runtime` | Runtime manifest, data manifest, catalog/image-metadata/script/string trees, card back |
-| `chapter-01` | Extant matching card/crop IDs from tracked chapter-one authoring, existing shop-set art, existing map SVG; depends on `runtime` |
-| `dev-only` | Everything else, including originals, provenance, acquired non-authoritative engine, set-image manifest, data checksum sidecar |
+| `chapter-01` | Extant matching card/crop IDs from tracked chapter-one authoring, existing shop-set art, Chapter 1 map SVG; depends on `runtime` |
+| `dev-only` | Everything else, including originals, acquired non-authoritative engine, set-image manifest, data checksum sidecar |
 
 `asset-profiles/nightly.json` is a `PlayerSelection`, not a profile. Only core/runtime/chapter-01 initially selected. Additional profiles require explicit authoring/selection. Shared media has one owner; later chapters depend on that owner instead of claiming bytes twice. Declared dependencies are selected transitively; all declarations are checked for cycles/source/logical collisions, including unselected profiles.
 
@@ -51,7 +51,7 @@ npm run assets:migrate -- --apply generated/asset-delivery/migration-plan.json
 
 ## Browser and acquisition boundaries
 
-Vite serves only declared core fonts, the existing static map SVG import, declared runtime snapshot files, existing constrained runtime image/set URLs, frozen vendor engine URLs. Four roots are not mounted as recursive public directories; direct source paths and legacy paths are rejected, including Vite `@fs` spellings. Core font CSS URLs retain non-root deployment bases. Vite may report unresolved `/fonts/` URLs during its earlier CSS pass; the source plugin rewrites these before final CSS emission, verified by Chromium font loading and exact URL/hash checks.
+Vite bundles core fonts through CSS imports, serves the Chapter 1 map through its story chunk, declared runtime snapshot files, existing constrained runtime image/set URLs, frozen vendor engine URLs. Four roots are not mounted as recursive public directories; direct source paths and legacy paths are rejected, including Vite `@fs` spellings. Core font CSS URLs retain non-root deployment bases. Vite may report unresolved `/fonts/` URLs during its earlier CSS pass; the source plugin rewrites these before final CSS emission, verified by Chromium font loading and exact URL/hash checks.
 
 Explicit legacy acquisition commands remain available, targeting canonical roots under the common delivery lock. They are never invoked by scan, migration, promotion, or private build. Download reports/status/cache remain operational `generated/` inputs for legacy acquisition diagnostics, not managed delivery assets. Strict upstream coverage/decoded-media checks remain separate; a hosted dev bundle is not proof that those legacy acquisition reports exist or that every selected asset is available.
 

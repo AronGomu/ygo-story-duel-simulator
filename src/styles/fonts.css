@@ -1,6 +1,6 @@
-/* Basilica Slate brand faces (PRODUCT.md → Brand Commitments), self-hosted
-   from core-profile `assets/shared/fonts/` at unchanged `/fonts/` URLs because the product is offline: no network fetch may
-   stand between the player and the type. Latin subsets only; both Source
+/* Basilica Slate brand faces (PRODUCT.md → Brand Commitments), bundled into
+   core application CSS because product is offline: no network fetch may stand
+   between player and type. Latin subsets only; both Source
    Serif 4 files are variable (wght 400–700), Forum ships its single 400.
    Source: Google Fonts, SIL Open Font License. */
 @font-face {
@@ -8,7 +8,7 @@
   font-style: normal;
   font-weight: 400;
   font-display: swap;
-  src: url("/fonts/forum-latin.woff2") format("woff2");
+  src: url("../assets/fonts/forum-latin.woff2") format("woff2");
 }
 
 @font-face {
@@ -16,7 +16,7 @@
   font-style: normal;
   font-weight: 400 700;
   font-display: swap;
-  src: url("/fonts/source-serif-4-latin.woff2") format("woff2");
+  src: url("../assets/fonts/source-serif-4-latin.woff2") format("woff2");
 }
 
 @font-face {
@@ -24,5 +24,5 @@
   font-style: italic;
   font-weight: 400 700;
   font-display: swap;
-  src: url("/fonts/source-serif-4-italic-latin.woff2") format("woff2");
+  src: url("../assets/fonts/source-serif-4-italic-latin.woff2") format("woff2");
 }

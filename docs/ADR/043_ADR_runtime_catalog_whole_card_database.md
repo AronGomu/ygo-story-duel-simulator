@@ -4,6 +4,7 @@
 > Decided: 2026-08-20
 > Owners: decks data architecture
 > Relates: ADR-011 (deck registry and derived card pool), ADR-039 (editor card art via static runtime URLs), ADR-025 (validated card-list duel start)
+> Amended by [ADR-075](075_ADR_static_pwa_chapter_zip_delivery.md) (§§1,3 transport) and [ADR-078](078_ADR_installed_visible_media_leases.md) (§4 art): planned PWA mode installs full runtime manually, resolves art cache-only; full-catalog scope remains.
 > Feedback: [`../../feedback-decks.md`](../../feedback-decks.md) — Deck Builder 13, 14
 
 ## Context

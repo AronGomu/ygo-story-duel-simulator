@@ -364,7 +364,7 @@ export function verifyContentSetup(input: SetupInput): SetupReport {
   if (!input.availability.prototypeMedia)
     add(
       "SOURCE_COVERAGE_REQUIRED",
-      "Existing prototype source/media is missing. Restore src/story/content/prologue.ts, assets/story/city-map-placeholder.svg and assets/story/PROVENANCE.md; review prototype media rights separately.",
+      "Existing Chapter 1 source/media is missing. Restore src/story/content/prologue.ts and assets/story/chapter-01/city-map-placeholder.svg; review prototype media rights separately.",
     );
 
   if (!input.availability.prototypeDecksCompatible)

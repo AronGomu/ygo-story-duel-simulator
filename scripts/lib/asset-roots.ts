@@ -42,12 +42,6 @@ export const ASSET_SOURCES = {
     logical: null,
     kind: "tree",
   },
-  fonts: {
-    legacy: "public/fonts",
-    source: "assets/shared/fonts",
-    logical: "fonts",
-    kind: "tree",
-  },
   story: {
     legacy: "src/story/assets",
     source: "assets/story",

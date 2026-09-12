@@ -151,8 +151,7 @@ export async function contentSetupFilesFixture(root: string) {
     await put(`${ASSET_SOURCES.setImages.source}/${id}.jpg`, jpeg);
   for (const relative of [
     "src/story/content/prologue.ts",
-    `${ASSET_SOURCES.story.source}/city-map-placeholder.svg`,
-    `${ASSET_SOURCES.story.source}/PROVENANCE.md`,
+    `${ASSET_SOURCES.story.source}/chapter-01/city-map-placeholder.svg`,
   ])
     await put(relative, "Lawful synthetic fixture; not production media.");
   for (const relative of [

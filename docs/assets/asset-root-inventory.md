@@ -17,8 +17,8 @@ Current mapping: `scripts/lib/asset-roots.ts:ASSET_SOURCES`. Acquisition, valida
 | M5 | `generated/card-images/card-back.jpg` | `assets/shared/card-back.jpg` | `runtime/images/card-back.jpg`; downloadable back |
 | M6 | `generated/set-images/` | `assets/shared/set-images/` | `runtime/sets/`; set bytes, manifest tooling-only unless selected |
 | M7 | `generated/engine/current/` | `assets/battle/engine/current/` | Legacy acquired engine; NOT browser authority |
-| M8 | `public/fonts/` | `assets/shared/fonts/` | `fonts/`; core files, include existing license/provenance |
-| M9 | `src/story/assets/` | `assets/story/` | `story/media/`; imported SVG rendering preserved later; originals/provenance included |
+| M8 | `public/fonts/` | `src/assets/fonts/` | Core application CSS assets; excluded from downloadable asset bundles |
+| M9 | `src/story/assets/` | `assets/story/chapter-01/` | Chapter 1 story media; `story/media/`; imported map is chapter-scoped |
 | M10 | `public/story/shop-sets.v1.json` | Unmoved | Tracked gameplay policy; not downloaded bytes |
 | M11 | `vendor/ocgcore-wasm/0.1.2/` | Unmoved | Frozen Git dependency; dev installer never writes here |
 
@@ -119,7 +119,7 @@ Paths resolve at baseline SHA above; later edits shift line numbers. No ephemera
 | L73 | `src/battle/worker/protocol/PromptRegistry.ts` | 199, 703 |
 | L74 | `src/decks/catalog/ocg-card-mapper.ts` | 4 |
 | L75 | `src/decks/catalog/ocg-mask.ts` | 5 |
-| L76 | `src/story/assets/PROVENANCE.md` | 4 |
+| L76 | retired; provenance file deleted | — |
 | L77 | `src/story/decks/starter-grant.ts` | 28 |
 | L78 | `src/story/handoff/story-handoff.ts` | 18 |
 | L79 | `src/story/shop/data/shop-set-data.ts` | 106 |

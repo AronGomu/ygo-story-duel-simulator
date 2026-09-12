@@ -4,7 +4,7 @@ const ref = (prefix: string, ext = "json") => ({
   bytes: 1,
   sha256: sha,
 });
-const file = { path: "assets/shared/fonts/test.woff2", bytes: 1, sha256: sha };
+const file = { path: "assets/story/test.svg", bytes: 1, sha256: sha };
 const profile = { schemaVersion: 1, id: "core", dependsOn: [], rules: [] };
 const selection = { schemaVersion: 1, profiles: ["core"] };
 const retained = { schemaVersion: 1, catalogs: [], manifests: [] };
@@ -26,10 +26,10 @@ const prepared = {
 };
 const selected = {
   ...file,
-  root: "shared",
-  sourcePath: "fonts/test.woff2",
-  profile: "core",
-  logicalPath: "fonts/test.woff2",
+  root: "story",
+  sourcePath: "test.svg",
+  profile: "dev-only",
+  logicalPath: null,
 };
 const receipt = {
   schemaVersion: 1,
@@ -83,7 +83,7 @@ export const schemaFixtures = {
     appVersion: "0.1.0",
     inventory: ref("inventories"),
     archive: ref("core/archives", "zip"),
-    files: [{ ...file, logicalPath: "fonts/test.woff2" }],
+    files: [{ ...file, logicalPath: "story/test.svg" }],
   },
   "core-copy-plan": {
     schemaVersion: 1,
@@ -139,7 +139,7 @@ export const schemaFixtures = {
   "migration-plan": {
     schemaVersion: 1,
     files: [
-      { from: "public/fonts/test.woff2", to: file.path, bytes: 1, sha256: sha },
+      { from: "src/story/assets/test.svg", to: file.path, bytes: 1, sha256: sha },
     ],
   },
   "asset-result": { status: "ok", operation: "setup", snapshotSha256: null },

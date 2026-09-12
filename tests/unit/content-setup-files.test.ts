@@ -300,7 +300,7 @@ describe("content setup filesystem inspector", () => {
     `${ASSET_SOURCES.fullImages.source}/1.jpg`,
     `${ASSET_SOURCES.croppedImages.source}/1.jpg`,
     `${ASSET_SOURCES.setImages.source}/chapter-01.jpg`,
-    `${ASSET_SOURCES.story.source}/city-map-placeholder.svg`,
+    `${ASSET_SOURCES.story.source}/chapter-01/city-map-placeholder.svg`,
   ])("reports missing local asset: %s", async (relative) => {
     const fixture = await localFixture();
     await rm(path.join(fixture.root, relative));

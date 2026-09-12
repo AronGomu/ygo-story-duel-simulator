@@ -44,7 +44,7 @@ and the same `#/story` route.
 
 ## Placeholder asset provenance
 
-`assets/city-map-placeholder.svg` and CSS-rendered character/background/reward
+`assets/story/chapter-01/city-map-placeholder.svg` and CSS-rendered character/background/reward
 art were authored in-repo. No third-party media, fonts, music, card art, or
 redistribution rights are implied. Replace or delete all placeholder assets
 before public use.

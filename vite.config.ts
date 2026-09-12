@@ -11,7 +11,6 @@ import {
 } from "./scripts/lib/active-image-manifest.ts";
 import { browserRuntimeAssetsPlugin } from "./scripts/lib/vite-runtime-assets.ts";
 import { syncOnlyVendoredCorePlugin } from "./scripts/lib/vite-sync-core.ts";
-import { sourceAssetsPlugin } from "./scripts/lib/vite-source-assets.ts";
 
 const projectRoot = path.dirname(fileURLToPath(import.meta.url));
 const appBuildDate = new Date().toISOString().slice(0, 10);
@@ -55,6 +54,9 @@ export default defineConfig({
   server: {
     port: developmentPort,
     strictPort: true,
+    watch: {
+      ignored: ["**/.tmp/**"],
+    },
   },
   preview: {
     port: developmentPort,
@@ -64,7 +66,6 @@ export default defineConfig({
     syncOnlyVendoredCorePlugin(projectRoot),
     svelte(),
     browserRuntimeAssetsPlugin(projectRoot),
-    sourceAssetsPlugin(projectRoot),
   ],
   define: {
     __RUNTIME_MANIFEST_SHA256__: JSON.stringify(runtimeManifestSha256),

@@ -253,30 +253,17 @@ test("Core split and promotion/migration mapping retain existing browser URLs", 
       "assets/shared/card-back.jpg",
       "runtime/images/card-back.jpg",
     ],
-    [
-      "public/fonts/forum.woff2",
-      "assets/shared/fonts/forum.woff2",
-      "fonts/forum.woff2",
-    ],
     ["src/story/assets/art.svg", "assets/story/art.svg", "story/media/art.svg"],
   ];
   for (const [from, , logical] of mappings) await put(root, from!, logical!);
   const plan = await previewMigration(root);
   const receipt = await applyMigration(root, plan);
-  assert.equal(receipt.completed.length, 5);
+  assert.equal(receipt.completed.length, 4);
   for (const [from, to, logical] of mappings) {
     assert.equal(mappedLogicalPath(to!), logical);
     assert.equal(await readFile(path.join(root, from!), "utf8"), logical);
     assert.equal(await readFile(path.join(root, to!), "utf8"), logical);
   }
-  await profile(root, "core", [
-    { root: "shared", path: "fonts", kind: "tree", logicalPath: "fonts" },
-  ]);
-  assert.equal(
-    (await scan(root)).files.find((f) => f.sourcePath === "fonts/forum.woff2")
-      ?.profile,
-    "core",
-  );
   assert.deepEqual(await applyMigration(root, plan), receipt);
 });
 test("Migration source hash and membership guards reject changes; no receipt or copied bytes", async (t) => {
@@ -742,7 +729,7 @@ test("Dev Vite serves core font URLs and imported SVG only, never original sourc
   await put(root, "assets/shared/fonts/test.woff2", "font-bytes");
   await put(root, "assets/story/original.psd", "private-original");
   await put(root, "generated/assets/current/original.psd", "private-original");
-  await put(root, "assets/story/city-map-placeholder.svg", "<svg></svg>");
+  await put(root, "assets/story/chapter-01/city-map-placeholder.svg", "<svg></svg>");
   const server = await createServer({
     configFile: false,
     root,
@@ -759,7 +746,7 @@ test("Dev Vite serves core font URLs and imported SVG only, never original sourc
     assert.equal(font.status, 200);
     assert.equal(await font.text(), "font-bytes");
     assert.equal(
-      (await fetch(`${base}/assets/story/city-map-placeholder.svg`)).status,
+      (await fetch(`${base}/assets/story/chapter-01/city-map-placeholder.svg`)).status,
       200,
     );
     for (const url of [
@@ -777,12 +764,12 @@ test("Dev Vite serves core font URLs and imported SVG only, never original sourc
       assert.notEqual(await response.text(), "private-original");
     }
     await put(root, "private.txt", "private-original");
-    await unlink(path.join(root, "assets/story/city-map-placeholder.svg"));
+    await unlink(path.join(root, "assets/story/chapter-01/city-map-placeholder.svg"));
     await symlink(
       path.join(root, "private.txt"),
-      path.join(root, "assets/story/city-map-placeholder.svg"),
+      path.join(root, "assets/story/chapter-01/city-map-placeholder.svg"),
     );
-    const linked = await fetch(`${base}/assets/story/city-map-placeholder.svg`);
+    const linked = await fetch(`${base}/assets/story/chapter-01/city-map-placeholder.svg`);
     assert.equal(linked.status, 404);
     assert.notEqual(await linked.text(), "private-original");
   } finally {
@@ -946,7 +933,6 @@ test("Observed root disappearance and enumerated file disappearance fail ASSET_S
 
 test("Migration preflight rejects empty-directory case/Unicode aliases before any copy", async (t) => {
   for (const [old, existing] of [
-    ["public/fonts/test.woff2", "assets/shared/Fonts"],
     ["src/story/assets/é/test.svg", "assets/story/é"],
   ]) {
     const root = await fixture(t);
