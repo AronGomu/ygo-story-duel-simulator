@@ -1,0 +1,13 @@
+{
+  "schemaVersion": 1,
+  "aliases": [
+    {
+      "sourceCode": 81480461,
+      "runtimeCode": 81480460
+    }
+  ],
+  "excludedCardCodes": [501000000, 501000001],
+  "excludedSetNames": [
+    "Yu-Gi-Oh! Power of Chaos: Yugi the Destiny Limited Collector's Edition"
+  ]
+}

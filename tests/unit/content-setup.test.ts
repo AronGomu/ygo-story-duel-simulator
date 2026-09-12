@@ -43,6 +43,29 @@ describe("content setup", () => {
       expect.objectContaining({ code: "OWNER_MAPPING_REQUIRED" }),
     );
   });
+  it("readiness resolves approved alias but still blocks an unrelated included card", () => {
+    const input = fixture();
+    const source = JSON.parse(input.source.toString("utf8"));
+    source.sets[0].cards[0] = {
+      id: 81480461,
+      name: "Barrel Dragon",
+      printings: [{ code: "ONE-001", rarity: "Rare", rarityCode: "(R)" }],
+    };
+    bindContentSource(input, Buffer.from(JSON.stringify(source)));
+    input.availability.runtimeCardCodes = new Set([81480460]);
+    input.availability.fullCardCodes = new Set([81480460]);
+    input.availability.croppedCardCodes = new Set([81480460]);
+    expect(verifyContentSetup(input).codeReady).toBe(true);
+
+    source.sets[0].cards.push({
+      id: 999,
+      name: "Unrelated included card",
+      printings: [{ code: "ONE-002", rarity: "Common", rarityCode: "(C)" }],
+    });
+    bindContentSource(input, Buffer.from(JSON.stringify(source)));
+    expect(verifyContentSetup(input).codeReady).toBe(false);
+    expect(codes(input)).toContain("SOURCE_COVERAGE_REQUIRED");
+  });
   it.each([
     "unknown set",
     "unsupported code",
@@ -174,8 +197,17 @@ describe("content setup", () => {
     const source = JSON.parse(input.source.toString("utf8"));
     source.sets.push({
       name: "last day of first era",
+      code: "LAST",
       tcgReleaseDate: "2002-03-07",
-      cards: [{ id: 1 }],
+      cards: [
+        {
+          id: 1,
+          name: "Synthetic card 1",
+          printings: [
+            { code: "LAST-001", rarity: "Common", rarityCode: "(C)" },
+          ],
+        },
+      ],
     });
     input.selections.chapters[0]!.setNames.push("last day of first era");
     input.availability.setNames.add("last day of first era");

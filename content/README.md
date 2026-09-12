@@ -1,6 +1,6 @@
 # Content setup preflight — Chapter 1 only
 
-State: partial T1 implementation. `codeReady: false`; `publishReady: false`. Only `chapter-01` targets this release. Selected source inventory: 76 sets, 1,629 unique card IDs, 2,749 set-card references, 4,516 printing references. No packaging, downloads, activation or deployment occurs in this command.
+State: superseded pre-normalization T1 snapshot. Current private prerequisites, approved corrections, normalized 75-set/1,627-code baseline, and remaining media gaps live in [`docs/assets/core-installation.md`](../docs/assets/core-installation.md). Historical observations below remain evidence only; they do not override current source policy. No packaging, downloads, activation, or deployment occurs in this command.
 
 ## Inputs
 

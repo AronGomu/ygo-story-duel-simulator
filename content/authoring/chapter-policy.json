@@ -22,12 +22,22 @@
   "boundaryEvidenceStatus": "owner-approved-interval-not-exhaustive-history",
   "dateConvention": "Source tcgReleaseDate unchanged; owner retains candidate DM interval 2001-01-01 inclusive to 2005-05-28 exclusive. Candidate observations are not an official era decree or exhaustive earliest-worldwide date proof.",
   "coverageGaps": {
-    "selectedEmptySetNames": [
-      "Yu-Gi-Oh! Power of Chaos: Yugi the Destiny Limited Collector's Edition"
-    ],
+    "approvedSourceCorrections": {
+      "record": "content/authoring/chapter-one-corrections.json",
+      "aliases": [
+        {
+          "sourceCode": 81480461,
+          "runtimeCode": 81480460
+        }
+      ],
+      "excludedCardCodes": [501000000, 501000001],
+      "excludedSetNames": [
+        "Yu-Gi-Oh! Power of Chaos: Yugi the Destiny Limited Collector's Edition"
+      ]
+    },
     "sourceCompleteness": "not-exhaustive",
     "unselectedProvenance": "Five undated source sets and 509 orphan cards remain unresolved; not proven later/non-TCG, not granted, not automatic global release blockers."
   },
-  "prototypeRosterAssumption": "Current practice-bot, blaze-circuit, vault-warden and player/story defaults remain referenced, not approved for Chapter 1. Existing exposed presets and shared starter contain codes outside selected pool; downstream must explicitly supply or restrict to tested compatible decks. No deck changes in T1.",
-  "materializationStatus": "chapter-one-source-date-selection-with-explicit-selected-gaps"
+  "prototypeRosterAssumption": "Current practice-bot, blaze-circuit, vault-warden and player/story defaults remain checked against the normalized Chapter 1 pool. Engine legality remains authoritative downstream. No deck changes in T1.",
+  "materializationStatus": "chapter-one-normalized-source-policy-ready"
 }

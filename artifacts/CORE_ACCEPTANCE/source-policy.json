@@ -1,0 +1,41 @@
+{
+  "schemaVersion": 1,
+  "status": "policy-ready",
+  "inputs": {
+    "source": "content/authoring/card-set-source.json",
+    "sourceSha256": "b3ac778e5f1b9927554ef8e66185a596c0c35d71ab642b448c952c6c9050496d",
+    "corrections": "content/authoring/chapter-one-corrections.json",
+    "selection": "content/chapter-selections.json"
+  },
+  "normalized": {
+    "selectedSetCount": 75,
+    "uniqueCardCodeCount": 1627,
+    "setCardCount": 2747,
+    "printingCount": 4514
+  },
+  "corrections": {
+    "aliases": [
+      {
+        "sourceCode": 81480461,
+        "runtimeCode": 81480460
+      }
+    ],
+    "excludedCardCodes": [501000000, 501000001],
+    "excludedSetNames": [
+      "Yu-Gi-Oh! Power of Chaos: Yugi the Destiny Limited Collector's Edition"
+    ]
+  },
+  "retained": {
+    "separatePcyPromoSet": true,
+    "supportedPrizeSetCardCount": 1,
+    "allIncludedPrintingTuplesRetained": true
+  },
+  "mediaInspection": {
+    "method": "bounded setup inspection with runtime manifest validation, JPEG validation, and set-image manifest hash checks",
+    "missingRuntimeCards": 0,
+    "missingFullImages": 0,
+    "missingCroppedImages": 1591,
+    "missingSetImages": 61,
+    "t3Required": true
+  }
+}

@@ -13,6 +13,12 @@ import { array, hash, integer, text } from "./schema.ts";
 import type { FileDigest } from "./file-digest.ts";
 import type { Progress } from "./cli.ts";
 import { fail } from "./failure.ts";
+import {
+  normalizeChapterSource,
+  parseChapterSourceCorrections,
+  type ChapterSourceSet,
+  type NormalizedChapterSource,
+} from "../chapter-source-policy.ts";
 
 const asRecord = (value: unknown): Record<string, unknown> => {
   if (!value || typeof value !== "object" || Array.isArray(value))
@@ -46,6 +52,15 @@ export async function preparePlayerMetadata(
     const source = parseCardSetSource(sourceInput.bytes);
     if (!source || sourceInput.digest.sha256 !== parsed.value.sourceSha256)
       fail("ASSET_INTEGRITY_FAILED", sourceInput.digest.path);
+    const correctionsInput = await read(
+      "content/authoring/chapter-one-corrections.json",
+    );
+    let corrections;
+    try {
+      corrections = parseChapterSourceCorrections(correctionsInput.value);
+    } catch {
+      fail("ASSET_CONFIG_INVALID", correctionsInput.digest.path);
+    }
     const policyInput = await read("content/authoring/chapter-policy.json");
     const policy = asRecord(policyInput.value);
     const intervals = array(asRecord, undefined, 1)(policy.chapters);
@@ -112,19 +127,33 @@ export async function preparePlayerMetadata(
     const chapters = parsed.value.chapters
       .filter((c) => c.published)
       .map((chapter) => {
-        const codes = new Set(chapter.additionalCardCodes);
+        const selectedNames = new Set(chapter.setNames);
+        const selectedSets = source.sets.filter(
+          (set): set is ChapterSourceSet =>
+            set.tcgReleaseDate !== null && selectedNames.has(set.name),
+        );
+        if (selectedSets.length !== selectedNames.size) {
+          progress("CONTENT_SOURCE_GAP", sourceInput.digest.path);
+          fail("ASSET_REFERENCE_MISSING", sourceInput.digest.path);
+        }
+        let normalized: NormalizedChapterSource;
+        try {
+          normalized = normalizeChapterSource(selectedSets, corrections);
+        } catch {
+          fail("ASSET_CONFIG_INVALID", sourceInput.digest.path);
+        }
+        const codes = new Set([
+          ...chapter.additionalCardCodes,
+          ...normalized.cardCodes,
+        ]);
         const setIds: string[] = [];
-        for (const name of chapter.setNames) {
-          const set = source.sets.find((s) => s.name === name);
-          const id = byName.get(name);
-          if (!set || !id) {
+        for (const set of normalized.sets) {
+          const id = byName.get(set.name);
+          if (!id) {
             progress("CONTENT_SOURCE_GAP", shopInput.digest.path);
             fail("ASSET_REFERENCE_MISSING", shopInput.digest.path);
           }
           setIds.push(id);
-          if (!set.cards.length)
-            progress("source-set-empty", sourceInput.digest.path);
-          for (const card of set.cards) codes.add(card.id);
         }
         const cardCodes = [...codes].sort((a, b) => a - b);
         const unsupported = cardCodes.filter((code) => !runtimeCodes.has(code));

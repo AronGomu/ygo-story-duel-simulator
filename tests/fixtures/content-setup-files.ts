@@ -17,6 +17,10 @@ export async function contentSetupFilesFixture(root: string) {
     put(relative, JSON.stringify(value));
   const persistInputs = async () => {
     await put("content/authoring/card-set-source.json", input.source);
+    await putJson(
+      "content/authoring/chapter-one-corrections.json",
+      input.corrections,
+    );
     await putJson("content/chapter-selections.json", input.selections);
     await putJson("content/authoring/chapter-policy.json", input.chapterPolicy);
     await putJson("content/distribution-evidence.json", input.distribution);

@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 1,
+  "status": "policy-ready-real-install-pending",
+  "inputs": [
+    "content/authoring/card-set-source.json",
+    "content/authoring/chapter-one-corrections.json",
+    "content/authoring/chapter-policy.json",
+    "content/chapter-selections.json"
+  ],
+  "successCase": {
+    "command": "npx vitest run tests/unit/chapter-source-policy.test.ts tests/unit/content-setup*.test.ts tests/unit/chapter-one-decks.test.ts",
+    "result": "6 files passed; 193 tests passed",
+    "observed": "75 normalized sets; 1627 normalized codes; approved alias resolved; excluded set/cards absent; separate PCY promo and supported prize member retained"
+  },
+  "failureCase": {
+    "command": "npm run content:setup:verify",
+    "exitStatus": 2,
+    "observed": "0 unsupported runtime cards; 0 missing full images; 1591 missing cropped images; 61 missing set images",
+    "meaning": "T1 policy is ready; T3 real-media installation remains incomplete"
+  },
+  "browserEvidence": {
+    "command": "npm run build",
+    "result": "private production build and browser-build verifier passed",
+    "screenshot": null,
+    "trace": null,
+    "reason": "T1 changes local authoring/tooling only; no UI interaction changed"
+  },
+  "rawSourceSha256": "b3ac778e5f1b9927554ef8e66185a596c0c35d71ab642b448c952c6c9050496d"
+}

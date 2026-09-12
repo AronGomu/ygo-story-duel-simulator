@@ -610,13 +610,63 @@ test("explicit content:catalog preserves duplicate-membership set IDs; pins sour
     schemaVersion: 1,
     generatedAt: "2026-09-07T00:00:00Z",
     sets: [
-      { name: "One", tcgReleaseDate: "2002-01-01", cards: [{ id: 1 }] },
-      { name: "Two", tcgReleaseDate: "2002-01-02", cards: [{ id: 1 }] },
+      {
+        name: "One",
+        code: "ONE",
+        tcgReleaseDate: "2002-01-01",
+        cards: [
+          {
+            id: 1,
+            name: "One",
+            printings: [
+              { code: "ONE-001", rarity: "Common", rarityCode: "(C)" },
+            ],
+          },
+          {
+            id: 81480461,
+            name: "Barrel Dragon",
+            printings: [{ code: "ONE-002", rarity: "Rare", rarityCode: "(R)" }],
+          },
+        ],
+      },
+      {
+        name: "Two",
+        code: "TWO",
+        tcgReleaseDate: "2002-01-02",
+        cards: [
+          {
+            id: 1,
+            name: "One",
+            printings: [
+              { code: "TWO-001", rarity: "Common", rarityCode: "(C)" },
+            ],
+          },
+          {
+            id: 501000000,
+            name: "Ulevo",
+            printings: [
+              { code: "TWO-002", rarity: "Ultra Rare", rarityCode: "(UR)" },
+            ],
+          },
+        ],
+      },
     ],
     cardsWithoutSetMembership: [],
   });
-  const shard = canonicalBytes([{ code: 1 }, { code: 2 }]);
+  const shard = canonicalBytes([{ code: 1 }, { code: 2 }, { code: 81480460 }]);
   await put(root, "content/authoring/card-set-source.json", source);
+  await put(
+    root,
+    "content/authoring/chapter-one-corrections.json",
+    canonicalBytes({
+      schemaVersion: 1,
+      aliases: [{ sourceCode: 81480461, runtimeCode: 81480460 }],
+      excludedCardCodes: [501000000, 501000001],
+      excludedSetNames: [
+        "Yu-Gi-Oh! Power of Chaos: Yugi the Destiny Limited Collector's Edition",
+      ],
+    }),
+  );
   await put(
     root,
     "content/chapter-selections.json",
@@ -684,9 +734,14 @@ test("explicit content:catalog preserves duplicate-membership set IDs; pins sour
   );
   const output = await preparePlayerMetadata(root);
   assert.deepEqual(output.chapters[0]!.setIds, ["one", "two"]);
-  assert.deepEqual(output.chapters[0]!.cardCodes, [1]);
-  assert.deepEqual(output.runtimeCardCodes, [1, 2]);
-  assert.equal(output.sourceInputs.length, 7);
+  assert.deepEqual(output.chapters[0]!.cardCodes, [1, 81480460]);
+  assert.deepEqual(output.runtimeCardCodes, [1, 2, 81480460]);
+  assert.equal(output.sourceInputs.length, 8);
+  assert(
+    output.sourceInputs.some(
+      ({ path }) => path === "content/authoring/chapter-one-corrections.json",
+    ),
+  );
   for (const input of output.sourceInputs)
     assert.equal(
       sha(await readFile(path.join(root, input.path))),
