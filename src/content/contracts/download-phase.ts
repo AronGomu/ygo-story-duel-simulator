@@ -6,4 +6,5 @@ export type DownloadPhase =
   | "activating"
   | "paused"
   | "failed"
-  | "complete";
+  | "complete"
+  | "cancelled";

@@ -19,6 +19,8 @@
     "tests/**/*.ts",
     "e2e/**/*.ts",
     "e2e-acceptance/**/*.ts",
+    "e2e-content/**/*.ts",
+    "playwright.content.config.ts",
     "playwright.config.ts",
     "playwright.acceptance.config.ts",
     "vite.config.ts",

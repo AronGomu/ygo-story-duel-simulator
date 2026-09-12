@@ -1,0 +1,312 @@
+{
+  "base": "25d761f117a6260890a2465d81c3433c850deb10",
+  "files": [
+    {
+      "path": "artifacts/manual_test_checklist.md",
+      "added": 10,
+      "removed": 0,
+      "new": false
+    },
+    {
+      "path": "docs/GLOSSARY.md",
+      "added": 2,
+      "removed": 0,
+      "new": false
+    },
+    {
+      "path": "e2e-content/installer.spec.ts",
+      "added": 644,
+      "removed": 0,
+      "new": true
+    },
+    {
+      "path": "e2e-content/real-installer.spec.ts",
+      "added": 116,
+      "removed": 0,
+      "new": true
+    },
+    {
+      "path": "eslint.config.js",
+      "added": 39,
+      "removed": 0,
+      "new": false
+    },
+    {
+      "path": "package.json",
+      "added": 2,
+      "removed": 2,
+      "new": false
+    },
+    {
+      "path": "playwright.content.config.ts",
+      "added": 31,
+      "removed": 0,
+      "new": true
+    },
+    {
+      "path": "src/battle/content-activation.ts",
+      "added": 12,
+      "removed": 0,
+      "new": true
+    },
+    {
+      "path": "src/battle/storage/frozen-vendor-pin.ts",
+      "added": 3,
+      "removed": 0,
+      "new": true
+    },
+    {
+      "path": "src/battle/storage/installed-runtime-receipt.ts",
+      "added": 228,
+      "removed": 0,
+      "new": true
+    },
+    {
+      "path": "src/battle/storage/prepare-installed-runtime.ts",
+      "added": 185,
+      "removed": 0,
+      "new": true
+    },
+    {
+      "path": "src/battle/storage/snapshot-store.ts",
+      "added": 104,
+      "removed": 44,
+      "new": false
+    },
+    {
+      "path": "src/battle/storage/verify-runtime-support.ts",
+      "added": 86,
+      "removed": 0,
+      "new": true
+    },
+    {
+      "path": "src/content/content-api.ts",
+      "added": 40,
+      "removed": 0,
+      "new": true
+    },
+    {
+      "path": "src/content/content-verification.ts",
+      "added": 104,
+      "removed": 0,
+      "new": true
+    },
+    {
+      "path": "src/content/contracts/content-installer.ts",
+      "added": 18,
+      "removed": 0,
+      "new": true
+    },
+    {
+      "path": "src/content/contracts/download-job.ts",
+      "added": 9,
+      "removed": 0,
+      "new": true
+    },
+    {
+      "path": "src/content/contracts/download-phase.ts",
+      "added": 2,
+      "removed": 1,
+      "new": false
+    },
+    {
+      "path": "src/content/contracts/download-result.ts",
+      "added": 1,
+      "removed": 1,
+      "new": false
+    },
+    {
+      "path": "src/content/contracts/download-target.ts",
+      "added": 3,
+      "removed": 1,
+      "new": false
+    },
+    {
+      "path": "src/content/contracts/install-receipt.ts",
+      "added": 6,
+      "removed": 0,
+      "new": true
+    },
+    {
+      "path": "src/content/contracts/installed-runtime-receipt.ts",
+      "added": 13,
+      "removed": 0,
+      "new": true
+    },
+    {
+      "path": "src/content/contracts/persisted-download-job.ts",
+      "added": 8,
+      "removed": 0,
+      "new": true
+    },
+    {
+      "path": "src/content/contracts/runtime-receipt-file.ts",
+      "added": 6,
+      "removed": 0,
+      "new": true
+    },
+    {
+      "path": "src/content/contracts/saved-content-refs-port.ts",
+      "added": 5,
+      "removed": 0,
+      "new": true
+    },
+    {
+      "path": "src/content/create-content-installer.ts",
+      "added": 559,
+      "removed": 0,
+      "new": true
+    },
+    {
+      "path": "src/content/index.ts",
+      "added": 9,
+      "removed": 0,
+      "new": false
+    },
+    {
+      "path": "src/content/install/manifest-closure.ts",
+      "added": 111,
+      "removed": 0,
+      "new": true
+    },
+    {
+      "path": "src/content/install/verified-archive.ts",
+      "added": 136,
+      "removed": 0,
+      "new": true
+    },
+    {
+      "path": "src/content/install/verified-fetch.ts",
+      "added": 59,
+      "removed": 0,
+      "new": true
+    },
+    {
+      "path": "src/content/install/verify-gameplay.ts",
+      "added": 178,
+      "removed": 0,
+      "new": true
+    },
+    {
+      "path": "src/content/parsers/content-failure.ts",
+      "added": 41,
+      "removed": 0,
+      "new": true
+    },
+    {
+      "path": "src/content/storage/content-cache.ts",
+      "added": 22,
+      "removed": 0,
+      "new": true
+    },
+    {
+      "path": "src/content/storage/content-database.ts",
+      "added": 109,
+      "removed": 0,
+      "new": true
+    },
+    {
+      "path": "src/content/storage/content-reader.ts",
+      "added": 277,
+      "removed": 0,
+      "new": true
+    },
+    {
+      "path": "src/content/storage/content-session-lease.ts",
+      "added": 57,
+      "removed": 0,
+      "new": true
+    },
+    {
+      "path": "src/shell/content/content-error-copy.ts",
+      "added": 30,
+      "removed": 0,
+      "new": true
+    },
+    {
+      "path": "src/shell/content/installer-chapter-sizes.ts",
+      "added": 48,
+      "removed": 0,
+      "new": true
+    },
+    {
+      "path": "src/shell/content/saved-content-refs.ts",
+      "added": 82,
+      "removed": 0,
+      "new": true
+    },
+    {
+      "path": "src/shell/screens/InstallContentScreen.svelte",
+      "added": 182,
+      "removed": 6,
+      "new": false
+    },
+    {
+      "path": "tests/asset-delivery-bundle.test.ts",
+      "added": 16,
+      "removed": 1,
+      "new": false
+    },
+    {
+      "path": "tests/component/content-installer.test.ts",
+      "added": 212,
+      "removed": 0,
+      "new": true
+    },
+    {
+      "path": "tests/fixtures/content-install-fixture.ts",
+      "added": 266,
+      "removed": 0,
+      "new": true
+    },
+    {
+      "path": "tests/fixtures/content-runtime-fixture.ts",
+      "added": 155,
+      "removed": 0,
+      "new": true
+    },
+    {
+      "path": "tests/unit/content-installer.test.ts",
+      "added": 564,
+      "removed": 0,
+      "new": true
+    },
+    {
+      "path": "tests/unit/content-runtime-activation.test.ts",
+      "added": 129,
+      "removed": 0,
+      "new": true
+    },
+    {
+      "path": "tests/unit/content-storage.test.ts",
+      "added": 76,
+      "removed": 0,
+      "new": true
+    },
+    {
+      "path": "tests/unit/content-tooling-gates.test.ts",
+      "added": 30,
+      "removed": 0,
+      "new": true
+    },
+    {
+      "path": "tests/unit/domain-boundaries.test.ts",
+      "added": 57,
+      "removed": 0,
+      "new": false
+    },
+    {
+      "path": "tsconfig.json",
+      "added": 2,
+      "removed": 0,
+      "new": false
+    }
+  ],
+  "totals": {
+    "files": 50,
+    "added": 5084,
+    "removed": 56
+  },
+  "noStagedFiles": true,
+  "protectedPathsChanged": []
+}

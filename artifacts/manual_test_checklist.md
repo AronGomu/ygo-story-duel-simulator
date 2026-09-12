@@ -1,5 +1,15 @@
 # Manual test checklist
 
+## Verified CORE installation (T4)
+
+Use a disposable Chromium profile, an approved private `CONTENT_RUN`, loopback origin. Installation does not unlock gameplay before domain adapters land.
+
+- [ ] C1. Open `#/install-content`; verify chapter title/description, availability, exact download/installed byte totals, dependency list. Install; verify progress ends at verified installed, not playable.
+- [ ] C2. Reload; verify installed status persists. Open `#/free-play`; verify installer redirect still blocks gameplay. Settings remains local CORE UI.
+- [ ] C3. Interrupt download by closing the tab. Reopen installer; verify persisted paused job retains completed parts, no partially installed chapter. Explicit resume/update/remove controls remain unavailable.
+- [ ] C4. Run `npx playwright test -c playwright.content.config.ts --project=chromium --grep "installer|atomic|quota|archive"` with `CONTENT_RUN` exported. Verify real Cache quota/IDB abort cases retain old current, orphan runtime receipt grants no readiness, private staging is never publicly readable. The legacy-v2 two-tab cases must return a typed failure or pause without holding the installer lock; queued receipt reads must fail within five seconds. Closing the legacy tab must not trigger a late upgrade; retry must preserve its preferences.
+- [ ] C5. During installation, disconnect the disposable profile using Chromium DevTools network controls. Verify the fixed network error and enabled Retry installation button. Restore connectivity, retry, and verify progress plus verified-installed status; gameplay must remain locked.
+
 ## Chapter 1 bundled deck prerequisites
 
 These checks cover bundled defaults and new grants only. Existing saved-deck Chapter 1 display/start/restore policy and installed/offline acceptance remain downstream work. No browser checks in this section have been run.
