@@ -15,10 +15,16 @@ import { writeJsonAtomic } from "./run-lock.ts";
 import { json, readBounded, record } from "./content-setup-io.ts";
 import { inspectSetupRuntime } from "./content-setup-runtime.ts";
 import { inspectPrototypeDecks } from "./content-setup-decks.ts";
+import {
+  normalizeChapterSource,
+  parseChapterSourceCorrections,
+  type ChapterSourceSet,
+} from "./chapter-source-policy.ts";
 
 async function inspectAvailability(
   root: string,
   sourceText: Uint8Array | null,
+  correctionsValue: unknown,
   selectionsValue: unknown,
 ): Promise<SetupAvailability> {
   let runtimeCardCodes = new Set<number>();
@@ -39,14 +45,30 @@ async function inspectAvailability(
   }
   const source = parseCardSetSource(sourceText);
   const selections = parseChapterSelections(selectionsValue);
-  const selectedNames = new Set(
-    selections?.chapters.flatMap((chapter) => chapter.setNames) ?? [],
-  );
-  const selectedCodes = new Set(
-    source?.sets
-      .filter((set) => selectedNames.has(set.name))
-      .flatMap((set) => set.cards.map((card) => card.id)) ?? [],
-  );
+  let normalized = null;
+  try {
+    const selectedNames = new Set(
+      selections?.chapters.flatMap((chapter) => chapter.setNames) ?? [],
+    );
+    normalized =
+      source && selections
+        ? normalizeChapterSource(
+            source.sets.filter(
+              (set): set is ChapterSourceSet =>
+                set.tcgReleaseDate !== null && selectedNames.has(set.name),
+            ),
+            parseChapterSourceCorrections(correctionsValue),
+          )
+        : null;
+  } catch (error) {
+    if (
+      !(error instanceof Error) ||
+      error.message !== "CONTENT_SOURCE_POLICY_INVALID"
+    )
+      throw error;
+  }
+  const selectedNames = new Set(normalized?.sets.map(({ name }) => name) ?? []);
+  const selectedCodes = new Set(normalized?.cardCodes ?? []);
   for (const code of selectedCodes) {
     for (const [kind, available] of [
       ["full", fullCardCodes],
@@ -140,15 +162,25 @@ export async function inspectContentSetup(
     "content/authoring/card-set-source.json",
     MAX_SOURCE_BYTES,
   );
+  const corrections = await json(
+    root,
+    "content/authoring/chapter-one-corrections.json",
+  );
   const selections = await json(root, "content/chapter-selections.json");
   return verifyContentSetup({
     source,
+    corrections,
     chapterPolicy: await json(root, "content/authoring/chapter-policy.json"),
     selections,
     distribution: await json(root, "content/distribution-evidence.json"),
     setup: await json(root, "content/setup-evidence.json"),
     environment,
-    availability: await inspectAvailability(root, source, selections),
+    availability: await inspectAvailability(
+      root,
+      source,
+      corrections,
+      selections,
+    ),
   });
 }
 

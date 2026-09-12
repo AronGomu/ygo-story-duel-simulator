@@ -6,6 +6,10 @@ import {
   parseChapterSelections,
   type ChapterSelections,
 } from "../../scripts/lib/content-setup.ts";
+import {
+  normalizeChapterSource,
+  type ChapterSourceCorrections,
+} from "../../scripts/lib/chapter-source-policy.ts";
 
 const sourceSha256 =
   "b3ac778e5f1b9927554ef8e66185a596c0c35d71ab642b448c952c6c9050496d";
@@ -15,10 +19,12 @@ const emptySetName =
   "Yu-Gi-Oh! Power of Chaos: Yugi the Destiny Limited Collector's Edition";
 interface SourceCard {
   id: number;
-  printings: { code: string }[];
+  name: string;
+  printings: { code: string; rarity: string; rarityCode: string }[];
 }
 interface SourceSet {
   name: string;
+  code: string;
   tcgReleaseDate: string | null;
   cards: SourceCard[];
 }
@@ -43,9 +49,21 @@ const source = await json<Source>("content/authoring/card-set-source.json");
 const selections = await json<ChapterSelections>(
   "content/chapter-selections.json",
 );
+const corrections = await json<ChapterSourceCorrections>(
+  "content/authoring/chapter-one-corrections.json",
+);
 const byName = new Map(source.sets.map((set) => [set.name, set]));
 const assignedNames = selections.chapters.flatMap(
   (chapter) => chapter.setNames,
+);
+const normalized = normalizeChapterSource(
+  assignedNames
+    .map((name) => byName.get(name)!)
+    .filter(
+      (set): set is SourceSet & { tcgReleaseDate: string } =>
+        set.tcgReleaseDate !== null,
+    ),
+  corrections,
 );
 // Unicode code-point order, not machine locale collation. All source names are BMP.
 const compare = (left: string, right: string) =>
@@ -68,26 +86,25 @@ function expectedNames() {
 }
 
 describe("Chapter 1 authoring scope", () => {
-  it("materializes only chapter-01 with 76 sets in source-date then exact-name order", () => {
+  it("materializes only chapter-01 with 75 approved sets in source-date then exact-name order", () => {
     expect(parseChapterSelections(selections)).not.toBeNull();
     expect(selections.chapters.map(({ id }) => id)).toEqual(["chapter-01"]);
-    expect(assignedNames).toHaveLength(76);
-    expect(new Set(assignedNames).size).toBe(76);
-    expect(assignedNames).toEqual(expectedNames());
+    expect(assignedNames).toHaveLength(75);
+    expect(new Set(assignedNames).size).toBe(75);
+    expect(assignedNames).toEqual(
+      expectedNames().filter((name) => name !== emptySetName),
+    );
   });
-  it("retains 1629 unique cards and every selected printing, excluding later-only records", () => {
-    const cards = assignedNames.flatMap((name) => byName.get(name)!.cards);
-    expect(new Set(cards.map((card) => card.id)).size).toBe(1629);
-    expect(cards).toHaveLength(2749);
+  it("retains 1627 unique playable cards and every approved printing, excluding later-only records", () => {
+    const cards = normalized.sets.flatMap(({ cards }) => cards);
+    expect(normalized.cardCodes).toHaveLength(1627);
+    expect(cards).toHaveLength(2747);
     expect(cards.reduce((sum, card) => sum + card.printings.length, 0)).toBe(
-      4516,
+      4514,
     );
-    const expectedCodes = new Set(
-      expectedNames().flatMap((name) =>
-        byName.get(name)!.cards.map(({ id }) => id),
-      ),
+    expect(new Set(cards.map(({ id }) => id))).toEqual(
+      new Set(normalized.cardCodes),
     );
-    expect(new Set(cards.map(({ id }) => id))).toEqual(expectedCodes);
     expect(assignedNames).not.toContain(
       "The Lost Millennium Sneak Peek Participation Card",
     );
@@ -169,22 +186,30 @@ describe("Chapter 1 authoring scope", () => {
       verifierOverridesApplied: false,
     });
   });
-  it("keeps PCY collector and promo identities separate without filling unknown collector contents", () => {
+  it("excludes only PCY collector metadata while retaining the separate promo identity", () => {
     const promo =
       "Yu-Gi-Oh! Power of Chaos: Yugi the Destiny promotional cards";
-    expect(assignedNames).toContain(emptySetName);
+    expect(assignedNames).not.toContain(emptySetName);
     expect(assignedNames).toContain(promo);
     expect(byName.get(emptySetName)!.cards).toEqual([]);
     expect(byName.get(promo)!.cards).toHaveLength(5);
     expect(selections.chapters[0]!.additionalCardCodes).toEqual([]);
+    expect(corrections.excludedSetNames).toEqual([emptySetName]);
+    expect(corrections.excludedCardCodes).toEqual([501000000, 501000001]);
+    expect(corrections.aliases).toEqual([
+      { sourceCode: 81480461, runtimeCode: 81480460 },
+    ]);
   });
-  it("keeps the selected empty collector edition explicit without blanket exclusion", () => {
-    const empty = assignedNames
+  it("records approved exclusion instead of loosening empty-set validation", () => {
+    const selectedEmptySets = assignedNames
       .map((name) => byName.get(name)!)
       .filter((set) => set.cards.length === 0);
+    expect(selectedEmptySets).toEqual([]);
     expect(
-      empty.map(({ name, tcgReleaseDate }) => ({ name, tcgReleaseDate })),
-    ).toEqual([{ name: emptySetName, tcgReleaseDate: "2003-11-18" }]);
+      source.sets
+        .filter((set) => set.cards.length === 0)
+        .map(({ name }) => name),
+    ).toContain(emptySetName);
   });
   it("real readiness stays blocked on selected gaps, not all later chronology or unknown orphans", async () => {
     const report = await inspectContentSetup(process.cwd(), {});
@@ -194,9 +219,9 @@ describe("Chapter 1 authoring scope", () => {
     ).toBe(false);
     expect(
       report.blockers.some(({ detail }) =>
-        detail.includes("1 empty selected sets"),
+        detail.includes("empty selected sets"),
       ),
-    ).toBe(true);
+    ).toBe(false);
     for (const obsolete of [
       "5 undated sets",
       "509 orphan cards",

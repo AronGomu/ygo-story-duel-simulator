@@ -13,14 +13,35 @@ export function contentSetupFixture() {
       generatedAt: "2026-09-07T00:00:00Z",
       sets: dates.map((_, i) => ({
         name: `chapter-0${i + 1}`,
+        code: `C0${i + 1}`,
         tcgReleaseDate: dates[i],
-        cards: [{ id: i + 1 }],
+        cards: [
+          {
+            id: i + 1,
+            name: `Synthetic card ${i + 1}`,
+            printings: [
+              {
+                code: `C0${i + 1}-001`,
+                rarity: "Common",
+                rarityCode: "(C)",
+              },
+            ],
+          },
+        ],
       })),
       cardsWithoutSetMembership: [],
     }),
   );
   return {
     source,
+    corrections: {
+      schemaVersion: 1,
+      aliases: [{ sourceCode: 81480461, runtimeCode: 81480460 }],
+      excludedCardCodes: [501000000, 501000001],
+      excludedSetNames: [
+        "Yu-Gi-Oh! Power of Chaos: Yugi the Destiny Limited Collector's Edition",
+      ],
+    },
     chapterPolicy: {
       schemaVersion: 1,
       status: "approved-chapter-one-scope",

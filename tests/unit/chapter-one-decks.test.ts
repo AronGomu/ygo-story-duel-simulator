@@ -29,6 +29,11 @@ import {
   FREE_PLAY_OPPONENTS,
 } from "../../src/shell/screens/free-play-opponents.ts";
 import { buildAdminTestDeck } from "../../src/shell/admin/admin-actions.ts";
+import {
+  normalizeChapterSource,
+  type ChapterSourceCorrections,
+  type ChapterSourceSet,
+} from "../../scripts/lib/chapter-source-policy.ts";
 
 const base = [
   97590747, 5053103, 15025844, 50930991, 13039848, 23771716, 66788016, 5318639,
@@ -83,16 +88,20 @@ describe("Chapter 1 bundled prerequisites", () => {
       "b3ac778e5f1b9927554ef8e66185a596c0c35d71ab642b448c952c6c9050496d",
     );
     const source = JSON.parse(bytes.toString("utf8")) as {
-      sets: { name: string; cards: { id: number }[] }[];
+      sets: ChapterSourceSet[];
     };
     const selections = JSON.parse(
       await readFile("content/chapter-selections.json", "utf8"),
     ) as { chapters: { setNames: string[] }[] };
+    const corrections = JSON.parse(
+      await readFile("content/authoring/chapter-one-corrections.json", "utf8"),
+    ) as ChapterSourceCorrections;
     const names = new Set(selections.chapters[0]!.setNames);
     const selected = new Set(
-      source.sets
-        .filter(({ name }) => names.has(name))
-        .flatMap(({ cards }) => cards.map(({ id }) => id)),
+      normalizeChapterSource(
+        source.sets.filter(({ name }) => names.has(name)),
+        corrections,
+      ).cardCodes,
     );
     const sources = await loadDeckSources();
     for (const { id } of DECK_CATALOG) {

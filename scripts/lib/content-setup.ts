@@ -1,4 +1,11 @@
 import { createHash } from "node:crypto";
+import {
+  normalizeChapterSource,
+  parseChapterSourceCorrections,
+  type ChapterSourceCorrections,
+  type ChapterSourceSet,
+  type NormalizedChapterSource,
+} from "./chapter-source-policy.ts";
 
 export type ChapterId = "chapter-01";
 /** Runtime parser requires lowercase 64-character SHA-256 hex. */
@@ -52,6 +59,7 @@ export interface SetupAvailability {
 }
 interface SetupInput {
   readonly source: Uint8Array | null;
+  readonly corrections: unknown;
   readonly chapterPolicy: unknown;
   readonly selections: unknown;
   readonly distribution: unknown;
@@ -61,8 +69,13 @@ interface SetupInput {
 }
 interface SourceSet {
   readonly name: string;
+  readonly code?: unknown;
   readonly tcgReleaseDate: string | null;
-  readonly cards: readonly { readonly id: number }[];
+  readonly cards: readonly {
+    readonly id: number;
+    readonly name?: unknown;
+    readonly printings?: unknown;
+  }[];
 }
 interface CardSetSource {
   readonly schemaVersion: 1;
@@ -276,6 +289,31 @@ export function verifyContentSetup(input: SetupInput): SetupReport {
     blockers.push({ code, detail });
   const selections = parseChapterSelections(input.selections);
   const source = parseCardSetSource(input.source);
+  let corrections: ChapterSourceCorrections | null = null;
+  let normalized: NormalizedChapterSource | null = null;
+  try {
+    corrections = parseChapterSourceCorrections(input.corrections);
+    if (source && selections) {
+      const selectedNames = new Set(selections.chapters[0]!.setNames);
+      normalized = normalizeChapterSource(
+        source.sets.filter(
+          (set): set is ChapterSourceSet =>
+            set.tcgReleaseDate !== null && selectedNames.has(set.name),
+        ),
+        corrections,
+      );
+    }
+  } catch (error) {
+    if (
+      !(error instanceof Error) ||
+      error.message !== "CONTENT_SOURCE_POLICY_INVALID"
+    )
+      throw error;
+    add(
+      "SOURCE_COVERAGE_REQUIRED",
+      "Chapter-01 source corrections are missing or invalid. Restore the exact approved alias and exclusions in content/authoring/chapter-one-corrections.json; never infer aliases or exclusions.",
+    );
+  }
   if (
     !selections ||
     selections.chapters.some((chapter) => chapter.setNames.length === 0)
@@ -305,7 +343,7 @@ export function verifyContentSetup(input: SetupInput): SetupReport {
       "Provide valid bounded source and selections with matching lowercase SHA-256. Preserve the approved source bytes in content/authoring/card-set-source.json.",
     );
   }
-  if (source && selections) {
+  if (source && selections && corrections && normalized) {
     const inScope = (set: SourceSet) =>
       interval !== null &&
       set.tcgReleaseDate !== null &&
@@ -313,13 +351,21 @@ export function verifyContentSetup(input: SetupInput): SetupReport {
       set.tcgReleaseDate < interval.endsBefore;
     const byName = new Map(source.sets.map((set) => [set.name, set]));
     const assigned = new Set(selections.chapters[0]!.setNames);
-    const cards = new Set<number>();
+    const normalizedByName = new Map(
+      normalized.sets.map((set) => [set.name, set]),
+    );
+    const excludedSets = new Set(corrections.excludedSetNames);
     let unknown = 0;
     let undated = 0;
     let empty = 0;
     let outsideInterval = 0;
+    let selectedExclusions = 0;
     let missingSets = 0;
     for (const name of assigned) {
+      if (excludedSets.has(name)) {
+        selectedExclusions++;
+        continue;
+      }
       const set = byName.get(name);
       if (!set) {
         unknown++;
@@ -333,20 +379,27 @@ export function verifyContentSetup(input: SetupInput): SetupReport {
         outsideInterval++;
         continue;
       }
-      if (set.cards.length === 0) empty++;
-      for (const card of set.cards) cards.add(card.id);
+      if (normalizedByName.get(name)?.cards.length === 0) empty++;
       if (!input.availability.setNames.has(name)) missingSets++;
     }
     const unassigned = source.sets.filter(
-      (set) => inScope(set) && !assigned.has(set.name),
+      (set) =>
+        inScope(set) && !excludedSets.has(set.name) && !assigned.has(set.name),
     ).length;
-    if (unknown || undated || empty || unassigned || outsideInterval)
+    if (
+      unknown ||
+      undated ||
+      empty ||
+      unassigned ||
+      outsideInterval ||
+      selectedExclusions
+    )
       add(
         "SOURCE_COVERAGE_REQUIRED",
-        `Chapter-01 source gaps: ${unknown} unknown selected sets; ${undated} undated selected sets; ${empty} empty selected sets; ${unassigned} unassigned in-scope sets; ${outsideInterval} selected sets outside approved interval. Include startsOn, exclude endsBefore; retain every printing in selected sets. Unselected unknown dates and orphan memberships remain unresolved provenance, not card grants or exhaustive-coverage evidence.`,
+        `Chapter-01 source gaps: ${unknown} unknown selected sets; ${undated} undated selected sets; ${empty} empty selected sets; ${unassigned} unassigned in-scope sets; ${outsideInterval} selected sets outside approved interval; ${selectedExclusions} approved-excluded sets still selected. Include startsOn, exclude endsBefore; retain every approved printing in selected sets. Unselected unknown dates and orphan memberships remain unresolved provenance, not card grants or exhaustive-coverage evidence.`,
       );
     const missing = (available: ReadonlySet<number>) =>
-      [...cards].filter((code) => !available.has(code)).length;
+      normalized.cardCodes.filter((code) => !available.has(code)).length;
     const unsupported = missing(input.availability.runtimeCardCodes);
     const full = missing(input.availability.fullCardCodes);
     const cropped = missing(input.availability.croppedCardCodes);
