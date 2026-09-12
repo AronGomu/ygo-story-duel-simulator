@@ -158,6 +158,7 @@ Worker, engine, and asset pipeline are "backend" here — nothing runs on a serv
 | worktree | Isolated checkout for one UI branch; integration config/contracts stay centrally owned | ADR-022 |
 | adr | Accepted architecture decision records | `docs/ADR/` |
 | guide | Generated HTML developer guide | `docs/developer-guide/` |
+| deployment | Static `dist/` hosting; private-only until rights and host gates clear | `README.md`, `scripts/lib/vite-core-content.ts`, `content/setup-evidence.json` |
 | checks | Aggregate quality gate npm scripts | `package.json` (`check`, `check:headless`, `check:browser`) |
 | preflight | Local content prerequisites; separate code and public readiness | `scripts/lib/content-setup.ts` (`verifyContentSetup`), `content/README.md` |
 | decklist row | Card entry in deck preview with frame colour, copy count, name, and optional art | `src/deck-select/DecklistPanel.svelte` |
