@@ -11,6 +11,8 @@ Shared vocabulary between user and agents. Say the word, mean the code.
 | ---- | ----------------- | ----------- |
 | app | Browser product mounted through modular shell | `src/main.ts` (`mount`), `src/shell/AppShell.svelte` |
 | shell | Router/composition layer owning lazy domain transitions | `src/shell/AppShell.svelte`, `src/shell/routes.ts` (`AppRoute`) |
+| core-shell | Planned asset-free executable shell/menu/settings/installer; not rules engine or asset-only core.zip | `src/shell/AppShell.svelte`, ADR-084 |
+| installed-union | Planned gameplay catalog from verified installed chapter closures; runtime presence grants nothing | `src/content/contracts/content-set-ref.ts`, ADR-086 |
 | duel simulator | Production battle UI plus Worker-owned rules runtime | `src/battle/app/`, `src/battle/duel/`, `src/battle/field/`, `src/battle/worker/` |
 | deck editor | Local deck library/editor domain loaded through shell | `src/deck-editor/DeckEditorApp.svelte`, `src/deck-editor/index.ts` |
 | visual novel | Narrative/map/campaign domain reached at `#/story` | `src/story/` |

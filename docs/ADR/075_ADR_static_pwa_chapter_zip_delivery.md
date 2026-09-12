@@ -1,6 +1,7 @@
 # ADR-075: Static PWA chapter ZIP delivery
 
 > Status: accepted; planned
+> Amended by [ADR-084](084_ADR_asset_free_core_boot.md) D1/D4 and [ADR-086](086_ADR_installed_chapters_own_gameplay_catalog.md) D1: executable CORE boots asset-free; runtime alone grants no gameplay, installed chapters define available union.
 > Decided: 2026-09-07
 > Owners: shell / content delivery
 > Relates: ADR-043 (whole runtime scope)

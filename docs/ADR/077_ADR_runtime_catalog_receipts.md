@@ -1,6 +1,7 @@
 # ADR-077: Runtime activation binds catalog, not chapter artwork
 
 > Status: accepted; planned
+> Amended by [ADR-086](086_ADR_installed_chapters_own_gameplay_catalog.md) D1–D4: runtime support remains whole; gameplay requires complete verified chapter data/media and never unlocks from runtime alone.
 > Decided: 2026-09-07
 > Owners: battle / content
 > Relates: ADR-043 (whole runtime catalog)

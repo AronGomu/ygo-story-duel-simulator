@@ -3,6 +3,7 @@
 Status: accepted · 2026-08-20 · Shipped: `7638f24` (T14), `a9cdd43` (T15), `21acd24` (T16), `22f868b` (T17) · Plan commit: `9d8b8a7`
 Superseded in part by ADR-054: the free-play menu described below is gone, and `#/free-play` renders the match setup itself. Everything else here stands.
 Relates: ADR-022 (modular monolith), ADR-049 (save-owned decks)
+Amended by [ADR-084](084_ADR_asset_free_core_boot.md) and [ADR-086](086_ADR_installed_chapters_own_gameplay_catalog.md): asset-free CORE gates gameplay; Free Play collection uses installed chapter union, not whole runtime DB.
 
 ## Context
 

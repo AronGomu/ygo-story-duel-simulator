@@ -1,6 +1,7 @@
 # ADR-076: Content storage ownership and exact saved refs
 
 > Status: accepted; planned
+> Amended by [ADR-085](085_ADR_content_lifecycle_ownership.md) D1–D5 and [ADR-088](088_ADR_pinned_saves_and_exact_content_repair.md) D1–D5: content owns lifecycle/storage; new saves require exact refs without legacy binding; shared serialization protects removal and exact repair.
 > Decided: 2026-09-07
 > Owners: shell / battle / story
 > Relates: ADR-026 (domain DB ownership), ADR-049 (save-owned decks)

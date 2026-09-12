@@ -1,6 +1,7 @@
 # ADR-078: Installed visible-media leases replace direct art URLs
 
 > Status: accepted; planned
+> Amended by [ADR-086](086_ADR_installed_chapters_own_gameplay_catalog.md) D4–D5: required-media failure invalidates owning chapter/dependants; placeholder is error presentation only, never a readiness bypass.
 > Decided: 2026-09-07
 > Owners: decks / shell / battle presentation
 > Relates: ADR-039 (direct art), ADR-043 (catalog/art separation)

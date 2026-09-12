@@ -48,6 +48,18 @@ This is the canonical architecture entry point. Detailed decisions are intention
 | Story-to-duel handoff, checkpoints, or result routing                              | [`../ADR/027_ADR_story_duel_handoff_saga.md`](../ADR/027_ADR_story_duel_handoff_saga.md)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
 | Post-MVP systems                                                                   | [`07-governance/extension-path.md`](07-governance/extension-path.md)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
 
+## Accepted CORE installation direction — planned
+
+| Concern | Decision |
+| --- | --- |
+| Asset-free shell/build, route readiness, executable CORE versus asset archive | [ADR-084](../ADR/084_ADR_asset_free_core_boot.md) |
+| Content lifecycle, staged verification, Battle runtime receipt seam | [ADR-085](../ADR/085_ADR_content_lifecycle_ownership.md) |
+| Installed chapter catalog, whole-runtime support, required-media invalidation | [ADR-086](../ADR/086_ADR_installed_chapters_own_gameplay_catalog.md) |
+| Exact Chapter 1 source normalization, preserved raw evidence | [ADR-087](../ADR/087_ADR_chapter_one_source_corrections.md) |
+| New save bindings, shared lock, safe removal, exact revision repair | [ADR-088](../ADR/088_ADR_pinned_saves_and_exact_content_repair.md) |
+
+Baseline `36c6f41e35cca9a4d5ca21ae0de00d325736bbe9`: installer lifecycle and these runtime integrations are not implemented. Executable CORE must boot independently; whole runtime alone grants no gameplay. These decisions amend earlier whole-catalog and missing-media readiness policy rather than documenting shipped behavior.
+
 ## System at a glance
 
 Current implemented topology:

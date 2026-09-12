@@ -80,6 +80,16 @@ architecture/
 └── 07-governance/           # Security, licensing, future extensions
 ```
 
+## Accepted CORE installation decisions — planned, not implemented
+
+| ID | Decision | Meaning |
+| --- | --- | --- |
+| ADR-084 | [Asset-free CORE boot](ADR/084_ADR_asset_free_core_boot.md) | Executable shell starts without acquired content; readiness precedes gameplay imports |
+| ADR-085 | [Content lifecycle ownership](ADR/085_ADR_content_lifecycle_ownership.md) | Content owns verified storage/activation; Battle supplies pure runtime receipt validation |
+| ADR-086 | [Installed chapter gameplay catalog](ADR/086_ADR_installed_chapters_own_gameplay_catalog.md) | Verified chapter union grants gameplay; required-media failure reduces affected closure |
+| ADR-087 | [Chapter 1 source corrections](ADR/087_ADR_chapter_one_source_corrections.md) | Exact Barrel Dragon alias, two card exclusions, one collector-set exclusion; raw audit preserved |
+| ADR-088 | [Pinned saves and exact repair](ADR/088_ADR_pinned_saves_and_exact_content_repair.md) | New schema5 refs, no legacy binding, serialized removal, repair without latest substitution |
+
 ## Accepted asset tooling decisions — planned, not implemented
 
 | ID | Decision | Meaning |

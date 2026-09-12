@@ -3,6 +3,7 @@
 > Status: accepted
 > Decided: 2026-08-14
 > Owners: application-shell, duel, deck-editor, visual-novel architecture
+> Amended by [ADR-085](085_ADR_content_lifecycle_ownership.md) D1–D2: content lifecycle module owns installation; narrow Battle validation-only public sub-entry avoids importing gameplay during verification.
 > Superseded in part by ADR-045 (branch topology only; the import boundaries stand).
 > Amended by [ADR-081](081_ADR_asset_roots_and_delivery_profiles.md): asset-only `assets/shared/` allowed; generic shared code prohibition and public-entry boundaries remain.
 

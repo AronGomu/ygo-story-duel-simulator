@@ -1,6 +1,7 @@
 # ADR-043: Whole Card Database as a Fetched Runtime Catalog
 
 > Status: accepted; planned
+> Amended by [ADR-086](086_ADR_installed_chapters_own_gameplay_catalog.md): whole runtime remains engine support; installed chapter payloads alone grant gameplay catalog and required-media readiness.
 > Decided: 2026-08-20
 > Owners: decks data architecture
 > Relates: ADR-011 (deck registry and derived card pool), ADR-039 (editor card art via static runtime URLs), ADR-025 (validated card-list duel start)
