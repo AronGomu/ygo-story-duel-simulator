@@ -23,6 +23,7 @@ import { verifyArchive } from "./verify-archive.ts";
 import { object, version } from "./schema.ts";
 import { assertSafePath } from "./path-guards.ts";
 import { AssetDeliveryError, fail } from "./failure.ts";
+import { verifyChapterGameplay } from "./verify-chapter-gameplay.ts";
 
 function same(a: unknown, b: unknown): void {
   if (!Buffer.from(canonicalBytes(a)).equals(Buffer.from(canonicalBytes(b))))
@@ -147,6 +148,7 @@ export async function verifyBundle(
     const chapter = prepared.chapters[0]!;
     if (
       index.chapters[0]!.title !== chapter.title ||
+      index.chapters[0]!.description !== chapter.description ||
       (index.chapters[0]!.status === "published") !==
         input.selection.profiles.includes("chapter-01")
     )
@@ -172,6 +174,12 @@ export async function verifyBundle(
       same(
         manifest.storyContentId,
         ref.packId === "runtime" ? null : chapter.storyContentId,
+      );
+      same(
+        manifest.gameplayPath,
+        ref.packId === "runtime"
+          ? null
+          : `chapters/${ref.packId}/gameplay.json`,
       );
       const digest = (f: { path: string; bytes: number; sha256: string }) => ({
         path: f.path,
@@ -205,6 +213,7 @@ export async function verifyBundle(
           same(manifest.dependencies, [index.runtime]);
       }
     }
+    const capturedFiles = new Map<string, Uint8Array>();
     for (const manifest of manifests.values()) {
       for (const dependency of manifest.dependencies) {
         const required = manifests.get(dependency.sha256);
@@ -225,23 +234,42 @@ export async function verifyBundle(
         fail("ASSET_INTEGRITY_FAILED");
       for (const part of manifest.parts) {
         const ref = objectRef("content/parts", part);
+        const partFiles = manifest.files.filter(
+          (file) => file.partSha256 === ref.sha256,
+        );
+        const captures = partFiles.filter(
+          (file) =>
+            file === embeddedFile ||
+            /^runtime\/assets\/current\/catalog\/(?:cards|texts\/en)\/[a-f0-9]{2}\.json$/.test(
+              file.path,
+            ) ||
+            /^chapters\/chapter-(?:0[1-9]|[1-9][0-9])\/(?:gameplay|story)\.json$/.test(
+              file.path,
+            ),
+        );
         const captured = await verifyArchive(
           root,
           `${run}/objects/${ref.key}`,
           ref,
-          manifest.files
-            .filter((f) => f.partSha256 === ref.sha256)
-            .map((f) => ({ path: f.entry, bytes: f.bytes, sha256: f.sha256 })),
+          partFiles.map((file) => ({
+            path: file.entry,
+            bytes: file.bytes,
+            sha256: file.sha256,
+          })),
           true,
-          embeddedFile?.partSha256 === part.sha256
-            ? embeddedFile.entry
-            : undefined,
+          captures.map((file) => file.entry),
         );
+        for (const file of captures) {
+          const bytes = captured.get(file.entry);
+          if (!bytes) fail("ASSET_INTEGRITY_FAILED");
+          capturedFiles.set(file.path, bytes);
+        }
         if (embeddedFile?.partSha256 === part.sha256) {
-          if (!captured) fail("ASSET_INTEGRITY_FAILED");
+          const embeddedBytes = captured.get(embeddedFile.entry);
+          if (!embeddedBytes) fail("ASSET_INTEGRITY_FAILED");
           let embedded: unknown;
           try {
-            embedded = parseJsonBytes(captured);
+            embedded = parseJsonBytes(embeddedBytes);
           } catch (error) {
             if (
               error instanceof AssetDeliveryError &&
@@ -262,6 +290,12 @@ export async function verifyBundle(
         }
       }
     }
+    verifyChapterGameplay({
+      index,
+      manifests,
+      captured: capturedFiles,
+      prepared,
+    });
   }
   same(
     snapshot.objects,

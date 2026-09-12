@@ -3,8 +3,7 @@ import { existsSync } from "node:fs";
 import { readFile, stat, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { loadDeckSources } from "../src/battle/duel/presets/deck-sources-node.ts";
-import { reviewedCardPool } from "../src/battle/duel/presets/reviewed-card-pool.ts";
+import { loadChapterOneContentSource } from "./lib/chapter-content-source.ts";
 import { sha256File } from "./lib/files.ts";
 import type {
   CardImageDigest,
@@ -15,11 +14,11 @@ import {
   buildImageContentLock,
 } from "./lib/image-content-lock.ts";
 import { resolveProjectSubpath } from "./lib/paths.ts";
-import type { ShopSetIdentity } from "./lib/set-images.ts";
+import type { SetImageManifest } from "./lib/set-images.ts";
 import { setImageFileName } from "./lib/set-images.ts";
 
 /* Audit F16b. Seeds the tracked image pin from the local archive, covering the
-   shipped surface only: the preset-deck card codes and the shop set art.
+   shipped surface only: Chapter 1 card codes and acquired set art.
 
    It is deliberately its own command. Regenerating the lock while downloading
    or verifying would close the check on its own output — the exact loop the
@@ -52,7 +51,8 @@ const cards: CardImageDigest[] = [];
 const crops: CardImageDigest[] = [];
 const missingCards: number[] = [];
 const missingCrops: number[] = [];
-for (const code of reviewedCardPool(await loadDeckSources())) {
+const chapter = await loadChapterOneContentSource(projectRoot);
+for (const code of chapter.normalized.cardCodes) {
   const filePath = path.join(cardArchive, `${code}.jpg`);
   if (!existsSync(filePath)) {
     missingCards.push(code);
@@ -75,22 +75,19 @@ for (const code of reviewedCardPool(await loadDeckSources())) {
   });
 }
 
-const shop = JSON.parse(
-  await readFile(
-    path.join(projectRoot, "public/story/shop-sets.v1.json"),
-    "utf8",
-  ),
-) as { sets: readonly ShopSetIdentity[] };
+const setManifest = JSON.parse(
+  await readFile(path.join(setArchive, "manifest.json"), "utf8"),
+) as SetImageManifest;
 const sets: SetImageDigest[] = [];
 const missingSets: string[] = [];
-for (const set of shop.sets) {
-  const filePath = path.join(setArchive, setImageFileName(set.id));
+for (const set of setManifest.files) {
+  const filePath = path.join(setArchive, setImageFileName(set.setId));
   if (!existsSync(filePath)) {
-    missingSets.push(set.id);
+    missingSets.push(set.setId);
     continue;
   }
   sets.push({
-    setId: set.id,
+    setId: set.setId,
     bytes: (await stat(filePath)).size,
     sha256: await sha256File(filePath),
   });

@@ -56,6 +56,11 @@ const storyLoaders: DomainLoaders = {
    the module graph behind it, which the default one-second budget knows
    nothing about. */
 const REAL_IMPORT = { timeout: 15_000 };
+const READY_CORE_GATE = {
+  kind: "ready" as const,
+  chapterIds: ["chapter-01" as const],
+  generation: 1,
+};
 
 afterEach(async () => {
   cleanup();
@@ -130,6 +135,7 @@ function renderAt(hash: string, state: StoryState | null = null) {
     store,
     loaders,
     saves: savesHolding(state),
+    initialCoreGate: READY_CORE_GATE,
   });
   return { ...rendered, store, hash: () => current };
 }
@@ -178,7 +184,12 @@ describe("deck editor context binding", () => {
     const store = createShellStore(current, (next) => {
       current = next;
     });
-    render(AppShell, { store, loaders: storyLoaders, saves });
+    render(AppShell, {
+      store,
+      loaders: storyLoaders,
+      saves,
+      initialCoreGate: READY_CORE_GATE,
+    });
     store.enterStory("continue");
 
     await appears("story-map-screen");

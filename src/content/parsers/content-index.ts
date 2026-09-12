@@ -2,6 +2,7 @@ import type { ContentIndex } from "../contracts/content-index.ts";
 import type { ContentResult } from "../contracts/content-result.ts";
 import {
   array,
+  chapterId,
   compare,
   hash,
   integer,
@@ -12,6 +13,7 @@ import {
   result,
   sorted,
   text,
+  unique,
 } from "./schema.ts";
 
 export function parseContentIndex(value: unknown): ContentResult<ContentIndex> {
@@ -26,7 +28,7 @@ export function parseContentIndex(value: unknown): ContentResult<ContentIndex> {
       "retainedManifests",
     ]);
     const index: ContentIndex = {
-      schemaVersion: literal(v.schemaVersion, 1),
+      schemaVersion: literal(v.schemaVersion, 2),
       releaseId: text(v.releaseId),
       runtimeSnapshotId: hash(v.runtimeSnapshotId),
       runtime: manifestRef(v.runtime),
@@ -40,19 +42,31 @@ export function parseContentIndex(value: unknown): ContentResult<ContentIndex> {
           const c = record(
             value,
             status === "published"
-              ? ["id", "title", "status", "manifest"]
-              : ["id", "title", "status"],
+              ? ["id", "title", "description", "status", "manifest"]
+              : ["id", "title", "description", "status"],
           );
-          const id = literal(c.id, "chapter-01");
+          const id = chapterId(c.id);
           const title = text(c.title);
+          const description = text(c.description);
           if (status === "published") {
             const manifest = manifestRef(c.manifest);
             if (manifest.packId !== id) invalid();
-            return { id, title, status: "published" as const, manifest };
+            return {
+              id,
+              title,
+              description,
+              status: "published" as const,
+              manifest,
+            };
           }
-          return { id, title, status: literal(c.status, "unreleased") };
+          return {
+            id,
+            title,
+            description,
+            status: literal(c.status, "unreleased"),
+          };
         },
-        1,
+        99,
       ),
       retainedCatalogs: array(v.retainedCatalogs, (value) => {
         const c = record(value, ["sha256", "bytes"]);
@@ -60,8 +74,9 @@ export function parseContentIndex(value: unknown): ContentResult<ContentIndex> {
       }),
       retainedManifests: array(v.retainedManifests, manifestRef),
     };
-    if (index.runtime.packId !== "runtime" || index.chapters.length !== 1)
+    if (index.runtime.packId !== "runtime" || index.chapters.length === 0)
       invalid();
+    unique(index.chapters, (chapter) => chapter.id);
     sorted(index.retainedCatalogs, (a, b) => compare(a.sha256, b.sha256));
     sorted(
       index.retainedManifests,

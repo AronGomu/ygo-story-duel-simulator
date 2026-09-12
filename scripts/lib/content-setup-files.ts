@@ -20,12 +20,21 @@ import {
   parseChapterSourceCorrections,
   type ChapterSourceSet,
 } from "./chapter-source-policy.ts";
+import { chapterSetIdentities } from "./chapter-set-id.ts";
+import {
+  CHAPTER_ONE_SET_MEDIA_SOURCE_PATH,
+  CHAPTER_SET_INDEX_MAX_BYTES,
+  parseChapterSetMediaEvidence,
+  verifiedUnavailableSetImageIds,
+} from "./chapter-set-media.ts";
 
 async function inspectAvailability(
   root: string,
   sourceText: Uint8Array | null,
   correctionsValue: unknown,
   selectionsValue: unknown,
+  setMediaValue: unknown,
+  setMediaSourceBytes: Uint8Array | null,
 ): Promise<SetupAvailability> {
   let runtimeCardCodes = new Set<number>();
   const fullCardCodes = new Set<number>();
@@ -67,7 +76,6 @@ async function inspectAvailability(
     )
       throw error;
   }
-  const selectedNames = new Set(normalized?.sets.map(({ name }) => name) ?? []);
   const selectedCodes = new Set(normalized?.cardCodes ?? []);
   for (const code of selectedCodes) {
     for (const [kind, available] of [
@@ -83,7 +91,6 @@ async function inspectAvailability(
       if (bytes !== null && bytes <= 8 * 1024 * 1024) available.add(code);
     }
   }
-  // Existing set downloader keys art by shop ID, not source name. Unknown sets stay missing.
   const shop = await json(
     root,
     "public/story/shop-sets.v1.json",
@@ -94,6 +101,7 @@ async function inspectAvailability(
     `${ASSET_SOURCES.setImages.source}/manifest.json`,
   );
   if (
+    normalized &&
     record(shop) &&
     Array.isArray(shop.sets) &&
     shop.sets.length <= 2048 &&
@@ -102,15 +110,33 @@ async function inspectAvailability(
     Array.isArray(manifest.files) &&
     manifest.files.length <= 2048
   ) {
-    for (const set of shop.sets) {
-      if (
-        !record(set) ||
-        typeof set.id !== "string" ||
-        !/^[A-Za-z0-9_-]+$/.test(set.id) ||
-        typeof set.name !== "string" ||
-        !selectedNames.has(set.name)
-      )
+    const existing = shop.sets.flatMap((set) =>
+      record(set) &&
+      typeof set.id === "string" &&
+      /^[A-Za-z0-9_-]+$/.test(set.id) &&
+      typeof set.name === "string"
+        ? [{ id: set.id, name: set.name }]
+        : [],
+    );
+    const identities = chapterSetIdentities(normalized.sets, existing);
+    let unavailable: ReadonlySet<string> = new Set();
+    if (setMediaValue !== null && setMediaSourceBytes !== null) {
+      try {
+        unavailable = verifiedUnavailableSetImageIds({
+          evidence: parseChapterSetMediaEvidence(setMediaValue),
+          identities,
+          sets: normalized.sets,
+          providerBytes: setMediaSourceBytes,
+        });
+      } catch {
+        // Invalid/mismatched absence evidence grants no null-image exception.
+      }
+    }
+    for (const set of identities) {
+      if (unavailable.has(set.id)) {
+        setNames.add(set.name);
         continue;
+      }
       const entry = manifest.files.find(
         (item) => record(item) && item.setId === set.id,
       );
@@ -167,6 +193,15 @@ export async function inspectContentSetup(
     "content/authoring/chapter-one-corrections.json",
   );
   const selections = await json(root, "content/chapter-selections.json");
+  const setMedia = await json(
+    root,
+    "content/authoring/chapter-one-set-media.json",
+  );
+  const setMediaSource = await readBounded(
+    root,
+    CHAPTER_ONE_SET_MEDIA_SOURCE_PATH,
+    CHAPTER_SET_INDEX_MAX_BYTES,
+  );
   return verifyContentSetup({
     source,
     corrections,
@@ -180,6 +215,8 @@ export async function inspectContentSetup(
       source,
       corrections,
       selections,
+      setMedia,
+      setMediaSource,
     ),
   });
 }

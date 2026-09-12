@@ -11,17 +11,15 @@
   export let onviewcards: (setId: string) => void = () => undefined;
   export let onretry: () => void = () => undefined;
   export let onback: () => void;
+  export let imageUrlFor: (entry: ShopSetEntry) => string | null = (entry) =>
+    `${import.meta.env.BASE_URL}runtime/sets/${entry.id}.jpg`;
 
   let dialogSetId: string | null = null;
 
   $: latestRow = latestReleasedSets(sets ?? []);
 
-  /* Set art is addressed by convention — the build copies every packaged image
-     to `runtime/sets/<set id>.jpg` — so the screen needs no manifest and no
-     probe to name one. A set the build has no art for is the tile's problem,
-     not this function's. */
-  const setImageUrl = (entry: ShopSetEntry): string =>
-    `${import.meta.env.BASE_URL}runtime/sets/${entry.id}.jpg`;
+  /* Installed ChapterSet data supplies null when authoritative set art does
+     not exist. Legacy shop data keeps the packaged-path default above. */
 
   function openDialog(entry: ShopSetEntry): void {
     if (!entry.released) return;
@@ -76,7 +74,7 @@
           {#each latestRow as set (set.id)}
             <SetTile
               {set}
-              imageUrl={setImageUrl(set)}
+              imageUrl={imageUrlFor(set)}
               variant="latest"
               onselect={() => openDialog(set)}
             />
@@ -93,7 +91,7 @@
         {#each sets as set (set.id)}
           <SetTile
             {set}
-            imageUrl={setImageUrl(set)}
+            imageUrl={imageUrlFor(set)}
             variant="set"
             onselect={() => openDialog(set)}
           />

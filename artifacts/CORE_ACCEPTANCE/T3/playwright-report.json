@@ -1,0 +1,141 @@
+{
+  "config": {
+    "argv": [
+      "/nix/store/kzipz1ggn31szwqmlwmq0ym3w06rvcgs-nodejs-slim-24.18.0/bin/node",
+      "/home/aron/projects/ascencio/.tmp/worktrees/core-install-t3/node_modules/.bin/playwright",
+      "test",
+      "--config",
+      "playwright.t3.config.ts"
+    ],
+    "configFile": "/home/aron/projects/ascencio/.tmp/worktrees/core-install-t3/playwright.t3.config.ts",
+    "rootDir": "/home/aron/projects/ascencio/.tmp/worktrees/core-install-t3/e2e-core",
+    "failOnFlakyTests": false,
+    "forbidOnly": false,
+    "fullyParallel": false,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "/home/aron/projects/ascencio/.tmp/worktrees/core-install-t3/artifacts/CORE_ACCEPTANCE/T3/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "",
+        "name": "",
+        "testDir": "/home/aron/projects/ascencio/.tmp/worktrees/core-install-t3/e2e-core",
+        "testIgnore": [],
+        "testMatch": [
+          "chapter-content-delivery.spec.ts"
+        ],
+        "timeout": 180000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "line",
+        null
+      ],
+      [
+        "json",
+        {
+          "outputFile": "artifacts/CORE_ACCEPTANCE/T3/playwright-report.json"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.61.1",
+    "workers": 1,
+    "webServer": {
+      "command": "npm run dev -- --host 127.0.0.1 --port 4420 --strictPort",
+      "url": "http://127.0.0.1:4420/",
+      "reuseExistingServer": false,
+      "timeout": 600000
+    }
+  },
+  "suites": [
+    {
+      "title": "chapter-content-delivery.spec.ts",
+      "file": "chapter-content-delivery.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "verified Chapter 1 index is pinned and browser-readable",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 312,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [
+                    {
+                      "text": "Skipping host requirements validation logic because `PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS` env variable is set.\n"
+                    }
+                  ],
+                  "retry": 0,
+                  "startTime": "2026-09-12T13:49:31.701Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/home/aron/projects/ascencio/.tmp/worktrees/core-install-t3/artifacts/CORE_ACCEPTANCE/T3/test-results/chapter-content-delivery-v-b2702-pinned-and-browser-readable/test-finished-1.png"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/home/aron/projects/ascencio/.tmp/worktrees/core-install-t3/artifacts/CORE_ACCEPTANCE/T3/test-results/chapter-content-delivery-v-b2702-pinned-and-browser-readable/trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "fbbf1794da3e4f265bef-13386e427d68f5848c71",
+          "file": "chapter-content-delivery.spec.ts",
+          "line": 8,
+          "column": 1
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-09-12T13:49:27.579Z",
+    "duration": 4579.702,
+    "expected": 1,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  }
+}

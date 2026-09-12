@@ -8,8 +8,112 @@ const file = { path: "assets/story/test.svg", bytes: 1, sha256: sha };
 const profile = { schemaVersion: 1, id: "core", dependsOn: [], rules: [] };
 const selection = { schemaVersion: 1, profiles: ["core"] };
 const retained = { schemaVersion: 1, catalogs: [], manifests: [] };
-const prepared = {
+const preparedStory = {
   schemaVersion: 1,
+  contentId: "prototype-prologue-v1",
+  title: "Story",
+  beats: [
+    {
+      id: "beat",
+      speaker: null,
+      kind: "narration",
+      text: "Text",
+      background: "station",
+      characters: [],
+    },
+  ],
+  choices: [
+    { id: "trust-rin", label: "Trust" },
+    { id: "challenge-rin", label: "Challenge" },
+    { id: "observe-first", label: "Observe" },
+  ],
+  choiceResponses: {
+    "trust-rin": "Trust",
+    "challenge-rin": "Challenge",
+    "observe-first": "Observe",
+  },
+  laterAcknowledgments: {
+    "trust-rin": "Trust",
+    "challenge-rin": "Challenge",
+    "observe-first": "Observe",
+  },
+  mapImage: { packId: "chapter-01", path: "story/map.svg" },
+};
+const preparedGameplay = {
+  schemaVersion: 1,
+  chapterId: "chapter-01",
+  cards: [
+    {
+      code: 1,
+      record: {
+        code: 1,
+        alias: 0,
+        setcodes: [],
+        type: 17,
+        level: 4,
+        attribute: 1,
+        race: "1",
+        attack: 1000,
+        defense: 1000,
+        lscale: 0,
+        rscale: 0,
+        linkMarker: 0,
+        ot: 1,
+      },
+      text: {
+        code: 1,
+        name: "Card",
+        description: "Text",
+        strings: [],
+      },
+      fullImage: { packId: "chapter-01", path: "cards/1.jpg" },
+      croppedImage: { packId: "chapter-01", path: "cards/cropped/1.jpg" },
+    },
+  ],
+  sets: [
+    {
+      id: "first",
+      name: "First",
+      releaseYear: 2002,
+      image: { packId: "chapter-01", path: "sets/first.jpg" },
+      cards: [
+        {
+          code: 1,
+          name: "Card",
+          rarity: "common",
+          printingCode: "ONE-001",
+          sourceRarity: "Common",
+          sourceRarityCode: "(C)",
+        },
+      ],
+    },
+  ],
+  decks: [
+    {
+      id: "deck",
+      name: "Deck",
+      main: Array.from({ length: 40 }, () => 1),
+      extra: [],
+      side: [],
+    },
+  ],
+  opponents: [
+    {
+      id: "opponent",
+      name: "Opponent",
+      line: "Line",
+      deckId: "deck",
+      policyId: "basic",
+    },
+  ],
+  defaults: { starterDeckId: "deck", opponentId: "opponent" },
+  story: {
+    contentId: "prototype-prologue-v1",
+    document: { packId: "chapter-01", path: "chapters/chapter-01/story.json" },
+  },
+};
+const prepared = {
+  schemaVersion: 2,
   sourceInputs: [{ ...file, path: "content/chapter-selections.json" }],
   runtimeSnapshotId: sha,
   runtimeCardCodes: [1],
@@ -17,10 +121,14 @@ const prepared = {
     {
       id: "chapter-01",
       title: "One",
-      storyContentId: null,
+      description: "First chapter",
+      storyContentId: "prototype-prologue-v1",
       setIds: ["first"],
+      unavailableSetImageIds: [],
       cardCodes: [1],
       opponentIds: ["opponent"],
+      gameplay: preparedGameplay,
+      story: preparedStory,
     },
   ],
 };
@@ -139,7 +247,12 @@ export const schemaFixtures = {
   "migration-plan": {
     schemaVersion: 1,
     files: [
-      { from: "src/story/assets/test.svg", to: file.path, bytes: 1, sha256: sha },
+      {
+        from: "src/story/assets/test.svg",
+        to: file.path,
+        bytes: 1,
+        sha256: sha,
+      },
     ],
   },
   "asset-result": { status: "ok", operation: "setup", snapshotSha256: null },

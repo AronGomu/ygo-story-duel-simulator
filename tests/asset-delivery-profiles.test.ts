@@ -729,7 +729,11 @@ test("Dev Vite serves core font URLs and imported SVG only, never original sourc
   await put(root, "assets/shared/fonts/test.woff2", "font-bytes");
   await put(root, "assets/story/original.psd", "private-original");
   await put(root, "generated/assets/current/original.psd", "private-original");
-  await put(root, "assets/story/chapter-01/city-map-placeholder.svg", "<svg></svg>");
+  await put(
+    root,
+    "assets/story/chapter-01/city-map-placeholder.svg",
+    "<svg></svg>",
+  );
   const server = await createServer({
     configFile: false,
     root,
@@ -746,7 +750,8 @@ test("Dev Vite serves core font URLs and imported SVG only, never original sourc
     assert.equal(font.status, 200);
     assert.equal(await font.text(), "font-bytes");
     assert.equal(
-      (await fetch(`${base}/assets/story/chapter-01/city-map-placeholder.svg`)).status,
+      (await fetch(`${base}/assets/story/chapter-01/city-map-placeholder.svg`))
+        .status,
       200,
     );
     for (const url of [
@@ -764,12 +769,16 @@ test("Dev Vite serves core font URLs and imported SVG only, never original sourc
       assert.notEqual(await response.text(), "private-original");
     }
     await put(root, "private.txt", "private-original");
-    await unlink(path.join(root, "assets/story/chapter-01/city-map-placeholder.svg"));
+    await unlink(
+      path.join(root, "assets/story/chapter-01/city-map-placeholder.svg"),
+    );
     await symlink(
       path.join(root, "private.txt"),
       path.join(root, "assets/story/chapter-01/city-map-placeholder.svg"),
     );
-    const linked = await fetch(`${base}/assets/story/chapter-01/city-map-placeholder.svg`);
+    const linked = await fetch(
+      `${base}/assets/story/chapter-01/city-map-placeholder.svg`,
+    );
     assert.equal(linked.status, 404);
     assert.notEqual(await linked.text(), "private-original");
   } finally {
@@ -842,7 +851,7 @@ test("CLI distinguishes expected disk/permission errors from unexpected faults w
   }
 });
 
-test("Initial optional media selection does not invent mandatory files; deleting explicit selected art fails check", async (t) => {
+test("explicit media selection requires selected art without inventing files from gameplay metadata", async (t) => {
   const root = await fixture(t);
   await put(
     root,
@@ -854,13 +863,7 @@ test("Initial optional media selection does not invent mandatory files; deleting
     rule("available.svg", "file", "story/media/available.svg"),
   ]);
   assert.equal((await checkAssetProfiles(root)).inventory.files.length, 1);
-  // Gameplay metadata is not an instruction to fabricate or require absent optional art.
-  const initial = JSON.parse(
-    await readFile(path.join(repo, "asset-profiles/chapter-01.json"), "utf8"),
-  ) as AssetProfile;
-  assert.ok(
-    !initial.rules.some((r) => r.path === "card-images/cropped/10012614.jpg"),
-  );
+  // Gameplay metadata alone is not an instruction to fabricate absent art.
   await unlink(path.join(root, "assets/story/available.svg"));
   await assert.rejects(checkAssetProfiles(root), {
     message: "ASSET_REFERENCE_MISSING",

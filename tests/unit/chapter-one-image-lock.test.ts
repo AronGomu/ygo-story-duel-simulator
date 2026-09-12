@@ -8,32 +8,37 @@ import {
   verifyLockedCardImages,
 } from "../../scripts/lib/image-content-lock.ts";
 import { isJpeg } from "../../scripts/lib/images.ts";
-import { loadDeckSources } from "../../src/battle/duel/presets/deck-sources-node.ts";
-import { reviewedCardPool } from "../../src/battle/duel/presets/reviewed-card-pool.ts";
+import { loadChapterOneContentSource } from "../../scripts/lib/chapter-content-source.ts";
 
 const source = await readFile("image-content-lock.json", "utf8");
 const lock = parseImageContentLock(JSON.parse(source));
-const codes = [
-  4206964, 5053103, 5318639, 12580477, 12607053, 13039848, 15025844, 17814387,
-  23771716, 46986414, 50930991, 51482758, 66788016, 70781052, 89631139,
-  97590747,
-];
+const codes = (await loadChapterOneContentSource(process.cwd())).normalized
+  .cardCodes;
 const sha256 = (bytes: string | Uint8Array) =>
   createHash("sha256").update(bytes).digest("hex");
 
-describe("Chapter 1 active image pins", () => {
-  it("locks exactly the 16 active codes for both full and cropped art", async () => {
+describe("Chapter 1 image pins", () => {
+  it("locks all 1,627 Chapter 1 codes for full and cropped art", () => {
+    expect(codes).toHaveLength(1627);
     expect(lock.cards.map(({ code }) => code)).toEqual(codes);
     expect(lock.crops.map(({ code }) => code)).toEqual(codes);
-    expect(
-      [...reviewedCardPool(await loadDeckSources())].sort((a, b) => a - b),
-    ).toEqual(codes);
   });
 
-  it("preserves the existing set-art section byte for byte", () => {
-    expect(sha256(source.slice(source.indexOf('  "sets":')))).toBe(
-      "c0051257959b1992a4959352980f2c2be19ec66e6635747945a7f2ac34cdd4b2",
+  it("locks acquired set art without inventing the 19 null images", async () => {
+    const manifest = JSON.parse(
+      await readFile(`${ASSET_SOURCES.setImages.source}/manifest.json`, "utf8"),
+    ) as { readonly files: readonly { readonly setId: string }[] };
+    const evidence = JSON.parse(
+      await readFile("content/authoring/chapter-one-set-media.json", "utf8"),
+    ) as { readonly setsWithoutImage: readonly { readonly id: string }[] };
+    expect(lock.sets.map(({ setId }) => setId)).toEqual(
+      manifest.files.map(({ setId }) => setId),
     );
+    expect(
+      evidence.setsWithoutImage.some(({ id }) =>
+        lock.sets.some(({ setId }) => setId === id),
+      ),
+    ).toBe(false);
     expect(lock.schemaVersion).toBe(2);
     expect(lock.provider).toBe("ygoprodeck");
   });

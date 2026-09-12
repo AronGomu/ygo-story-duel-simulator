@@ -1,3 +1,4 @@
+import type { PackId } from "../../../src/content/index.ts";
 import type { Sha256 } from "./identity.ts";
 
 export interface RetainedMetadata {
@@ -7,7 +8,7 @@ export interface RetainedMetadata {
     readonly bytes: number;
   }[];
   readonly manifests: readonly {
-    readonly packId: "runtime" | "chapter-01";
+    readonly packId: PackId;
     readonly sha256: Sha256;
     readonly bytes: number;
   }[];
@@ -18,11 +19,19 @@ import {
   assertSorted,
   hash,
   integer,
-  literal,
   object,
+  text,
   version,
 } from "./schema.ts";
 import { compareCodePoints } from "./canonical-json.ts";
+import { fail } from "./failure.ts";
+function retainedPackId(value: unknown): PackId {
+  const id = text(value);
+  if (id !== "runtime" && !/^chapter-(0[1-9]|[1-9][0-9])$/.test(id))
+    fail("ASSET_CONFIG_INVALID");
+  return id as PackId;
+}
+
 export function parseRetainedMetadata(value: unknown): RetainedMetadata {
   const metadata = object(value, {
     schemaVersion: version,
@@ -33,7 +42,7 @@ export function parseRetainedMetadata(value: unknown): RetainedMetadata {
     manifests: array(
       (v) =>
         object(v, {
-          packId: literal("runtime", "chapter-01"),
+          packId: retainedPackId,
           sha256: hash,
           bytes: integer,
         }),

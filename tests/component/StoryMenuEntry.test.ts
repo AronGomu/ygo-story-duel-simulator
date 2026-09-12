@@ -33,6 +33,11 @@ const loaders: DomainLoaders = {
 /* Loading the story domain root is a Vite transform of the module graph behind
    it, which the default one-second budget knows nothing about. */
 const REAL_IMPORT = { timeout: 15_000 };
+const READY_CORE_GATE = {
+  kind: "ready" as const,
+  chapterIds: ["chapter-01" as const],
+  generation: 1,
+};
 
 let hash = "#/";
 
@@ -40,7 +45,11 @@ function renderShell() {
   const store = createShellStore(hash, (next) => {
     hash = next;
   });
-  return render(AppShell, { store, loaders });
+  return render(AppShell, {
+    store,
+    loaders,
+    initialCoreGate: READY_CORE_GATE,
+  });
 }
 
 function cy(value: string): HTMLElement | null {
@@ -62,7 +71,7 @@ async function waitForCy(value: string): Promise<HTMLElement> {
 /** A save on the city map, holding the deck and cards a real one carries. */
 async function seedMapSave(): Promise<void> {
   const { deck, collection } = fieldableStoryDeck();
-  await createStorySaveRepository(globalThis.indexedDB).write(
+  const result = await createStorySaveRepository(globalThis.indexedDB).write(
     "autosave",
     {
       ...createInitialStoryState(),
@@ -75,6 +84,7 @@ async function seedMapSave(): Promise<void> {
     },
     null,
   );
+  expect(result.kind).toBe("written");
 }
 
 async function deleteStorySaves(): Promise<void> {

@@ -3,7 +3,7 @@ import type { ManifestRef } from "./manifest-ref.ts";
 import type { ChapterRelease } from "./chapter-release.ts";
 
 export interface ContentIndex {
-  readonly schemaVersion: 1;
+  readonly schemaVersion: 2;
   readonly releaseId: string;
   readonly runtimeSnapshotId: Sha256;
   readonly runtime: ManifestRef;
